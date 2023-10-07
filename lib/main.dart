@@ -16,11 +16,6 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
-        supportedLocales: [
-          const Locale('en', 'US'), // English
-          const Locale('de', 'DE'), // German
-          // ... other locales
-        ],
         title: 'Floaty',
         theme: ThemeData(
           useMaterial3: true,

@@ -1,0 +1,43 @@
+name: Build and Deploy Flutter Web to Azure Static Web Apps and Blob Storage
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install Flutter
+      uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '3.x'
+
+    - name: Flutter Web Build
+      run: |
+        flutter create --project-name floaty .
+        flutter config --enable-web
+        flutter pub get
+        flutter build web --no-tree-shake-icons
+
+    - name: Deploy to Azure Static Web App
+      uses: azure/static-web-apps-deploy@v0.0.1-preview
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        action: "upload"
+        skip_app_build: true
+        app_location: "build/web"
+        app_artifact_location: "build/web"
+        
+    - name: Upload to Azure Blob Storage
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.53.0
+        inlineScript: |
+          az storage blob upload-batch --account-name safloaty --source build/web --destination '$web' --type block --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"

@@ -58,12 +58,13 @@ analysis_benchmark.json
 .pub-preload-cache/
 .pub-cache/
 .pub/
-build/
+build/*
 flutter_*.png
 linked_*.ds
 unlinked.ds
 unlinked_spec.ds
 web
+!build/web
 
 # Android related
 **/android/**/gradle-wrapper.jar
