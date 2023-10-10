@@ -37,55 +37,63 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  var selectedIndex = 0;
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
 
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = LandingPage();
-        break;
-      case 1:
-        page = FlightsScreen();
-        break;
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
+      Widget page;
+      switch (_selectedIndex) {
+        case 0:
+          page = LandingPage();
+          break;
+        case 1:
+          page = FlightsScreen();
+          break;
+        case 2:
+          page = Placeholder();  // Profile
+          break;
+        default:
+          throw UnimplementedError('no widget for $_selectedIndex');
+      }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Row(
-        children: [
-          SafeArea(
-            child: NavigationRail(
-              extended: false,
-              destinations: [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home, size: 25.0),
-                  label: Text('Home'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.paragliding_sharp, size: 25.0),
-                  label: Text('Flights'),
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          if (constraints.maxWidth < 600) {
+            // Use BottomNavigationBar for smaller screens
+            return Column(
+              children: [
+                Expanded(child: page), // Page based on the index
+                BottomNavigationBar(
+                  items: const <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(icon: Icon(Icons.home, size: 30.0), label: 'Home'),
+                    BottomNavigationBarItem(icon: Icon(Icons.paragliding_sharp, size: 30.0), label: 'Flights'),
+                    BottomNavigationBarItem(icon: Icon(Icons.person_sharp, size: 30.0), label: 'Profile'),
+                  ],
+                  currentIndex: _selectedIndex,
+                  onTap: (index) => setState(() => _selectedIndex = index),
                 ),
               ],
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
-            ),
-          ),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: page,
-            ),
-          ),
-        ],
+            );
+          } else {
+            // Use NavigationRail for larger screens
+            return Row(
+              children: [
+                NavigationRail(
+                  destinations: const <NavigationRailDestination>[
+                    NavigationRailDestination(icon: Icon(Icons.home), label: Text('Home')),
+                    NavigationRailDestination(icon: Icon(Icons.paragliding_sharp), label: Text('Flights')),
+                    NavigationRailDestination(icon: Icon(Icons.person), label: Text('Profile')),
+                  ],
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+                ),
+                Expanded(child: page), // Page based on the index
+              ],
+            );
+          }
+        },
       ),
     );
   }

@@ -53,7 +53,7 @@ class DotGridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const double dotSpacing = 20.0; // Adjust for desired spacing between dots
     final dotPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.6) // Semi-transparent grey
+      ..color = Colors.grey.withOpacity(0.4) // Semi-transparent grey
       ..strokeWidth = 2.0
       ..style = PaintingStyle.fill;
 
