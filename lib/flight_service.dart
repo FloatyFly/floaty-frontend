@@ -4,10 +4,9 @@ import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'dart:math';
 
+import 'constants.dart';
 import 'model.dart';
 
-// const BASE_URL = 'http://10.0.2.2:8080'; // can be used for debugging TODO: Make configurable
-const BASE_URL = 'https://floaty-backend-floaty-backend.azuremicroservices.io';
 
 Future<List<Flight>> fetchFlights() async {
 
