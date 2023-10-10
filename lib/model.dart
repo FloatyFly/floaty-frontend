@@ -1,37 +1,37 @@
+import 'package:floaty/user_service.dart';
+
 class Flight {
-  int id;
-  User user;
-  String takeoff;
-  int duration;
-  String flightDate;
+  final String flightId;
+  final User user;
+  final String date;
+  final String takeoff;
+  final int duration;
 
   Flight({
-    required this.id,
+    required this.flightId,
     required this.user,
+    required this.date,
     required this.takeoff,
     required this.duration,
-    required this.flightDate
   });
 
-  factory Flight.fromJson(Map<String, dynamic> json) {
+  factory Flight.fromJson(Map<String, dynamic> json, User user) {
     return Flight(
-      id: json['id'],
-      user: User.fromJson(json['user']),
+      flightId: json['flightId'],
+      user: user,
+      date: json['date'],
       takeoff: json['takeoff'],
       duration: json['duration'],
-      flightDate: json['flightdate']
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'user': user.id,
-      'takeoff': takeoff,
-      'duration': duration,
-      // ... any other fields ...
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    if (flightId != null) 'flightId': flightId,
+    'userId': user.id, // Extract only the userId when converting back to JSON
+    'date': date,
+    'takeoff': takeoff,
+    if (duration != null) 'duration': duration,
+  };
 }
 
 class User {
@@ -42,7 +42,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
+      id: int.parse(json['id']),
       name: json['name'],
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:floaty/service.dart';
+import 'package:floaty/flight_service.dart';
 
 import 'model.dart';
 
@@ -58,7 +58,7 @@ class _FlightsScreenState extends State<FlightsScreen> {
                                         Icon(Icons.date_range, color: Colors.lightBlueAccent),
                                         SizedBox(width: 8.0),
                                         Text(
-                                          '${flight.flightDate.toString()}',
+                                          '${flight.date.toString()}',
                                           style: TextStyle(fontSize: 16.0),
                                         ),
                                       ],
@@ -98,7 +98,7 @@ class _FlightsScreenState extends State<FlightsScreen> {
                                   color: Colors.grey[400], // muted color
                                 ),
                                 onPressed: () async {
-                                  await deleteFlight(flight.id);
+                                  await deleteFlight(flight.flightId);
                                   setState(() {
                                     futureFlights = fetchFlights();
                                   });

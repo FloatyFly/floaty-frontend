@@ -1,3 +1,4 @@
+import 'package:floaty/user_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
@@ -5,43 +6,51 @@ import 'dart:math';
 
 import 'model.dart';
 
+const BASE_URL = 'http://10.0.2.2:8080';
+// const BASE_URL = 'https://floaty-backend-floaty-backend.azuremicroservices.io';
+
 Future<List<Flight>> fetchFlights() async {
-  final response = await http.get(Uri.parse('https://floaty-backend-floaty-backend.azuremicroservices.io/flights'));
+
+  final response = await http.get(Uri.parse('$BASE_URL/flights'));
 
   if (response.statusCode == 200) {
-    Iterable list = json.decode(response.body);
-    print(list);
-    var flights = list.map((model) => Flight.fromJson(model)).toList();
-    return flights;
+    List<dynamic> list = json.decode(response.body);
+
+    Iterable<Future<Flight>> flightsFutures = list.map((flight) => createFlightFromJson(flight));
+
+    return await Future.wait(flightsFutures);
   } else {
     throw Exception('Failed to load flights');
   }
 }
 
+Future<Flight> createFlightFromJson(Map<String, dynamic> json) async {
+  User user = await fetchUserById(json['userId'].toString());
+  return Flight.fromJson(json, user);
+}
+
 Future<void> addRandomFlight() async {
   var flightJson = generateFlightJson();
-
+  print(flightJson);
   final response = await http.post(
-    Uri.parse('https://floaty-backend-floaty-backend.azuremicroservices.io/flights'),
+    Uri.parse('$BASE_URL/flights'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
     body: flightJson,
   );
-  print(response.body);
+
   if (response.statusCode != 201 && response.statusCode != 200) {
-    // Note: HTTP status code 201 means Created, which is typically returned
-    // for successful POST requests that result in creation.
+    print(response.body);
+
     throw Exception('Failed to add flight');
   }
 }
 
-Future<void> deleteFlight(int flightId) async {
-  print("deleting flight $flightId");
+Future<void> deleteFlight(String flightId) async {
   final response = await http.delete(
-    Uri.parse('https://floaty-backend-floaty-backend.azuremicroservices.io/flights/$flightId'),
+    Uri.parse('$BASE_URL/flights/$flightId'),
   );
-  print(response.body);
 
   if (response.statusCode != 200 && response.statusCode != 204) {
     // Note: HTTP status code 204 means No Content, which is typically returned
@@ -62,7 +71,7 @@ String generateFlightJson() {
   // Generate random date within a range (e.g., within 2023)
   final day = random.nextInt(28) + 1;  // for simplicity, assuming all months have 28 days
   final month = random.nextInt(12) + 1;
-  final date = "01.$month.2023";  // for simplicity, fixing day to 01
+  final date = "$day.$month.2023";  // for simplicity, fixing day to 01
 
   // Other random data
   final userId = (random.nextInt(3) + 1).toString();
@@ -70,7 +79,7 @@ String generateFlightJson() {
   final duration = random.nextInt(91) + 10;  // Random number between 10 and 100
 
   var flight = {
-    "userid": userId,
+    "userId": userId,
     "date": date,
     "takeoff": takeoff,
     "duration": duration.toString(),
