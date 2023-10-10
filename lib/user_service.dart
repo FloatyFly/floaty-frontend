@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'model.dart';
 
-const BASE_URL = 'http://10.0.2.2:8080';
-// const BASE_URL = 'https://floaty-backend-floaty-backend.azuremicroservices.io';
+// const BASE_URL = 'http://10.0.2.2:8080'; // use for debugging TODO: Make configurable
+const BASE_URL = 'https://floaty-backend-floaty-backend.azuremicroservices.io';
 
 Future<User> fetchUserById(String userId) async {
   final String apiUrl = '$BASE_URL/users/$userId';
