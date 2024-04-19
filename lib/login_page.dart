@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:floaty/landing_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'main.dart';
 import 'profile_page.dart';
 import 'register_page.dart';
 import 'fire_auth.dart';
@@ -24,17 +27,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<FirebaseApp> _initializeFirebase() async {
     FirebaseApp firebaseApp = await Firebase.initializeApp();
-
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => ProfilePage(
-            user: user,
-          ),
-        ),
-      );
+      Provider.of<MyAppState>(context, listen: false).login(user);
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => MyHomePage()));
     }
 
     return firebaseApp;
@@ -109,68 +106,64 @@ class _LoginPageState extends State<LoginPage> {
                           _isProcessing
                               ? CircularProgressIndicator()
                               : Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    _focusEmail.unfocus();
-                                    _focusPassword.unfocus();
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          _focusEmail.unfocus();
+                                          _focusPassword.unfocus();
 
-                                    if (_formKey.currentState!
-                                        .validate()) {
-                                      setState(() {
-                                        _isProcessing = true;
-                                      });
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            setState(() {
+                                              _isProcessing = true;
+                                            });
 
-                                      User? user = await FireAuth
-                                          .signInUsingEmailPassword(
-                                        email: _emailTextController.text,
-                                        password:
-                                        _passwordTextController.text, context: context,
-                                      );
+                                            User? user = await FireAuth
+                                                .signInUsingEmailPassword(
+                                              email: _emailTextController.text,
+                                              password:
+                                                  _passwordTextController.text,
+                                              context: context,
+                                            );
 
-                                      setState(() {
-                                        _isProcessing = false;
-                                      });
+                                            setState(() {
+                                              _isProcessing = false;
+                                            });
 
-                                      if (user != null) {
-                                        Navigator.of(context)
-                                            .pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ProfilePage(user: user),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  child: Text(
-                                    'Sign In',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 24.0),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            RegisterPage(),
+                                            if (user != null) {
+                                              Provider.of<MyAppState>(context, listen: false).login(user);
+                                              // Don't push or navigate here; let the state change handle it
+                                            }
+                                          }
+                                        },
+                                        child: Text(
+                                          'Sign In',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
                                       ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'Register',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
+                                    ),
+                                    SizedBox(width: 24.0),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  RegisterPage(),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          'Register',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
                         ],
                       ),
                     )

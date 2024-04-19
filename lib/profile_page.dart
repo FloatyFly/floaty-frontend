@@ -2,11 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'fire_auth.dart';
-import 'login_screen.dart';
+import 'login_page.dart';
 
 
 class ProfilePage extends StatefulWidget {
-  final User user;
+  final User? user;
 
   const ProfilePage({required this.user});
 
@@ -22,16 +22,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   void initState() {
-    _currentUser = widget.user;
+    _currentUser = widget.user!;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Profile'),
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
