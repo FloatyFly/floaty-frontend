@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+
+import 'firebase_options.dart';
 import 'flights_screen.dart';
 import 'landing_page.dart';
+import 'login_screen.dart';
 
-void main() {
+void main() async {
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // This uses the generated options
+  );
   runApp(MyApp());
 }
 
@@ -37,7 +45,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +59,10 @@ class _MyHomePageState extends State<MyHomePage> {
           page = FlightsScreen();
           break;
         case 2:
-          page = Placeholder();  // Profile
+          page = LoginPage();  // Profile
+          break;
+        case 3:
+          page = LoginPage(); //
           break;
         default:
           throw UnimplementedError('no widget for $_selectedIndex');
@@ -98,5 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+
 
 
