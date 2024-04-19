@@ -1,5 +1,3 @@
-import 'package:floaty/user_service.dart';
-
 class Flight {
   final String flightId;
   final User user;
@@ -36,12 +34,12 @@ class Flight {
   }
 
   Map<String, dynamic> toJson() => {
-        if (flightId != null) 'flightId': flightId,
-        'userId':
+        "flightId": flightId,
+        "userId":
             user.id, // Extract only the userId when converting back to JSON
-        'date': date,
-        'takeoff': takeoff,
-        if (duration != null) 'duration': duration,
+        "date": date,
+        "takeoff": takeoff,
+        "duration": duration,
       };
 }
 
