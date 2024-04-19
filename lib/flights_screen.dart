@@ -35,6 +35,91 @@ class _FlightsScreenState extends State<FlightsScreen> {
     await addFlight(flightJson);
   }
 
+  void _showAddFlightSheet(BuildContext context) {
+    TextEditingController dateController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isFormValid = false;
+
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            padding: EdgeInsets.all(20),
+            child: Form(
+              key: formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              onChanged: () {
+                setState(() {
+                  isFormValid = formKey.currentState?.validate() ?? false;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  TextFormField(
+                    controller: dateController,
+                    decoration: InputDecoration(
+                      hintText: "Date of Flight (yyyy-mm-dd)",
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null ||
+                          value.isEmpty ||
+                          DateTime.tryParse(value) == null ||
+                          DateTime.parse(value).isAfter(DateTime.now())) {
+                        return "Please enter a valid date in the format yyyy-mm-dd";
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(hintText: "Takeoff Location"),
+                    onChanged: (value) {
+                      takeoff = value;
+                    },
+                  ),
+                  TextFormField(
+                    decoration:
+                        InputDecoration(hintText: "Flight Duration (minutes)"),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      duration = int.parse(value);
+                    },
+                  ),
+                  Row(
+                    children: [
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                      ),
+                      Visibility(
+                        visible: isFormValid,
+                        child: TextButton(
+                          child: Text('Save'),
+                          onPressed: () async {
+                            await saveFlight();
+                            setState(() {
+                              futureFlights = fetchFlights();
+                            });
+
+                            if (!context.mounted) return;
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -195,84 +280,8 @@ class _FlightsScreenState extends State<FlightsScreen> {
                   height: 80, // provide a custom height
                   child: FloatingActionButton(
                     backgroundColor: Color(0xFF8BC34A),
-                    onPressed: () => showDialog<String>(
-                        context: context,
-                        builder: (BuildContext context) => AlertDialog(
-                              title: Text('Add New Flight'),
-                              content: SingleChildScrollView(
-                                child: ListBody(
-                                  children: <Widget>[
-                                    TextField(
-                                      decoration: InputDecoration(
-                                          hintText:
-                                              "Date of Flight (dd-mm-YYYY)"),
-                                      onChanged: (value) {
-                                        date = value;
-                                      },
-                                    ),
-                                    TextField(
-                                      decoration: InputDecoration(
-                                          hintText: "Takeoff Location"),
-                                      onChanged: (value) {
-                                        takeoff = value;
-                                      },
-                                    ),
-                                    TextField(
-                                      decoration: InputDecoration(
-                                          hintText:
-                                              "Flight Duration (minutes)"),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: (value) {
-                                        duration = int.parse(value);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: Text('Cancel'),
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pop(); // Close the dialog
-                                  },
-                                ),
-                                TextButton(
-                                  child: Text('Save'),
-                                  onPressed: () async {
-                                    // Handle data saving here
-                                    await saveFlight();
-                                    setState(() {
-                                      futureFlights = fetchFlights();
-                                    });
-
-                                    if (!context.mounted) return;
-                                    Navigator.of(context)
-                                        .pop(); // Close the dialog
-                                  },
-                                ),
-                              ],
-                            )),
+                    onPressed: () => _showAddFlightSheet(context),
                     child: Icon(Icons.add, size: 40),
-
-                    // final response = await http.post(
-                    //   Uri.parse('$BASE_URL/flights'),
-                    //   headers: <String, String>{
-                    //     'Content-Type': 'application/json; charset=UTF-8',
-                    //   },
-                    //   body: flight,
-                    // );
-
-                    // if (response.statusCode != 201 &&
-                    //     response.statusCode != 200) {
-                    //   print(response.body);
-                    //   throw Exception('Failed to add flight');
-                    // }
-                    //   setState(() {
-                    //     futureFlights = fetchFlights();
-                    //   });
-                    // },
-                    // mini: false,
                   ),
                 ),
               ),
