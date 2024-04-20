@@ -83,6 +83,7 @@ class FlightsScreenState extends State<FlightsScreen> {
         child: Center(
           child: Material(
             elevation: 4.0,
+            borderRadius: BorderRadius.circular(20),
             child: Container(
               width: MediaQuery.of(context).size.width * 0.7,
               height: MediaQuery.of(context).size.height * 0.7,
