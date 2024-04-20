@@ -3,7 +3,7 @@ name: Build and Deploy Flutter Web to Azure Static Web Apps and Blob Storage
 on:
   push:
     branches:
-      - main
+      - disabled-branch-such-that-this-workflow-does-not-run
 
 jobs:
   build_and_deploy:
