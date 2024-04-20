@@ -21,6 +21,7 @@ class FlightsScreenState extends State<FlightsScreen> {
   // List of flights to display
   late Future<List<Flight>> futureFlights;
 
+  // TODO: make changes to backend to handle currentUser UID
   // Currently logged in user
   late User _currentUser;
 
@@ -64,130 +65,133 @@ class FlightsScreenState extends State<FlightsScreen> {
   Future<void> saveFlight() async {
     final formattedDate = formatter.format(DateTime.parse(dateController.text));
     String flightJson = jsonEncode({
-      "userId": _currentUser.displayName,
+      // TODO: use _currentUser.uid here, but this required changes to backend
+      "userId": 2,
       "date": formattedDate,
       "takeoff": takeoffController.text,
       "duration": durationController.text,
     });
-    print("JSON: $flightJson");
     await addFlight(flightJson);
   }
 
   OverlayEntry createOverlayEntry(BuildContext context) {
     return OverlayEntry(
-      builder: (context) => Positioned(
-        top: 200,
-        left: 100,
-        right: 100,
-        child: Material(
-          elevation: 4.0,
-          child: Container(
-            padding: EdgeInsets.all(20.0),
-            color: Colors.white,
-            child: Column(
-              children: [
-                Form(
-                  key: _formKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  onChanged: () {
-                    setState(() {
-                      isFormValid = _formKey.currentState?.validate() ?? false;
-                    });
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      TextFormField(
-                        controller: dateController,
-                        decoration: InputDecoration(
-                          hintText: "Date of Flight (yyyy-mm-dd)",
-                          hintStyle: const TextStyle(
-                            color: Colors.grey,
-                          ),
+      builder: (context) => Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        color: Colors.black54, // Adds semi-transparent overlay
+        child: Center(
+          child: Material(
+            elevation: 4.0,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.7,
+              height: MediaQuery.of(context).size.height * 0.7,
+              padding: EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: () {
+                  setState(() {
+                    isFormValid = _formKey.currentState?.validate() ?? false;
+                  });
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    TextFormField(
+                      controller: dateController,
+                      decoration: InputDecoration(
+                        hintText: "Date of Flight (yyyy-mm-dd)",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
                         ),
-                        validator: (value) {
-                          if (value == null ||
-                              value.isEmpty ||
-                              DateTime.tryParse(value) == null ||
-                              DateTime.parse(value).isAfter(DateTime.now())) {
-                            return "Please enter a valid date in the format yyyy-mm-dd";
-                          }
-                          return null;
-                        },
                       ),
-                      TextFormField(
-                        controller: takeoffController,
-                        decoration: InputDecoration(
-                          hintText: "Takeoff Location",
-                          hintStyle: const TextStyle(
-                            color: Colors.grey,
-                          ),
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            DateTime.tryParse(value) == null ||
+                            DateTime.parse(value).isAfter(DateTime.now())) {
+                          return "Please enter a valid date in the format yyyy-mm-dd";
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: takeoffController,
+                      decoration: InputDecoration(
+                        hintText: "Takeoff Location",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Please enter a takeoff location";
-                          }
-                          return null;
-                        },
                       ),
-                      TextFormField(
-                        controller: durationController,
-                        decoration: InputDecoration(
-                          hintText: "Flight Duration (minutes)",
-                          hintStyle: const TextStyle(
-                            color: Colors.grey,
-                          ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter a takeoff location";
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: durationController,
+                      decoration: InputDecoration(
+                        hintText: "Flight Duration (minutes)",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
                         ),
-                        validator: (value) {
-                          if (value == null ||
-                              value.isEmpty ||
-                              int.tryParse(value) == null) {
-                            return "Please enter a valid duration in minutes";
-                          }
-                          return null;
-                        },
                       ),
-                    ],
-                  ),
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            int.tryParse(value) == null) {
+                          return "Please enter a valid duration in minutes";
+                        }
+                        return null;
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () => overlayEntry.remove(),
+                            ),
+                          ),
+                          Visibility(
+                            visible: isFormValid,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  try {
+                                    await saveFlight();
+                                  } catch (e) {
+                                    print("Failed to save flight, error: $e");
+                                  }
+
+                                  setState(() {
+                                    futureFlights = fetchFlights();
+                                  });
+
+                                  overlayEntry.remove(); // Close the dialog
+                                },
+                                style: style,
+                                child: Text('Save'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () => overlayEntry.remove(),
-                        ),
-                      ),
-                      Visibility(
-                        visible: isFormValid,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                await saveFlight();
-                              } catch (e) {
-                                print("Failed to save flight, error: $e");
-                              }
-
-                              setState(() {
-                                futureFlights = fetchFlights();
-                              });
-
-                              overlayEntry.remove(); // Close the dialog
-                            },
-                            style: style,
-                            child: Text('Save'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ],
+              ),
             ),
           ),
         ),
