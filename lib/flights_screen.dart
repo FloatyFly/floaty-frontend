@@ -41,6 +41,7 @@ class FlightsScreenState extends State<FlightsScreen> {
   TextEditingController dateController = TextEditingController();
   TextEditingController takeoffController = TextEditingController();
   TextEditingController durationController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
 
   // Button style
   final ButtonStyle style = ElevatedButton.styleFrom(
@@ -70,6 +71,7 @@ class FlightsScreenState extends State<FlightsScreen> {
       "date": formattedDate,
       "takeoff": takeoffController.text,
       "duration": durationController.text,
+      "description": descriptionController.text
     });
     await addFlight(flightJson);
   }
@@ -152,6 +154,15 @@ class FlightsScreenState extends State<FlightsScreen> {
                         }
                         return null;
                       },
+                    ),
+                    TextFormField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        hintText: "Description",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -265,63 +276,87 @@ class FlightsScreenState extends State<FlightsScreen> {
                                 margin: EdgeInsets.all(10.0),
                                 child: Padding(
                                   padding: EdgeInsets.all(15.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                  child: Row(  // Main horizontal layout
+                                    crossAxisAlignment: CrossAxisAlignment.start,  // Align items at the start vertically
                                     children: <Widget>[
-                                      Row(
-                                        children: [
-                                          Icon(Icons.person_outline,
-                                              color: Colors.blue),
-                                          SizedBox(width: 8.0),
-                                          Text(
-                                            flight.user.name,
-                                            style: TextStyle(
-                                                fontSize: 18.0,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
+                                      // Container for icons and labels to ensure they are tightly packed
+                                      Container(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            Row(
+                                              children: [
+                                                Icon(Icons.person_outline, color: Colors.blue),
+                                                SizedBox(width: 8.0),
+                                                Text(
+                                                  flight.user.name,
+                                                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 8.0),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.date_range, color: Colors.lightBlueAccent),
+                                                SizedBox(width: 8.0),
+                                                Text(
+                                                  flight.date.toString(),
+                                                  style: TextStyle(fontSize: 16.0),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 8.0),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.flight_takeoff, color: Colors.lightGreen),
+                                                SizedBox(width: 8.0),
+                                                Text(
+                                                  'Takeoff: ${flight.takeoff}',
+                                                  style: TextStyle(fontSize: 16.0),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 8.0),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.timer, color: Colors.redAccent),
+                                                SizedBox(width: 8.0),
+                                                Text(
+                                                  '${flight.duration.toString()} minutes',
+                                                  style: TextStyle(fontSize: 16.0),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      SizedBox(height: 8.0),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.date_range,
-                                              color: Colors.lightBlueAccent),
-                                          SizedBox(width: 8.0),
-                                          Text(
-                                            flight.date.toString(),
-                                            style: TextStyle(fontSize: 16.0),
+                                      // Expanded widget for the description to ensure it fills the remaining space
+                                      Expanded(
+                                        child: Container(
+                                          margin: EdgeInsets.only(top: 20.0, left: 120.0, right: 40),  // Top margin to avoid overlapping with delete button
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(10), // Rounded corners
                                           ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8.0),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.flight_takeoff,
-                                              color: Colors.lightGreen),
-                                          SizedBox(width: 8.0),
-                                          Text(
-                                            'Takeoff: ${flight.takeoff}',
-                                            style: TextStyle(fontSize: 16.0),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),  // Internal padding
+                                            child: Text(
+                                              flight.description != null ? flight.description : "",
+                                              style: TextStyle(fontSize: 16.0),
+                                              textAlign: TextAlign.justify,
+                                            ),
                                           ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8.0),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.timer,
-                                              color: Colors.redAccent),
-                                          SizedBox(width: 8.0),
-                                          Text(
-                                            '${flight.duration.toString()} minutes',
-                                            style: TextStyle(fontSize: 16.0),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
+
+
+
+
+
                               Positioned(
                                 top: 10.0,
                                 right: 10.0,

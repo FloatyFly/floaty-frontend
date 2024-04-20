@@ -55,7 +55,7 @@ class MyAppState extends ChangeNotifier {
   void login(User user) {
     _currentUser = user;
     _isLoggedIn = true;
-    _selectedIndex = 0; // Navigate to LandingPage after login
+    _selectedIndex = 1;
     notifyListeners();
   }
 

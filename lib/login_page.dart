@@ -36,8 +36,6 @@ class _LoginPageState extends State<LoginPage> {
     return firebaseApp;
   }
 
-
-
   Future<UserCredential> signInWithGoogle() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
       clientId: "207967111919-risi1sc1p1fi5e2rg5ofreee8a5g5bhh.apps.googleusercontent.com",
@@ -88,15 +86,8 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Login',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 80.0,
-                    color: Colors.white.withOpacity(0.7),
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'ModernFont',
-                  ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 30), // This adds 10 logical pixels of padding vertically
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 100.0),
@@ -108,7 +99,15 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _emailTextController,
                           focusNode: _focusEmail,
                           validator: (value) => Validator.validateEmail(email: value),
-                          decoration: InputDecoration(hintText: "Email"),
+                          decoration: InputDecoration(
+                            hintText: "Email",
+                            hintStyle: TextStyle(fontSize: 40, color: Colors.black38),  // Example to style hint differently
+                            // Apply style for focused field
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.deepOrangeAccent),
+                            ),
+                          ),
+                          style: TextStyle(fontSize: 40, color: Colors.white70), // Ensure this is still here
                         ),
                         SizedBox(height: 16.0),
                         TextFormField(
@@ -116,7 +115,15 @@ class _LoginPageState extends State<LoginPage> {
                           focusNode: _focusPassword,
                           obscureText: true,
                           validator: (value) => Validator.validatePassword(password: value),
-                          decoration: InputDecoration(hintText: "Password"),
+                          decoration: InputDecoration(
+                            hintText: "Password",
+                            hintStyle: TextStyle(fontSize: 40, color: Colors.black38),  // Example to style hint differently
+                            // Apply style for focused field
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.deepOrangeAccent),
+                            ),
+                          ),
+                          style: TextStyle(fontSize: 40, color: Colors.white70),
                         ),
                         SizedBox(height: 32.0),
                         _isProcessing
@@ -146,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                                     }
                                   }
                                 },
-                                child: Text('Sign In', style: TextStyle(color: Colors.black)),
+                                child: Text('Sign In', style: TextStyle(color: Colors.black, fontSize: 30)),
                               ),
                             ),
                             SizedBox(width: 16.0),
@@ -155,43 +162,10 @@ class _LoginPageState extends State<LoginPage> {
                                 onPressed: () {
                                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterPage()));
                                 },
-                                child: Text('Register', style: TextStyle(color: Colors.black)),
+                                child: Text('Register', style: TextStyle(color: Colors.black, fontSize: 30)),
                               ),
                             ),
                             SizedBox(height: 20),
-                            Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    try {
-                                      print("Google Sign-In button pressed");
-                                      UserCredential userCredential = await signInWithGoogle();
-                                      print("Signed in with Google: ${userCredential.user}");
-                                      // Navigate to your main app screen or handle the user sign-in
-                                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => RegisterPage())); // Adjust as necessary
-                                    } catch (error) {
-                                      print("Error signing in with Google: $error");
-                                      // You can show an error message to the user here
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          title: Text("Login Error"),
-                                          content: Text("Failed to sign in with Google. Please try again."),
-                                          actions: [
-                                            TextButton(
-                                              child: Text("OK"),
-                                              onPressed: () => Navigator.of(context).pop(),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: Text('Sign in with Google'),
-                                  style: ElevatedButton.styleFrom(
-                                    foregroundColor: Colors.black, backgroundColor: Colors.white, // Text color
-                                  ),
-                                )
-                            )
                           ],
                         )
                       ],

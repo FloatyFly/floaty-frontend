@@ -4,6 +4,7 @@ class Flight {
   final String date;
   final String takeoff;
   final int duration;
+  final String description;
 
   Flight({
     required this.flightId,
@@ -11,6 +12,7 @@ class Flight {
     required this.date,
     required this.takeoff,
     required this.duration,
+    this.description = ''
   });
 
   factory Flight.fromJson(Map<String, dynamic> json, FloatyUser user) {
@@ -20,6 +22,7 @@ class Flight {
       date: json['date'],
       takeoff: json['takeoff'],
       duration: json['duration'],
+      description: json['description']
     );
   }
 
