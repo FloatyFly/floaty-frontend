@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:floaty/flight_service.dart';
 
@@ -9,14 +10,33 @@ import 'model.dart';
 
 class FlightsScreen extends StatefulWidget {
   @override
-  _FlightsScreenState createState() => _FlightsScreenState();
+  FlightsScreenState createState() => FlightsScreenState();
 }
 
-class _FlightsScreenState extends State<FlightsScreen> {
+class FlightsScreenState extends State<FlightsScreen> {
+  // List of flights to display
   late Future<List<Flight>> futureFlights;
+
+  // Data containers for newly entered flight data
   String? date;
   String? takeoff;
   int? duration;
+
+  // Input validation utilities
+  final _formKey = GlobalKey<FormState>();
+  bool isFormValid = false;
+  final DateFormat formatter = DateFormat('dd.MM.yyyy');
+
+  TextEditingController dateController = TextEditingController();
+  TextEditingController takeoffController = TextEditingController();
+  TextEditingController durationController = TextEditingController();
+
+  final ButtonStyle style = ElevatedButton.styleFrom(
+    textStyle: const TextStyle(
+      fontSize: 12.0,
+    ),
+    padding: EdgeInsets.all(10.0),
+  );
 
   @override
   void initState() {
@@ -26,9 +46,10 @@ class _FlightsScreenState extends State<FlightsScreen> {
 
   Future<void> saveFlight() async {
     final userId = (Random().nextInt(3) + 1).toString();
+    final formattedDate = formatter.format(DateTime.parse(date!));
     String flightJson = jsonEncode({
       "userId": userId,
-      "date": date,
+      "date": formattedDate,
       "takeoff": takeoff,
       "duration": duration.toString(),
     });
@@ -36,70 +57,95 @@ class _FlightsScreenState extends State<FlightsScreen> {
   }
 
   void _showAddFlightSheet(BuildContext context) {
-    TextEditingController dateController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    bool isFormValid = false;
-
     showModalBottomSheet(
-        context: context,
-        builder: (BuildContext context) {
-          return Container(
-            padding: EdgeInsets.all(20),
-            child: Form(
-              key: formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              onChanged: () {
-                setState(() {
-                  isFormValid = formKey.currentState?.validate() ?? false;
-                });
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  TextFormField(
-                    controller: dateController,
-                    decoration: InputDecoration(
-                      hintText: "Date of Flight (yyyy-mm-dd)",
-                      hintStyle: const TextStyle(
-                        color: Colors.grey,
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.always,
+                onChanged: () {
+                  setState(() {
+                    isFormValid = _formKey.currentState?.validate() ?? false;
+                  });
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    TextFormField(
+                      controller: dateController,
+                      decoration: InputDecoration(
+                        hintText: "Date of Flight (yyyy-mm-dd)",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                        ),
                       ),
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            DateTime.tryParse(value) == null ||
+                            DateTime.parse(value).isAfter(DateTime.now())) {
+                          return "Please enter a valid date in the format yyyy-mm-dd";
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (value) {
-                      if (value == null ||
-                          value.isEmpty ||
-                          DateTime.tryParse(value) == null ||
-                          DateTime.parse(value).isAfter(DateTime.now())) {
-                        return "Please enter a valid date in the format yyyy-mm-dd";
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(hintText: "Takeoff Location"),
-                    onChanged: (value) {
-                      takeoff = value;
-                    },
-                  ),
-                  TextFormField(
-                    decoration:
-                        InputDecoration(hintText: "Flight Duration (minutes)"),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      duration = int.parse(value);
-                    },
-                  ),
-                  Row(
-                    children: [
-                      TextButton(
+                    TextFormField(
+                      controller: takeoffController,
+                      decoration: InputDecoration(
+                        hintText: "Takeoff Location",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter a takeoff location";
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: durationController,
+                      decoration: InputDecoration(
+                        hintText: "Flight Duration (minutes)",
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            int.tryParse(value) == null) {
+                          return "Please enter a valid duration in minutes";
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextButton(
                         child: Text('Cancel'),
                         onPressed: () {
                           Navigator.of(context).pop(); // Close the dialog
                         },
                       ),
-                      Visibility(
-                        visible: isFormValid,
-                        child: TextButton(
-                          child: Text('Save'),
+                    ),
+                    Visibility(
+                      visible: isFormValid,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ElevatedButton(
                           onPressed: () async {
                             await saveFlight();
                             setState(() {
@@ -109,15 +155,19 @@ class _FlightsScreenState extends State<FlightsScreen> {
                             if (!context.mounted) return;
                             Navigator.of(context).pop(); // Close the dialog
                           },
+                          style: style,
+                          child: Text('Save'),
                         ),
                       ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          );
-        });
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
