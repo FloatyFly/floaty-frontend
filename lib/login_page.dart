@@ -8,6 +8,9 @@ import 'register_page.dart';
 import 'fire_auth.dart';
 import 'validator.dart';
 
+// Google SingleSignon
+import 'package:google_sign_in/google_sign_in.dart';
+
 // Assuming DotGridPainter is defined somewhere accessible
 
 class LoginPage extends StatefulWidget {
@@ -32,6 +35,25 @@ class _LoginPageState extends State<LoginPage> {
     }
     return firebaseApp;
   }
+
+
+
+  Future<UserCredential> signInWithGoogle() async {
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      clientId: "207967111919-risi1sc1p1fi5e2rg5ofreee8a5g5bhh.apps.googleusercontent.com",
+    );
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+    final OAuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                                     }
                                   }
                                 },
-                                child: Text('Sign In', style: TextStyle(color: Colors.white)),
+                                child: Text('Sign In', style: TextStyle(color: Colors.black)),
                               ),
                             ),
                             SizedBox(width: 16.0),
@@ -133,9 +155,43 @@ class _LoginPageState extends State<LoginPage> {
                                 onPressed: () {
                                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterPage()));
                                 },
-                                child: Text('Register', style: TextStyle(color: Colors.white)),
+                                child: Text('Register', style: TextStyle(color: Colors.black)),
                               ),
                             ),
+                            SizedBox(height: 20),
+                            Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    try {
+                                      print("Google Sign-In button pressed");
+                                      UserCredential userCredential = await signInWithGoogle();
+                                      print("Signed in with Google: ${userCredential.user}");
+                                      // Navigate to your main app screen or handle the user sign-in
+                                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => RegisterPage())); // Adjust as necessary
+                                    } catch (error) {
+                                      print("Error signing in with Google: $error");
+                                      // You can show an error message to the user here
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text("Login Error"),
+                                          content: Text("Failed to sign in with Google. Please try again."),
+                                          actions: [
+                                            TextButton(
+                                              child: Text("OK"),
+                                              onPressed: () => Navigator.of(context).pop(),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Text('Sign in with Google'),
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: Colors.black, backgroundColor: Colors.white, // Text color
+                                  ),
+                                )
+                            )
                           ],
                         )
                       ],
@@ -150,3 +206,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+
+
