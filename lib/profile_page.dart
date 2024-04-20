@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'fire_auth.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -10,10 +9,10 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage({required this.user});
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  ProfilePageState createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   bool _isSendingVerification = false;
   bool _isSigningOut = false;
 
@@ -55,7 +54,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           // Content
           Center(
-            child: SingleChildScrollView(  // Added SingleChildScrollView for better responsiveness
+            child: SingleChildScrollView(
+              // Added SingleChildScrollView for better responsiveness
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -71,16 +71,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   SizedBox(height: 16.0),
                   _currentUser.emailVerified
                       ? Text(
-                    'Email verified',
-                    style: Theme.of(context).textTheme.headline6!.copyWith(color: Colors.green),
-                  )
+                          'Email verified',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(color: Colors.green),
+                        )
                       : Text(
-                    'Email not verified',
-                    style: Theme.of(context).textTheme.headline6!.copyWith(color: Colors.red),
-                  ),
+                          'Email not verified',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(color: Colors.red),
+                        ),
                   SizedBox(height: 20.0),
-                  if (_isSendingVerification)
-                    CircularProgressIndicator(),
+                  if (_isSendingVerification) CircularProgressIndicator(),
                   if (!_isSendingVerification)
                     ElevatedButton(
                       onPressed: () async {
@@ -95,8 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Text('Verify email'),
                     ),
                   SizedBox(height: 20.0),
-                  if (_isSigningOut)
-                    CircularProgressIndicator(),
+                  if (_isSigningOut) CircularProgressIndicator(),
                   if (!_isSigningOut)
                     ElevatedButton(
                       onPressed: () async {

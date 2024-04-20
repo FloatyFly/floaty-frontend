@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-
 import 'firebase_options.dart';
 import 'flights_screen.dart';
 import 'landing_page.dart';
@@ -13,7 +12,8 @@ import 'login_page.dart';
 void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // This uses the generated options
+    options: DefaultFirebaseOptions
+        .currentPlatform, // This uses the generated options
   );
   runApp(
     ChangeNotifierProvider(
@@ -72,14 +72,12 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   @override
   Widget build(BuildContext context) {
     return Consumer<MyAppState>(
@@ -93,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
               page = LandingPage();
               break;
             case 1:
-              page = FlightsScreen();
+              page = FlightsScreen(user: appState.currentUser);
               break;
             case 2:
               page = ProfilePage(user: appState.currentUser);
@@ -113,9 +111,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     Expanded(child: page),
                     BottomNavigationBar(
                       items: const <BottomNavigationBarItem>[
-                        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                        BottomNavigationBarItem(icon: Icon(Icons.paragliding_sharp), label: 'Flights'),
-                        BottomNavigationBarItem(icon: Icon(Icons.person_sharp), label: 'Profile'),
+                        BottomNavigationBarItem(
+                            icon: Icon(Icons.home), label: 'Home'),
+                        BottomNavigationBarItem(
+                            icon: Icon(Icons.paragliding_sharp),
+                            label: 'Flights'),
+                        BottomNavigationBarItem(
+                            icon: Icon(Icons.person_sharp), label: 'Profile'),
                       ],
                       currentIndex: appState.selectedIndex,
                       onTap: (index) {
@@ -137,9 +139,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         }
                       },
                       destinations: [
-                        NavigationRailDestination(icon: Icon(Icons.home), label: Text('Home')),
-                        NavigationRailDestination(icon: Icon(Icons.paragliding_sharp), label: Text('Flights')),
-                        NavigationRailDestination(icon: Icon(Icons.person), label: Text('Profile')),
+                        NavigationRailDestination(
+                            icon: Icon(Icons.home), label: Text('Home')),
+                        NavigationRailDestination(
+                            icon: Icon(Icons.paragliding_sharp),
+                            label: Text('Flights')),
+                        NavigationRailDestination(
+                            icon: Icon(Icons.person), label: Text('Profile')),
                       ],
                     ),
                     Expanded(child: page),
@@ -153,5 +159,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
-

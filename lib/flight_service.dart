@@ -38,7 +38,7 @@ Future<void> addFlight(String flightJson) async {
 }
 
 Future<Flight> createFlightFromJson(Map<String, dynamic> json) async {
-  User user = await fetchUserById(json['userId'].toString());
+  FloatyUser user = await fetchUserById(json['userId'].toString());
   return Flight.fromJson(json, user);
 }
 

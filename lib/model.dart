@@ -1,6 +1,6 @@
 class Flight {
   final String flightId;
-  final User user;
+  final FloatyUser user;
   final String date;
   final String takeoff;
   final int duration;
@@ -13,7 +13,7 @@ class Flight {
     required this.duration,
   });
 
-  factory Flight.fromJson(Map<String, dynamic> json, User user) {
+  factory Flight.fromJson(Map<String, dynamic> json, FloatyUser user) {
     return Flight(
       flightId: json['flightId'],
       user: user,
@@ -26,7 +26,7 @@ class Flight {
   Flight empty() {
     return Flight(
       flightId: "",
-      user: User(id: 0, name: ""),
+      user: FloatyUser(id: 0, name: ""),
       date: "",
       takeoff: "",
       duration: 0,
@@ -43,14 +43,14 @@ class Flight {
       };
 }
 
-class User {
+class FloatyUser {
   int id;
   String name;
 
-  User({required this.id, required this.name});
+  FloatyUser({required this.id, required this.name});
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
+  factory FloatyUser.fromJson(Map<String, dynamic> json) {
+    return FloatyUser(
       id: int.parse(json['id']),
       name: json['name'],
     );
