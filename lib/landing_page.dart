@@ -28,18 +28,69 @@ class LandingPage extends StatelessWidget {
           ),
         ),
         Positioned(
-          left: 0,
+          left: 50,
           right: 0,
-          top: MediaQuery.of(context).size.height * 0.4, // Adjust this value for desired height
+          top: MediaQuery.of(context).size.height * 0.3, // Adjust this value for desired height
           child: Text(
             'FLOATY',
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
             style: TextStyle(
               fontSize: 80.0,
               color: Colors.white.withOpacity(0.7),
               fontWeight: FontWeight.bold,
               fontFamily: 'ModernFont',
             ),
+          ),
+        ),
+        Positioned(
+          left: 50,
+          right: 0,
+          top: MediaQuery.of(context).size.height * 0.42, // Adjust this value for desired height
+          child: Text(
+            'Simple paragliding logbook',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontSize: 25.0,
+              color: Colors.white.withOpacity(0.7),
+              fontWeight: FontWeight.bold,
+              fontFamily: 'ModernFont',
+            ),
+          ),
+        ),
+        // Login Button
+        Positioned(
+          left: 50,
+          right: 50,
+          bottom: 100,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/login');
+            },
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all<Color>(Colors.deepOrangeAccent),
+            ),
+            child: Text(
+                'Login',
+                style: TextStyle(
+                  color: Colors.black,
+                ),
+            ),
+          ),
+        ),
+        // Register Button
+        Positioned(
+          left: 50,
+          right: 50,
+          bottom: 50,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/register');
+            },
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+              foregroundColor: MaterialStateProperty.all<Color>(Colors.brown),
+            ),
+            child: Text('Register'),
           ),
         ),
       ],

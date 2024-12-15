@@ -1,3 +1,5 @@
+import 'package:floaty_client/api.dart';
+
 class Flight {
   final String flightId;
   final FloatyUser user;
@@ -29,7 +31,7 @@ class Flight {
   Flight empty() {
     return Flight(
       flightId: "",
-      user: FloatyUser(id: 0, name: ""),
+      user: FloatyUser(id: 0, name: "", emailVerified: false),
       date: "",
       takeoff: "",
       duration: 0,
@@ -49,13 +51,23 @@ class Flight {
 class FloatyUser {
   int id;
   String name;
+  bool emailVerified;
 
-  FloatyUser({required this.id, required this.name});
+  FloatyUser({required this.id, required this.name, required this.emailVerified});
+
+  factory FloatyUser.fromUserDto(User userDto) {
+    return FloatyUser(
+      id: int.parse(userDto.id),
+      name: userDto.name,
+      emailVerified: userDto.emailVerified
+    );
+  }
 
   factory FloatyUser.fromJson(Map<String, dynamic> json) {
     return FloatyUser(
       id: int.parse(json['id']),
       name: json['name'],
+      emailVerified: bool.parse(json['emailVerified'])
     );
   }
 }

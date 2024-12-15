@@ -1,0 +1,364 @@
+openapi: 3.0.3
+info:
+  title: Floaty API
+  description: |-
+    The backend API for floaty. Just an example. Needs to be developped. \
+    You might use [https://editor-next.swagger.io/]() for development.
+  version: 0.0.1
+tags:
+  - name: users
+    description: Look up all the users you want.
+
+paths:
+  /users:
+    get:
+      tags:
+        - users
+      summary: Find all users.
+      description: Returns a list of users.
+      operationId: getUsers
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{userId}:
+    get:
+      tags:
+        - users
+      summary: Find user by ID.
+      description: Returns a single user.
+      operationId: findUserById
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /flights/{userId}:
+    get:
+      tags:
+        - flights
+      summary: Find all flights for a given User.
+      description: Returns a list of Flights for a User.
+      operationId: getFlights
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+  /flights/{flightId}:
+    delete:
+      tags:
+        - flights
+      summary: Delete a Flight by ID.
+      description: Deletes a single flight by its ID.
+      operationId: deleteFlightById
+      parameters:
+        - name: flightId
+          in: path
+          description: ID of the flight to delete
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: No content, successful deletion
+        '404':
+          description: Flight not found
+  /flights:
+    post:
+      tags:
+        - flights
+      summary: Create a flight for a given user.
+      description: Register a new flight
+      operationId: createFlight
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flight'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+    get:
+      tags:
+        - flights
+      summary: Find all flights.
+      description: Returns a list of all Flights for all users.
+      operationId: findAllFlights
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flight'
+
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register a new user.
+      description: Creates a new user with a username and password.
+      operationId: registerUser
+      requestBody:
+        description: User registration details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login a user.
+      description: Authenticates a user and returns a session cookie or token.
+      operationId: loginUser
+      requestBody:
+        description: User login credentials.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login.
+          headers:
+            Set-Cookie:
+              description: Session cookie for authenticated user.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /auth/verify-email/{emailVerificationToken}:
+    post:
+      summary: Verify an Email.
+      description: Verifies a user's email using the provided token.
+      tags:
+        - auth
+      parameters:
+        - name: emailVerificationToken
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Token for email verification
+          example: 'some-generated-uuid-from-mailbox'
+      responses:
+        '200':
+          description: Email verification successful
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Email verification successful."
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token."
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found."
+  /auth/initiate-password-reset:
+    post:
+      tags:
+        - auth
+      summary: Request a password reset initiation mail.
+      description: Hitting this endpoint will send a mail to the given email (if exists) with the possibility to reset a password.
+      operationId: initiatePasswordReset
+      requestBody:
+        description: The email adress attached to a user to reset the password for.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              example: 'floater@floatytest.com'
+      responses:
+        '200':
+          description: Successful call to this endpoint.
+        '400':
+          description: Wrong input, e.g. invalid email format.
+  /auth/reset-password:
+    post:
+      tags:
+        - auth
+      summary: Reset a password.
+      description: Reset a password for a user with a given reset password token.
+      operationId: resetPassword
+      requestBody:
+        description: The password request item.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Successfully reset the password.
+        '400':
+          description: Password reset failed, e.g., invalid password reset token.
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Logout the user.
+      description: Logs out the authenticated user and invalidates the session.
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Successful logout.
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - emailVerified
+      properties:
+        id:
+          type: string
+          description: 'A unique id for this user. Property must not be given when creating a new user.'
+          maxLength: 14
+          example: 'USER0000123456'
+          pattern: 'USER[0-9]{10}'
+        name:
+          type: string
+          example: 'Free Willy'
+          description: 'The name of the user.'
+        emailVerified:
+          type: boolean
+          example: false
+          description: 'If the email has been verified by the user already or not.'
+    Flight:
+      type: object
+      required:
+        - dateTime
+        - takeOff
+      properties:
+        flightId:
+          type: string
+          description: 'Unique flight id. Usually generated by the server. UUID format.'
+        dateTime:
+          type: string
+          example: '22.03.23'
+          description: 'Datetime of the flight. Format: 2024-05-12T08:59:10. Local date time.'
+        takeOff:
+          type: string
+          example: 'Titlis'
+          description: 'Take off location'
+        duration:
+          type: integer
+          format: int64
+          example: 60
+          description: 'Duration in minutes'
+        description:
+          type: string
+          example: "This flight was epic."
+          description: "Some textual description of the flight experience."
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+        - email
+      properties:
+        username:
+          type: string
+          description: 'The username of the user.'
+          example: 'Floater'
+        password:
+          type: string
+          description: 'The password for the account.'
+          example: 'Test12345'
+        email:
+          type: string
+          format: email
+          description: 'The email address of the user.'
+          example: 'floater@floatytest.com'
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        name:
+          type: string
+          description: 'The username of the user.'
+          example: 'Floater'
+        password:
+          type: string
+          description: 'The password for the account.'
+          example: 'Test12345'
+    ResetPasswordRequest:
+      type: object
+      required:
+        - passwordResetToken
+        - newPassword
+      properties:
+        passwordResetToken:
+          type: string
+          description: 'The token which has been sent to the email.'
+          example: 'some-generated-uuid-from-mailbox'
+        newPassword:
+          type: string
+          description: 'The new password to set.'
+          example: 'Test12345'
