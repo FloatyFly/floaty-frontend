@@ -18,8 +18,10 @@ dependencies:
   firebase_auth: ^4.19.2
   firebase_core: ^2.30.0
   google_sign_in: ^5.2.1
-
   intl: ^0.17.0
+  floaty_client:
+    path: lib/generated
+  cookie_jar: ^4.0.8
 
 dev_dependencies:
   flutter_test:

@@ -1,16 +1,17 @@
 # floaty_frontend
-
 Best paraglading flight logging app in the world.
 
 ## Getting Started
+Lalala...
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Generating OpenAPI Specification code
+Install 'openapi-generator', e.g. using brew.
+In the project root, call
+'''bash
+openapi-generator generate \
+-i ./lib/api/floaty-open-api.yml \
+-g dart \
+-o ./lib/generated \
+--additional-properties=pubName=floaty_client
+'''
+This will generate the openapi models and api code in lib/generated.

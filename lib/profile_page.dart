@@ -1,10 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import 'login_page.dart';
+import 'model.dart';
 
 class ProfilePage extends StatefulWidget {
-  final User? user;
+  final FloatyUser? user;
 
   const ProfilePage({required this.user});
 
@@ -16,7 +15,7 @@ class ProfilePageState extends State<ProfilePage> {
   bool _isSendingVerification = false;
   bool _isSigningOut = false;
 
-  late User _currentUser;
+  late FloatyUser _currentUser;
 
   @override
   void initState() {
@@ -60,12 +59,12 @@ class ProfilePageState extends State<ProfilePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'NAME: ${_currentUser.displayName ?? "Not set"}',
+                    'NAME: ${_currentUser.name ?? "Not set"}',
                     style: Theme.of(context).textTheme.headline6,
                   ),
                   SizedBox(height: 16.0),
                   Text(
-                    'EMAIL: ${_currentUser.email}',
+                    'EMAIL: NOT IMPLEMENTED',
                     style: Theme.of(context).textTheme.headline6,
                   ),
                   SizedBox(height: 16.0),
@@ -92,7 +91,7 @@ class ProfilePageState extends State<ProfilePage> {
                         setState(() {
                           _isSendingVerification = true;
                         });
-                        await _currentUser.sendEmailVerification();
+                        // await _currentUser.sendEmailVerification();
                         setState(() {
                           _isSendingVerification = false;
                         });
@@ -107,7 +106,7 @@ class ProfilePageState extends State<ProfilePage> {
                         setState(() {
                           _isSigningOut = true;
                         });
-                        await FirebaseAuth.instance.signOut();
+                        // await FirebaseAuth.instance.signOut();
                         setState(() {
                           _isSigningOut = false;
                         });

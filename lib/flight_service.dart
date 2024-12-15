@@ -6,7 +6,7 @@ import 'constants.dart';
 import 'model.dart';
 
 Future<List<Flight>> fetchFlights() async {
-  final response = await http.get(Uri.parse('$BASE_URL/flights'));
+  final response = await http.get(Uri.parse('$BASE_URL/flights/1'));
 
   if (response.statusCode == 200) {
     List<dynamic> list = json.decode(response.body);

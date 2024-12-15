@@ -1,17 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:floaty_client/api.dart';
+import 'constants.dart';
 import 'main.dart';
-import 'profile_page.dart';
+import 'model.dart';
 import 'register_page.dart';
-import 'fire_auth.dart';
 import 'validator.dart';
-
-// Google SingleSignon
-import 'package:google_sign_in/google_sign_in.dart';
-
-// Assuming DotGridPainter is defined somewhere accessible
+import 'ui_components.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -20,166 +15,168 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailTextController = TextEditingController();
+  final _userNameTextController = TextEditingController();
   final _passwordTextController = TextEditingController();
-  final _focusEmail = FocusNode();
+  final _focusUserName = FocusNode();
   final _focusPassword = FocusNode();
   bool _isProcessing = false;
-
-  Future<FirebaseApp> _initializeFirebase() async {
-    FirebaseApp firebaseApp = await Firebase.initializeApp();
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      Provider.of<MyAppState>(context, listen: false).login(user);
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => MyHomePage()));
-    }
-    return firebaseApp;
-  }
-
-  Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      clientId: "207967111919-risi1sc1p1fi5e2rg5ofreee8a5g5bhh.apps.googleusercontent.com",
-    );
-    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
-
-    final OAuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-
-    return await FirebaseAuth.instance.signInWithCredential(credential);
-  }
-
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/background.jpg"),
-                fit: BoxFit.cover,
+          // Background
+          const FloatyBackgroundWidget(),
+          // Login Form
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Username Field
+                    TextFormField(
+                      controller: _userNameTextController,
+                      focusNode: _focusUserName,
+                      decoration: InputDecoration(
+                        hintText: "Username",
+                        prefixIcon: Icon(Icons.person, color: Colors.grey),
+                      ),
+                      style: TextStyle(color: Colors.black),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your username';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 14.0),
+                    // Password Field
+                    TextFormField(
+                      controller: _passwordTextController,
+                      focusNode: _focusPassword,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: "Password",
+                        prefixIcon: Icon(Icons.lock, color: Colors.grey),
+                      ),
+                      style: TextStyle(color: Colors.black),
+                      validator: (value) =>
+                          Validator.validatePassword(password: value),
+                    ),
+                    SizedBox(height: 16.0),
+                    // Error Message
+                    if (_errorMessage != null)
+                      Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red, fontSize: 14),
+                      ),
+                    SizedBox(height: 32.0),
+                    // Login Button - Wrap it in a SizedBox to match input field width
+                    _isProcessing
+                        ? CircularProgressIndicator()
+                        : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          _focusUserName.unfocus();
+                          _focusPassword.unfocus();
+
+                          if (_formKey.currentState!.validate()) {
+                            setState(() {
+                              _isProcessing = true;
+                              _errorMessage = null;
+                            });
+
+                            try {
+                              final apiClient =
+                              ApiClient(basePath: BASE_URL);
+                              final loginRequest = LoginRequest(
+                                name: _userNameTextController.text,
+                                password: _passwordTextController.text,
+                              );
+                              final authApi = AuthApi(apiClient);
+
+                              final user = await authApi.loginUser(loginRequest);
+
+                              setState(() {
+                                _isProcessing = false;
+                              });
+
+                              if (user != null) {
+                                var floatyUser = FloatyUser.fromUserDto(user);
+                                Provider.of<AppState>(context,
+                                    listen: false)
+                                    .login(floatyUser);
+
+                                Navigator.pushNamed(context, FLIGHTS_ROUTE, arguments: floatyUser);
+                              }
+                            } catch (e) {
+                              setState(() {
+                                _isProcessing = false;
+                                _errorMessage =
+                                'Login failed. Please try again.';
+                              });
+                            }
+                          }
+                        },
+                        child: Text(
+                          'Login',
+                          style: TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 32.0),
+                    // Forgot Password and Register Links
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, FORGOT_PASSWORD_ROUTE);
+                          },
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          " | ",
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, REGISTER_ROUTE);
+                          },
+                          child: Text(
+                            "Register",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          // Semi-transparent overlay
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.grey.withOpacity(0.5),
-          ),
-          // Dot Grid Overlay
-          Positioned.fill(
-            child: CustomPaint(
-              painter: DotGridPainter(),
-            ),
-          ),
-          // Login Form
-          SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 30), // This adds 10 logical pixels of padding vertically
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 100.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: <Widget>[
-                        TextFormField(
-                          controller: _emailTextController,
-                          focusNode: _focusEmail,
-                          validator: (value) => Validator.validateEmail(email: value),
-                          decoration: InputDecoration(
-                            hintText: "Email",
-                            hintStyle: TextStyle(fontSize: 40, color: Colors.black38),  // Example to style hint differently
-                            // Apply style for focused field
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.deepOrangeAccent),
-                            ),
-                          ),
-                          style: TextStyle(fontSize: 40, color: Colors.white70), // Ensure this is still here
-                        ),
-                        SizedBox(height: 16.0),
-                        TextFormField(
-                          controller: _passwordTextController,
-                          focusNode: _focusPassword,
-                          obscureText: true,
-                          validator: (value) => Validator.validatePassword(password: value),
-                          decoration: InputDecoration(
-                            hintText: "Password",
-                            hintStyle: TextStyle(fontSize: 40, color: Colors.black38),  // Example to style hint differently
-                            // Apply style for focused field
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.deepOrangeAccent),
-                            ),
-                          ),
-                          style: TextStyle(fontSize: 40, color: Colors.white70),
-                        ),
-                        SizedBox(height: 32.0),
-                        _isProcessing
-                            ? CircularProgressIndicator()
-                            : Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  _focusEmail.unfocus();
-                                  _focusPassword.unfocus();
-                                  if (_formKey.currentState!.validate()) {
-                                    setState(() {
-                                      _isProcessing = true;
-                                    });
-                                    User? user = await FireAuth.signInUsingEmailPassword(
-                                      email: _emailTextController.text,
-                                      password: _passwordTextController.text,
-                                      context: context,
-                                    );
-                                    setState(() {
-                                      _isProcessing = false;
-                                    });
-                                    if (user != null) {
-                                      Provider.of<MyAppState>(context, listen: false).login(user);
-                                    }
-                                  }
-                                },
-                                child: Text('Sign In', style: TextStyle(color: Colors.black, fontSize: 30)),
-                              ),
-                            ),
-                            SizedBox(width: 16.0),
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterPage()));
-                                },
-                                child: Text('Register', style: TextStyle(color: Colors.black, fontSize: 30)),
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                )
-              ],
-            ),
-          )
         ],
       ),
     );
   }
 }
-
-
-
