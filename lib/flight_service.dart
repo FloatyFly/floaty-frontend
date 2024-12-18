@@ -1,12 +1,8 @@
-import 'package:floaty/user_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:floaty_client/api.dart' as api;
 
 import 'CookieAuth.dart';
 import 'constants.dart';
 import 'model.dart' as model;
-import 'model.dart';
 
 Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async {
   final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
@@ -39,5 +35,16 @@ Future<api.Flight?> addFlight(model.Flight flight, CookieAuth cookieAuth) async 
     return flightsApi.createFlight(flightDto);
   } catch (e) {
     throw Exception('Failed to add flight: $e');
+  }
+}
+
+Future<void> deleteFlight(String flightId, CookieAuth cookieAuth) async {
+  final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
+  final flightsApi = api.FlightsApi(apiClient);
+
+  try {
+    await flightsApi.deleteFlightById(flightId);
+  } catch (e) {
+    throw Exception('Failed to delete flight: $e');
   }
 }
