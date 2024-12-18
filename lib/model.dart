@@ -21,7 +21,7 @@ class Flight {
       dateTime: json['dateTime'],
       takeOff: json['takeOff'],
       duration: json['duration'],
-      description: json['description']
+      description: json['description'] ?? ''
     );
   }
 
