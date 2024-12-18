@@ -75,7 +75,7 @@ class FlightsPageState extends State<FlightsPage> {
     return fetchFlights(_currentUser.id, _getCookieAuth());
   }
 
-  Future<void> _saveFlight() async {
+  Future<void> _saveNewFlight() async {
     final DateFormat formatter = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
     final formattedDate = formatter.format(DateTime.parse(dateController.text));
 
@@ -87,6 +87,10 @@ class FlightsPageState extends State<FlightsPage> {
       description: descriptionController.text,
     );
     await addFlight(flight, _getCookieAuth());
+  }
+
+  Future<void> _deleteFlight(String flightId) async {
+    await deleteFlight(flightId, _getCookieAuth());
   }
 
   void showOverlay(BuildContext context) {
@@ -200,7 +204,7 @@ class FlightsPageState extends State<FlightsPage> {
                               child: ElevatedButton(
                                 onPressed: () async {
                                   try {
-                                    await _saveFlight();
+                                    await _saveNewFlight();
                                   } catch (e) {
                                     print("Failed to save flight, error: $e");
                                   }
@@ -349,7 +353,7 @@ class FlightsPageState extends State<FlightsPage> {
                                     color: Colors.grey[400], // muted color
                                   ),
                                   onPressed: () async {
-                                    // await deleteFlight(flight.flightId);  // TODO: Add delete logic.
+                                    await _deleteFlight(flight.flightId);
                                     setState(() {
                                       futureFlights = _fetchFlights();
                                     });
