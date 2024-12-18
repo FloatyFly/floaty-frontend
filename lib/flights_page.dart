@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:floaty/ui_components.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:floaty/flight_service.dart';
@@ -61,34 +62,39 @@ class FlightsPageState extends State<FlightsPage> {
     futureFlights = _fetchFlights();
   }
 
-  Future<List<Flight>> _fetchFlights() {
+  CookieAuth _getCookieAuth() {
     CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-    CookieAuth cookieAuth = CookieAuth(cookieJar);
-    AppState appState = Provider.of<AppState>(context, listen: false);
-    int userId = appState.currentUser?.id ?? 0; // TODO: Handle null case?
-    return fetchFlights(userId, cookieAuth);
+    return CookieAuth(cookieJar);
+  }
+
+  int _getUserId() {
+    return _currentUser.id;
+  }
+
+  Future<List<Flight>> _fetchFlights() {
+    return fetchFlights(_currentUser.id, _getCookieAuth());
+  }
+
+  Future<void> _saveFlight() async {
+    final DateFormat formatter = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    final formattedDate = formatter.format(DateTime.parse(dateController.text));
+
+    Flight flight = Flight(
+      flightId: "",
+      dateTime: formattedDate,
+      takeOff: takeoffController.text,
+      duration: int.parse(durationController.text),
+      description: descriptionController.text,
+    );
+    await addFlight(flight, _getCookieAuth());
   }
 
   void showOverlay(BuildContext context) {
-    overlayEntry = createOverlayEntry(context);
+    overlayEntry = createAddFlightOverlay(context);
     Overlay.of(context).insert(overlayEntry);
   }
 
-  Future<void> saveFlight() async {
-    final formattedDate = formatter.format(DateTime.parse(dateController.text));
-    String flightJson = jsonEncode({
-      // TODO: use _currentUser.uid here, but this required changes to backend
-      "userId": 2,
-      "date": formattedDate,
-      "takeoff": takeoffController.text,
-      "duration": durationController.text,
-      "description": descriptionController.text
-    });
-    await addFlight(flightJson);
-  }
-
-  OverlayEntry createOverlayEntry(BuildContext context) {
-
+  OverlayEntry createAddFlightOverlay(BuildContext context) {
     return OverlayEntry(
       builder: (context) => Container(
         width: MediaQuery.of(context).size.width,
@@ -194,7 +200,7 @@ class FlightsPageState extends State<FlightsPage> {
                               child: ElevatedButton(
                                 onPressed: () async {
                                   try {
-                                    await saveFlight();
+                                    await _saveFlight();
                                   } catch (e) {
                                     print("Failed to save flight, error: $e");
                                   }
@@ -227,27 +233,7 @@ class FlightsPageState extends State<FlightsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(children: [
-        Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage("assets/background.jpg"),
-                fit: BoxFit.cover,
-                opacity: 0.3),
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: Colors.grey.withOpacity(0.5),
-        ),
-        // Dot Grid Overlay
-        Positioned.fill(
-          child: CustomPaint(
-            painter: DotGridPainter(),
-          ),
-        ),
+        const FloatyBackgroundWidget(),
         Column(
           children: [
             SizedBox(
@@ -354,10 +340,6 @@ class FlightsPageState extends State<FlightsPage> {
                                 ),
                               ),
 
-
-
-
-
                               Positioned(
                                 top: 10.0,
                                 right: 10.0,
@@ -367,7 +349,7 @@ class FlightsPageState extends State<FlightsPage> {
                                     color: Colors.grey[400], // muted color
                                   ),
                                   onPressed: () async {
-                                    await deleteFlight(flight.flightId);
+                                    // await deleteFlight(flight.flightId);  // TODO: Add delete logic.
                                     setState(() {
                                       futureFlights = _fetchFlights();
                                     });
