@@ -1,6 +1,13 @@
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:floaty/main.dart';
+import 'package:floaty/ui_components.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'CookieAuth.dart';
+import 'constants.dart';
 import 'login_page.dart';
 import 'model.dart';
+import 'package:floaty_client/api.dart' as api;
 
 class ProfilePage extends StatefulWidget {
   final FloatyUser? user;
@@ -28,103 +35,135 @@ class ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/background.jpg"),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Semi-transparent overlay
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.grey.withOpacity(0.5),
-          ),
-          // Dot Grid Overlay
-          Positioned.fill(
-            child: CustomPaint(
-              painter: DotGridPainter(),
-            ),
-          ),
-          // Content
+          // Background
+          const FloatyBackgroundWidget(),
           Center(
-            child: SingleChildScrollView(
-              // Added SingleChildScrollView for better responsiveness
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'NAME: ${_currentUser.name ?? "Not set"}',
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'EMAIL: NOT IMPLEMENTED',
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
-                  SizedBox(height: 16.0),
-                  _currentUser.emailVerified
-                      ? Text(
-                          'Email verified',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headline6!
-                              .copyWith(color: Colors.green),
-                        )
-                      : Text(
-                          'Email not verified',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headline6!
-                              .copyWith(color: Colors.red),
-                        ),
-                  SizedBox(height: 20.0),
-                  if (_isSendingVerification) CircularProgressIndicator(),
-                  if (!_isSendingVerification)
-                    ElevatedButton(
-                      onPressed: () async {
-                        setState(() {
-                          _isSendingVerification = true;
-                        });
-                        // await _currentUser.sendEmailVerification();
-                        setState(() {
-                          _isSendingVerification = false;
-                        });
-                      },
-                      child: Text('Verify email'),
-                    ),
-                  SizedBox(height: 20.0),
-                  if (_isSigningOut) CircularProgressIndicator(),
-                  if (!_isSigningOut)
-                    ElevatedButton(
-                      onPressed: () async {
-                        setState(() {
-                          _isSigningOut = true;
-                        });
-                        // await FirebaseAuth.instance.signOut();
-                        setState(() {
-                          _isSigningOut = false;
-                        });
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => LoginPage(),
-                          ),
-                        );
-                      },
-                      child: Text('Sign out'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // User Info Card
+                    Card(
+                      elevation: 4.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pilot',
+                              style: Theme.of(context).textTheme.headline5!.copyWith(
+                                color: Colors.blue.shade900,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 16.0),
+                            Text(
+                              'Name: ${_currentUser.name ?? "Not set"}',
+                              style: Theme.of(context).textTheme.bodyText1,
+                            ),
+                            SizedBox(height: 8.0),
+                            Text(
+                              'Email: ${_currentUser.email ?? "Not set"}',
+                              style: Theme.of(context).textTheme.bodyText1,
+                            ),
+                            SizedBox(height: 8.0),
+                            Text(
+                              _currentUser.emailVerified
+                                  ? 'Email Verified'
+                                  : 'Email Not Verified',
+                              style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                                color: _currentUser.emailVerified
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                ],
+                    SizedBox(height: 32.0),
+                    // Verify Email Button
+                    if (_isSendingVerification)
+                      CircularProgressIndicator()
+                    else if (!_currentUser.emailVerified)
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          setState(() {
+                            _isSendingVerification = true;
+                          });
+
+                          // Simulate email verification process
+                          await Future.delayed(Duration(seconds: 2));
+
+                          setState(() {
+                            _isSendingVerification = false;
+                          });
+                        },
+                        icon: Icon(Icons.email_outlined),
+                        label: Text('Verify Email'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: 16.0),
+                    // Sign Out Button
+                    if (_isSigningOut)
+                      CircularProgressIndicator()
+                    else
+                      ElevatedButton(
+                        onPressed: () async {
+                          setState(() {
+                            _isSigningOut = true;
+                          });
+
+                          try {
+                            // Remove the cookie from my cookie jar and logout user
+                            CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
+                            final cookieAuth = CookieAuth(cookieJar);
+                            final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
+                            final authApi = api.AuthApi(apiClient);
+
+                            // Call the API to logout user
+                            await authApi.logoutUser(_currentUser.id);
+                            cookieJar.deleteAll();
+
+                            setState(() {
+                              _isSigningOut = false;
+                            });
+                            // After successful logout, navigate to HomePage
+                            // Use pushReplacementNamed to replace the ProfilePage with HomePage
+                            Provider.of<AppState>(context,
+                                listen: false)
+                                .logout();
+                            Navigator.pushReplacementNamed(context, HOME_ROUTE);
+                          } catch (e) {
+                            // Handle error if logout fails
+                            print('Logout failed: $e');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepOrange,
+                        ),
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Colors.black,
+                            backgroundColor: Colors.deepOrange
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -132,24 +171,4 @@ class ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-}
-
-class DotGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const double dotSpacing = 20.0; // Adjust for desired spacing between dots
-    final dotPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.4)
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.5;
-
-    for (double i = 0; i < size.width; i += dotSpacing) {
-      for (double j = 0; j < size.height; j += dotSpacing) {
-        canvas.drawCircle(Offset(i, j), 1.0, dotPaint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

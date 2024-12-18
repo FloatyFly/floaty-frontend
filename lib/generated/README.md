@@ -63,7 +63,7 @@ Class | Method | HTTP request | Description
 *AuthApi* | [**authVerifyEmailEmailVerificationTokenPost**](doc//AuthApi.md#authverifyemailemailverificationtokenpost) | **POST** /auth/verify-email/{emailVerificationToken} | Verify an Email.
 *AuthApi* | [**initiatePasswordReset**](doc//AuthApi.md#initiatepasswordreset) | **POST** /auth/initiate-password-reset | Request a password reset initiation mail.
 *AuthApi* | [**loginUser**](doc//AuthApi.md#loginuser) | **POST** /auth/login | Login a user.
-*AuthApi* | [**logoutUser**](doc//AuthApi.md#logoutuser) | **POST** /auth/logout | Logout the user.
+*AuthApi* | [**logoutUser**](doc//AuthApi.md#logoutuser) | **POST** /auth/logout/{userId} | Logout the user.
 *AuthApi* | [**registerUser**](doc//AuthApi.md#registeruser) | **POST** /auth/register | Register a new user.
 *AuthApi* | [**resetPassword**](doc//AuthApi.md#resetpassword) | **POST** /auth/reset-password | Reset a password.
 *FlightsApi* | [**createFlight**](doc//FlightsApi.md#createflight) | **POST** /flights | Create a flight for a given user.

@@ -12,7 +12,7 @@ Method | HTTP request | Description
 [**authVerifyEmailEmailVerificationTokenPost**](AuthApi.md#authverifyemailemailverificationtokenpost) | **POST** /auth/verify-email/{emailVerificationToken} | Verify an Email.
 [**initiatePasswordReset**](AuthApi.md#initiatepasswordreset) | **POST** /auth/initiate-password-reset | Request a password reset initiation mail.
 [**loginUser**](AuthApi.md#loginuser) | **POST** /auth/login | Login a user.
-[**logoutUser**](AuthApi.md#logoutuser) | **POST** /auth/logout | Logout the user.
+[**logoutUser**](AuthApi.md#logoutuser) | **POST** /auth/logout/{userId} | Logout the user.
 [**registerUser**](AuthApi.md#registeruser) | **POST** /auth/register | Register a new user.
 [**resetPassword**](AuthApi.md#resetpassword) | **POST** /auth/reset-password | Reset a password.
 
@@ -146,7 +146,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **logoutUser**
-> logoutUser()
+> logoutUser(userId)
 
 Logout the user.
 
@@ -157,16 +157,20 @@ Logs out the authenticated user and invalidates the session.
 import 'package:floaty_client/api.dart';
 
 final api_instance = AuthApi();
+final userId = 789; // int | ID of user
 
 try {
-    api_instance.logoutUser();
+    api_instance.logoutUser(userId);
 } catch (e) {
     print('Exception when calling AuthApi->logoutUser: $e\n');
 }
 ```
 
 ### Parameters
-This endpoint does not need any parameter.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **userId** | **int**| ID of user | 
 
 ### Return type
 

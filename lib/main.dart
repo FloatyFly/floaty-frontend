@@ -7,7 +7,6 @@ import 'package:floaty/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'forgot_password_page.dart';
-import 'user_service.dart';
 
 import 'flights_page.dart';
 import 'landing_page.dart';
@@ -34,15 +33,14 @@ class FloatyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Floaty',
         theme: buildThemeData(),
-        home: HomePage(),
         initialRoute: '/',
         routes: {
+          HOME_ROUTE: (context) => HomePage(),
           LOGIN_ROUTE: (context) => LoginPage(),
-          PROFILE_ROUTE: (context) => ProfilePage(user: null),
+          PROFILE_ROUTE: (context) => ProfilePage(user: Provider.of<AppState>(context).currentUser),
           REGISTER_ROUTE: (context) => RegisterPage(),
           FORGOT_PASSWORD_ROUTE: (context) => ForgotPasswordPage(),
-          FLIGHTS_ROUTE: (context) =>
-              FlightsPage(user: Provider.of<AppState>(context).currentUser),
+          FLIGHTS_ROUTE: (context) => FlightsPage(user: Provider.of<AppState>(context).currentUser),
         },
       ),
     );
@@ -115,7 +113,7 @@ class _HomePageState extends State<HomePage> {
           }
         }
 
-        bool showNavBar = page is! LandingPage || (appState.isLoggedIn);
+        bool showNavBar = appState.isLoggedIn;
 
         return Scaffold(
           body: LayoutBuilder(

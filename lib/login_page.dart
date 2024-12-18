@@ -110,17 +110,19 @@ class _LoginPageState extends State<LoginPage> {
 
                               if (user != null) {
                                 var floatyUser = FloatyUser.fromUserDto(user);
-                                Provider.of<AppState>(context,
-                                    listen: false)
-                                    .login(floatyUser);
 
-                                Navigator.pushNamed(context, FLIGHTS_ROUTE, arguments: floatyUser);
+                                // Update AppState to reflect the user login
+                                Provider.of<AppState>(context, listen: false).login(floatyUser);
+
+                                Navigator.pushNamed(
+                                  context,
+                                  HOME_ROUTE
+                                );
                               }
                             } catch (e) {
                               setState(() {
                                 _isProcessing = false;
-                                _errorMessage =
-                                'Login failed. Please try again.';
+                                _errorMessage = 'Login failed. Please try again.';
                               });
                             }
                           }

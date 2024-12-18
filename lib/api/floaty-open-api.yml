@@ -256,16 +256,30 @@ paths:
           description: Successfully reset the password.
         '400':
           description: Password reset failed, e.g., invalid password reset token.
-  /auth/logout:
+  /auth/logout/{userId}:
     post:
       tags:
         - auth
       summary: Logout the user.
       description: Logs out the authenticated user and invalidates the session.
       operationId: logoutUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: Successful logout.
+        '400':
+          description: Bad request.
+        '403':
+          description: Unauthorized.
+        '500':
+          description: Internal server error. Error invalidating the session.
 components:
   schemas:
     User:
@@ -273,6 +287,7 @@ components:
       required:
         - id
         - name
+        - email
         - emailVerified
       properties:
         id:
@@ -285,6 +300,10 @@ components:
           type: string
           example: 'Free Willy'
           description: 'The name of the user.'
+        email:
+          type: string
+          example: "floater@gmail.com"
+          description: 'The email adress of the user.'
         emailVerified:
           type: boolean
           example: false

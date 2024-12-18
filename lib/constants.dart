@@ -4,6 +4,7 @@ const BASE_URL = 'http://10.0.2.2:8080'; // can be used for debugging TODO: Make
 // For iOS Simulator use 127.0.0.1
 // For real device, use actual IP
 
+const HOME_ROUTE = '/';
 const LOGIN_ROUTE = '/login';
 const REGISTER_ROUTE = '/register';
 const FORGOT_PASSWORD_ROUTE = '/forgot-password';

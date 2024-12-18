@@ -45,14 +45,16 @@ class Flight {
 class FloatyUser {
   int id;
   String name;
+  String email;
   bool emailVerified;
 
-  FloatyUser({required this.id, required this.name, required this.emailVerified});
+  FloatyUser({required this.id, required this.name, required this.email, required this.emailVerified});
 
   factory FloatyUser.fromUserDto(User userDto) {
     return FloatyUser(
       id: int.parse(userDto.id),
       name: userDto.name,
+      email: userDto.email,
       emailVerified: userDto.emailVerified
     );
   }
@@ -61,6 +63,7 @@ class FloatyUser {
     return FloatyUser(
       id: int.parse(json['id']),
       name: json['name'],
+      email: json['email'],
       emailVerified: bool.parse(json['emailVerified'])
     );
   }

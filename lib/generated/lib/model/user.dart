@@ -15,6 +15,7 @@ class User {
   User({
     required this.id,
     required this.name,
+    required this.email,
     required this.emailVerified,
   });
 
@@ -24,6 +25,9 @@ class User {
   /// The name of the user.
   String name;
 
+  /// The email adress of the user.
+  String email;
+
   /// If the email has been verified by the user already or not.
   bool emailVerified;
 
@@ -31,6 +35,7 @@ class User {
   bool operator ==(Object other) => identical(this, other) || other is User &&
     other.id == id &&
     other.name == name &&
+    other.email == email &&
     other.emailVerified == emailVerified;
 
   @override
@@ -38,15 +43,17 @@ class User {
     // ignore: unnecessary_parenthesis
     (id.hashCode) +
     (name.hashCode) +
+    (email.hashCode) +
     (emailVerified.hashCode);
 
   @override
-  String toString() => 'User[id=$id, name=$name, emailVerified=$emailVerified]';
+  String toString() => 'User[id=$id, name=$name, email=$email, emailVerified=$emailVerified]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'id'] = this.id;
       json[r'name'] = this.name;
+      json[r'email'] = this.email;
       json[r'emailVerified'] = this.emailVerified;
     return json;
   }
@@ -72,6 +79,7 @@ class User {
       return User(
         id: mapValueOfType<String>(json, r'id')!,
         name: mapValueOfType<String>(json, r'name')!,
+        email: mapValueOfType<String>(json, r'email')!,
         emailVerified: mapValueOfType<bool>(json, r'emailVerified')!,
       );
     }
@@ -122,6 +130,7 @@ class User {
   static const requiredKeys = <String>{
     'id',
     'name',
+    'email',
     'emailVerified',
   };
 }

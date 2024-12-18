@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/ui_components.dart';
 import 'package:intl/intl.dart';
@@ -8,9 +6,7 @@ import 'package:floaty/flight_service.dart';
 import 'package:provider/provider.dart';
 
 import 'CookieAuth.dart';
-import 'main.dart';
 import 'model.dart';
-import 'landing_page.dart';
 
 class FlightsPage extends StatefulWidget {
   final FloatyUser? user;
@@ -22,14 +18,9 @@ class FlightsPage extends StatefulWidget {
 }
 
 class FlightsPageState extends State<FlightsPage> {
-  // List of flights to display
   late Future<List<Flight>> futureFlights;
-
-  // TODO: make changes to backend to handle currentUser UID
-  // Currently logged in user
   late FloatyUser _currentUser;
 
-  // Data containers for newly entered flight data
   String? date;
   String? takeoff;
   int? duration;
@@ -52,7 +43,6 @@ class FlightsPageState extends State<FlightsPage> {
     textStyle: const TextStyle(
       fontSize: 12.0,
     ),
-    padding: EdgeInsets.all(10.0),
   );
 
   @override
@@ -65,10 +55,6 @@ class FlightsPageState extends State<FlightsPage> {
   CookieAuth _getCookieAuth() {
     CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
     return CookieAuth(cookieJar);
-  }
-
-  int _getUserId() {
-    return _currentUser.id;
   }
 
   Future<List<Flight>> _fetchFlights() {
@@ -106,10 +92,10 @@ class FlightsPageState extends State<FlightsPage> {
         color: Colors.black54, // Adds semi-transparent overlay
         child: Center(
           child: Material(
-            elevation: 4.0,
+            elevation: 10.0,
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.7,
+              width: MediaQuery.of(context).size.width * 0.8,
               height: MediaQuery.of(context).size.height * 0.7,
               padding: EdgeInsets.all(20.0),
               decoration: BoxDecoration(
@@ -130,10 +116,11 @@ class FlightsPageState extends State<FlightsPage> {
                     TextFormField(
                       controller: dateController,
                       decoration: InputDecoration(
-                        hintText: "Date of Flight (yyyy-mm-dd)",
+                        hintText: "Date YYYY-MM-DD",
                         hintStyle: const TextStyle(
                           color: Colors.grey,
                         ),
+                        icon: Icon(Icons.date_range),
                       ),
                       validator: (value) {
                         if (value == null ||
@@ -152,6 +139,7 @@ class FlightsPageState extends State<FlightsPage> {
                         hintStyle: const TextStyle(
                           color: Colors.grey,
                         ),
+                        icon: Icon(Icons.location_pin)
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -167,6 +155,7 @@ class FlightsPageState extends State<FlightsPage> {
                         hintStyle: const TextStyle(
                           color: Colors.grey,
                         ),
+                        icon: Icon(Icons.timer)
                       ),
                       validator: (value) {
                         if (value == null ||
@@ -184,53 +173,66 @@ class FlightsPageState extends State<FlightsPage> {
                         hintStyle: const TextStyle(
                           color: Colors.grey,
                         ),
+                        icon: Icon(Icons.description)
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextButton(
-                              child: Text('Cancel'),
-                              onPressed: () => overlayEntry.remove(),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Cancel Button
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextButton(
+                            onPressed: () {
+                              overlayEntry.remove(); // Close overlay
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.deepOrange, backgroundColor: Colors.white, // Button background
+                              side: BorderSide(color: Colors.deepOrange), // Border color
+                              textStyle: TextStyle(fontSize: 14.0), // Text size
                             ),
+                            child: Text('Cancel'),
                           ),
-                          Visibility(
-                            visible: isFormValid,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  try {
-                                    await _saveNewFlight();
-                                  } catch (e) {
-                                    print("Failed to save flight, error: $e");
-                                  }
-
+                        ),
+                        // Save Button (only visible if form is valid)
+                        Visibility(
+                          visible: isFormValid,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  await _saveNewFlight();
                                   setState(() {
                                     futureFlights = _fetchFlights();
                                   });
-
-                                  overlayEntry.remove(); // Close the dialog
-                                },
-                                style: style,
-                                child: Text('Save'),
+                                  overlayEntry.remove(); // Close the overlay
+                                } catch (e) {
+                                  print("Failed to save flight, error: $e");
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.black, backgroundColor: Colors.deepOrange, // Text color
+                                textStyle: TextStyle(fontSize: 14.0), // Text size
                               ),
+                              child: Text('Save'),
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
       ),
+    ),
+    ),
     );
+
   }
 
   @override
