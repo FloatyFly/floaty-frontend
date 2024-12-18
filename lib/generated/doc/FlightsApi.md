@@ -140,7 +140,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getFlights**
-> Flight getFlights(userId)
+> List<Flight> getFlights(userId)
 
 Find all flights for a given User.
 
@@ -169,7 +169,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Flight**](Flight.md)
+[**List<Flight>**](Flight.md)
 
 ### Authorization
 

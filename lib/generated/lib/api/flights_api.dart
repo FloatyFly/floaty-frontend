@@ -220,7 +220,7 @@ class FlightsApi {
   ///
   /// * [int] userId (required):
   ///   ID of user
-  Future<Flight?> getFlights(int userId,) async {
+  Future<List<Flight>?> getFlights(int userId,) async {
     final response = await getFlightsWithHttpInfo(userId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -229,8 +229,11 @@ class FlightsApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Flight',) as Flight;
-    
+      final responseBody = await _decodeBodyBytes(response);
+      return (await apiClient.deserializeAsync(responseBody, 'List<Flight>') as List)
+        .cast<Flight>()
+        .toList(growable: false);
+
     }
     return null;
   }
