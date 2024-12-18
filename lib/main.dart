@@ -1,3 +1,4 @@
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/constants.dart';
 import 'package:floaty/model.dart';
 import 'package:floaty/profile_page.dart';
@@ -22,20 +23,28 @@ void main() async {
 }
 
 class FloatyApp extends StatelessWidget {
+  final cookieJar = CookieJar(); // Instantiate the CookieJar here.
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Floaty',
-      theme: buildThemeData(),
-      home: HomePage(),
-      initialRoute: '/',
-      routes: {
-        LOGIN_ROUTE: (context) => LoginPage(),
-        PROFILE_ROUTE: (context) => ProfilePage(user: null),
-        REGISTER_ROUTE: (context) => RegisterPage(),
-        FORGOT_PASSWORD_ROUTE: (context) => ForgotPasswordPage(),
-        FLIGHTS_ROUTE: (context) => FlightsPage(user: Provider.of<AppState>(context).currentUser),
-      },
+    return MultiProvider(
+      providers: [
+        Provider<CookieJar>.value(value: cookieJar), // Provide CookieJar.
+      ],
+      child: MaterialApp(
+        title: 'Floaty',
+        theme: buildThemeData(),
+        home: HomePage(),
+        initialRoute: '/',
+        routes: {
+          LOGIN_ROUTE: (context) => LoginPage(),
+          PROFILE_ROUTE: (context) => ProfilePage(user: null),
+          REGISTER_ROUTE: (context) => RegisterPage(),
+          FORGOT_PASSWORD_ROUTE: (context) => ForgotPasswordPage(),
+          FLIGHTS_ROUTE: (context) =>
+              FlightsPage(user: Provider.of<AppState>(context).currentUser),
+        },
+      ),
     );
   }
 }

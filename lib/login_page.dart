@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'package:floaty_client/api.dart';
 import 'constants.dart';
@@ -7,6 +9,7 @@ import 'model.dart';
 import 'register_page.dart';
 import 'validator.dart';
 import 'ui_components.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -24,6 +27,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cookieJar = Provider.of<CookieJar>(context);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -93,15 +98,11 @@ class _LoginPageState extends State<LoginPage> {
                             });
 
                             try {
-                              final apiClient =
-                              ApiClient(basePath: BASE_URL);
-                              final loginRequest = LoginRequest(
-                                name: _userNameTextController.text,
-                                password: _passwordTextController.text,
+                              final user = await loginAndExtractSessionCookie(
+                                _userNameTextController.text,
+                                _passwordTextController.text,
+                                cookieJar,
                               );
-                              final authApi = AuthApi(apiClient);
-
-                              final user = await authApi.loginUser(loginRequest);
 
                               setState(() {
                                 _isProcessing = false;
@@ -179,4 +180,43 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+}
+
+Future<User?> loginAndExtractSessionCookie(String username, String password, CookieJar cookieJar) async {
+  // Set up the needed api clients
+  final apiClient = ApiClient(basePath: BASE_URL);
+  final authApi = AuthApi(apiClient);
+
+  // Make the login call
+  final loginRequest = LoginRequest(name: username, password: password);
+  final response = await authApi.loginUserWithHttpInfo(loginRequest);
+  if (response.statusCode >= 400) {
+    throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+  }
+
+  // Extract the session cookie from the `Set-Cookie` header
+  final setCookieHeader = response.headers['set-cookie'];
+  if (setCookieHeader != null) {
+    final uri = Uri.parse(BASE_URL);
+    cookieJar.saveFromResponse(uri, [Cookie.fromSetCookieValue(setCookieHeader)]);
+  }
+
+  // Deserialize the body into a User object, just like the original method
+  if (response.body.isNotEmpty && response.statusCode != 204) {
+    return await apiClient.deserializeAsync(
+      await _decodeBodyBytes(response),
+      'User',
+    ) as User;
+  }
+
+  return null;
+}
+
+/// Returns the decoded body as UTF-8 if the given headers indicate an 'application/json'
+/// content type. Otherwise, returns the decoded body as decoded by dart:http package.
+Future<String> _decodeBodyBytes(Response response) async {
+  final contentType = response.headers['content-type'];
+  return contentType != null && contentType.toLowerCase().startsWith('application/json')
+      ? response.bodyBytes.isEmpty ? '' : utf8.decode(response.bodyBytes)
+      : response.body;
 }

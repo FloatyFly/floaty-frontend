@@ -1,9 +1,13 @@
 import 'dart:convert';
 
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:floaty/flight_service.dart';
+import 'package:provider/provider.dart';
 
+import 'CookieAuth.dart';
+import 'main.dart';
 import 'model.dart';
 import 'landing_page.dart';
 
@@ -54,7 +58,15 @@ class FlightsPageState extends State<FlightsPage> {
   void initState() {
     super.initState();
     _currentUser = widget.user!;
-    futureFlights = fetchFlights();
+    futureFlights = _fetchFlights();
+  }
+
+  Future<List<Flight>> _fetchFlights() {
+    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
+    CookieAuth cookieAuth = CookieAuth(cookieJar);
+    AppState appState = Provider.of<AppState>(context, listen: false);
+    int userId = appState.currentUser?.id ?? 0; // TODO: Handle null case?
+    return fetchFlights(userId, cookieAuth);
   }
 
   void showOverlay(BuildContext context) {
@@ -76,6 +88,7 @@ class FlightsPageState extends State<FlightsPage> {
   }
 
   OverlayEntry createOverlayEntry(BuildContext context) {
+
     return OverlayEntry(
       builder: (context) => Container(
         width: MediaQuery.of(context).size.width,
@@ -187,7 +200,7 @@ class FlightsPageState extends State<FlightsPage> {
                                   }
 
                                   setState(() {
-                                    futureFlights = fetchFlights();
+                                    futureFlights = _fetchFlights();
                                   });
 
                                   overlayEntry.remove(); // Close the dialog
@@ -285,21 +298,10 @@ class FlightsPageState extends State<FlightsPage> {
                                           children: <Widget>[
                                             Row(
                                               children: [
-                                                Icon(Icons.person_outline, color: Colors.blue),
-                                                SizedBox(width: 8.0),
-                                                Text(
-                                                  flight.user.name,
-                                                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(height: 8.0),
-                                            Row(
-                                              children: [
                                                 Icon(Icons.date_range, color: Colors.lightBlueAccent),
                                                 SizedBox(width: 8.0),
                                                 Text(
-                                                  flight.date.toString(),
+                                                  flight.dateTime.toString(),
                                                   style: TextStyle(fontSize: 16.0),
                                                 ),
                                               ],
@@ -310,7 +312,7 @@ class FlightsPageState extends State<FlightsPage> {
                                                 Icon(Icons.flight_takeoff, color: Colors.lightGreen),
                                                 SizedBox(width: 8.0),
                                                 Text(
-                                                  'Takeoff: ${flight.takeoff}',
+                                                  'Takeoff: ${flight.takeOff}',
                                                   style: TextStyle(fontSize: 16.0),
                                                 ),
                                               ],
@@ -367,7 +369,7 @@ class FlightsPageState extends State<FlightsPage> {
                                   onPressed: () async {
                                     await deleteFlight(flight.flightId);
                                     setState(() {
-                                      futureFlights = fetchFlights();
+                                      futureFlights = _fetchFlights();
                                     });
                                   },
                                 ),

@@ -1,24 +1,32 @@
 import 'package:floaty/user_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:floaty_client/api.dart' as api;
 
+import 'CookieAuth.dart';
 import 'constants.dart';
+import 'model.dart' as model;
 import 'model.dart';
 
-Future<List<Flight>> fetchFlights() async {
-  final response = await http.get(Uri.parse('$BASE_URL/flights/1'));
+Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async {
+  final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
+  final flightsApi = api.FlightsApi(apiClient);
 
-  if (response.statusCode == 200) {
-    List<dynamic> list = json.decode(response.body);
+  try {
+    final List<api.Flight>? response = await flightsApi.getFlights(userId);
 
-    Iterable<Future<Flight>> flightsFutures =
-        list.map((flight) => createFlightFromJson(flight));
-
-    return await Future.wait(flightsFutures);
-  } else {
-    throw Exception('Failed to load flights');
+    if (response != null && response.isNotEmpty) {
+      return response.map((flight) => model.Flight.fromJson(flight.toJson())).toList();
+    } else {
+      throw Exception('No flights found');
+    }
+  } catch (e) {
+    // Handle any errors that occur during the fetch operation
+    throw Exception('Failed to load flights: $e');
   }
 }
+
+
 
 Future<void> addFlight(String flightJson) async {
   final response = await http.post(
@@ -36,9 +44,9 @@ Future<void> addFlight(String flightJson) async {
   }
 }
 
-Future<Flight> createFlightFromJson(Map<String, dynamic> json) async {
+Future<model.Flight> createFlightFromJson(Map<String, dynamic> json) async {
   FloatyUser user = await fetchUserById(json['userId'].toString());
-  return Flight.fromJson(json, user);
+  return Flight.fromJson(json);
 }
 
 Future<void> deleteFlight(String flightId) async {

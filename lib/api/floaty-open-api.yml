@@ -46,7 +46,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-
   /flights/{userId}:
     get:
       tags:
@@ -68,7 +67,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Flight'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flight'
   /flights/{flightId}:
     delete:
       tags:
