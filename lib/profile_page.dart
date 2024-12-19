@@ -58,7 +58,7 @@ class ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               'Pilot',
-                              style: Theme.of(context).textTheme.headline5!.copyWith(
+                              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                                 color: Colors.blue.shade900,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -66,23 +66,22 @@ class ProfilePageState extends State<ProfilePage> {
                             SizedBox(height: 16.0),
                             Text(
                               'Name: ${_currentUser.name ?? "Not set"}',
-                              style: Theme.of(context).textTheme.bodyText1,
+                              style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             SizedBox(height: 8.0),
                             Text(
                               'Email: ${_currentUser.email ?? "Not set"}',
-                              style: Theme.of(context).textTheme.bodyText1,
+                              style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             SizedBox(height: 8.0),
                             Text(
                               _currentUser.emailVerified
                                   ? 'Email Verified'
                                   : 'Email Not Verified',
-                              style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                                 color: _currentUser.emailVerified
                                     ? Colors.green
-                                    : Colors.red,
-                              ),
+                                    : Colors.red,                              ),
                             ),
                           ],
                         ),

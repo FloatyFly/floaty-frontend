@@ -1,5 +1,5 @@
-// const BASE_URL = 'https://floaty.k8s.kos.cheap/';
-const BASE_URL = 'http://10.0.2.2:8080'; // can be used for debugging TODO: Make configurable
+const BASE_URL = 'https://test.floatyfly.com';
+// const BASE_URL = 'http://10.0.2.2:8080'; // can be used for debugging TODO: Make configurable
 // For Android Emulator use 10.0.2.2
 // For iOS Simulator use 127.0.0.1
 // For real device, use actual IP
