@@ -11,7 +11,15 @@
 part of openapi.api;
 
 class ApiClient {
-  ApiClient({this.basePath = 'http://localhost', this.authentication,});
+  ApiClient({this.basePath = 'http://localhost', this.authentication, Client? client}) {
+    _client = client ?? Client();
+
+    // This is needed to enable cookie management with a BrowserClient.
+    // TODO: Look into it how to make this happen without overwriting generated code.
+    if (_client is BrowserClient) {
+      (_client as BrowserClient).withCredentials = true;
+    }
+  }
 
   final String basePath;
   final Authentication? authentication;

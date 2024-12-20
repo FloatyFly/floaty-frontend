@@ -4,6 +4,7 @@ import 'package:floaty/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'CookieAuth.dart';
+import 'auth_service.dart';
 import 'constants.dart';
 import 'login_page.dart';
 import 'model.dart';
@@ -28,6 +29,16 @@ class ProfilePageState extends State<ProfilePage> {
   void initState() {
     _currentUser = widget.user!;
     super.initState();
+  }
+
+  CookieAuth _getCookieAuth() {
+    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
+    return CookieAuth(cookieJar);
+  }
+
+  void _emptyCookieJar() {
+    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
+    cookieJar.deleteAll();
   }
 
   @override
@@ -126,15 +137,8 @@ class ProfilePageState extends State<ProfilePage> {
                           });
 
                           try {
-                            // Remove the cookie from my cookie jar and logout user
-                            CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-                            final cookieAuth = CookieAuth(cookieJar);
-                            final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
-                            final authApi = api.AuthApi(apiClient);
-
-                            // Call the API to logout user
-                            await authApi.logoutUser(_currentUser.id);
-                            cookieJar.deleteAll();
+                            await logout(_currentUser.id, _getCookieAuth());
+                            _emptyCookieJar();
 
                             setState(() {
                               _isSigningOut = false;

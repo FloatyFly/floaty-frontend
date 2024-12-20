@@ -48,17 +48,20 @@ class LandingPage extends StatelessWidget {
                 left: 50,
                 right: 50,
                 bottom: 100,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/login');
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.deepOrangeAccent),
-                  ),
-                  child: Text(
-                    'Login',
-                    style: TextStyle(
-                      color: Colors.black,
+                child: FractionallySizedBox(
+                  widthFactor: 0.7, // Limit button width to 60% of the screen width
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/login');
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.deepOrangeAccent),
+                    ),
+                    child: Text(
+                      'Login',
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ),
@@ -68,15 +71,18 @@ class LandingPage extends StatelessWidget {
                 left: 50,
                 right: 50,
                 bottom: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/register');
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                    foregroundColor: MaterialStateProperty.all<Color>(Colors.brown),
+                child: FractionallySizedBox(
+                  widthFactor: 0.7, // Limit button width to 60% of the screen width
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/register');
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                      foregroundColor: MaterialStateProperty.all<Color>(Colors.brown),
+                    ),
+                    child: Text('Register'),
                   ),
-                  child: Text('Register'),
                 ),
               ),
             ],

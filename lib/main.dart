@@ -22,7 +22,7 @@ void main() async {
 }
 
 class FloatyApp extends StatelessWidget {
-  final cookieJar = CookieJar(); // Instantiate the CookieJar here.
+  final cookieJar = CookieJar();
 
   @override
   Widget build(BuildContext context) {
