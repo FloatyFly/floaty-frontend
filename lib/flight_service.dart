@@ -12,13 +12,17 @@ Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async
     final List<api.Flight>? response = await flightsApi.getFlights(userId);
 
     if (response != null && response.isNotEmpty) {
+      // Map the fetched flights to your model and return
       return response.map((flight) => model.Flight.fromJson(flight.toJson())).toList();
     } else {
-      throw Exception('No flights found');
+      // Return an empty list when no flights are found
+      return [];
     }
   } catch (e) {
     // Handle any errors that occur during the fetch operation
-    throw Exception('Failed to load flights: $e');
+    // Log the error and return an empty list for consistency
+    print('Error fetching flights: $e');
+    return [];
   }
 }
 
