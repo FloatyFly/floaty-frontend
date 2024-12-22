@@ -48,6 +48,7 @@ class ProfilePageState extends State<ProfilePage> {
         children: [
           // Background
           const FloatyBackgroundWidget(),
+          Header(),
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),

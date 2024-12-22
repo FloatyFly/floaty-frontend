@@ -1,5 +1,6 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/constants.dart';
+import 'package:floaty/email_verification_page.dart';
 import 'package:floaty/model.dart';
 import 'package:floaty/profile_page.dart';
 import 'package:floaty/register_page.dart';
@@ -41,6 +42,7 @@ class FloatyApp extends StatelessWidget {
           REGISTER_ROUTE: (context) => RegisterPage(),
           FORGOT_PASSWORD_ROUTE: (context) => ForgotPasswordPage(),
           FLIGHTS_ROUTE: (context) => FlightsPage(user: Provider.of<AppState>(context).currentUser),
+          EMAIL_VERIFICATION_ROUTE: (context) => EmailVerificationPage(username: ''),
         },
       ),
     );
@@ -94,9 +96,12 @@ class _HomePageState extends State<HomePage> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         Widget page;
+
         if (!appState.isLoggedIn) {
+          // Redirect to LandingPage if not logged in
           page = LandingPage();
         } else {
+          // Determine which page to display based on selected index
           switch (appState.selectedIndex) {
             case 0:
               page = LandingPage();
@@ -108,67 +113,13 @@ class _HomePageState extends State<HomePage> {
               page = ProfilePage(user: appState.currentUser);
               break;
             default:
-              page = LandingPage(); // Default to LandingPage if unsure
+              page = LandingPage(); // Fallback to LandingPage
               break;
           }
         }
 
-        bool showNavBar = appState.isLoggedIn;
-
         return Scaffold(
-          body: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              if (constraints.maxWidth < 600) {
-                return Column(
-                  children: [
-                    Expanded(child: page),
-                    if (showNavBar) // Conditionally render the BottomNavigationBar
-                      BottomNavigationBar(
-                        items: const <BottomNavigationBarItem>[
-                          BottomNavigationBarItem(
-                              icon: Icon(Icons.home), label: 'Home'),
-                          BottomNavigationBarItem(
-                              icon: Icon(Icons.paragliding_sharp),
-                              label: 'Flights'),
-                          BottomNavigationBarItem(
-                              icon: Icon(Icons.person_sharp), label: 'Profile'),
-                        ],
-                        currentIndex: appState.selectedIndex,
-                        onTap: (index) {
-                          if (appState.isLoggedIn) {
-                            appState.setSelectedIndex(index);
-                          }
-                        },
-                      ),
-                  ],
-                );
-              } else {
-                return Row(
-                  children: [
-                    if (showNavBar) // Conditionally render the NavigationRail
-                      NavigationRail(
-                        selectedIndex: appState.selectedIndex,
-                        onDestinationSelected: (index) {
-                          if (appState.isLoggedIn) {
-                            appState.setSelectedIndex(index);
-                          }
-                        },
-                        destinations: [
-                          NavigationRailDestination(
-                              icon: Icon(Icons.home), label: Text('Home')),
-                          NavigationRailDestination(
-                              icon: Icon(Icons.paragliding_sharp),
-                              label: Text('Flights')),
-                          NavigationRailDestination(
-                              icon: Icon(Icons.person), label: Text('Profile')),
-                        ],
-                      ),
-                    Expanded(child: page),
-                  ],
-                );
-              }
-            },
-          ),
+          body: page, // Directly display the selected page
         );
       },
     );

@@ -135,11 +135,11 @@ class FlightsPageState extends State<FlightsPage> {
                     TextFormField(
                       controller: takeoffController,
                       decoration: InputDecoration(
-                        hintText: "Takeoff Location",
-                        hintStyle: const TextStyle(
-                          color: Colors.grey,
-                        ),
-                        icon: Icon(Icons.location_pin)
+                          hintText: "Takeoff Location",
+                          hintStyle: const TextStyle(
+                            color: Colors.grey,
+                          ),
+                          icon: Icon(Icons.location_pin)
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -151,11 +151,11 @@ class FlightsPageState extends State<FlightsPage> {
                     TextFormField(
                       controller: durationController,
                       decoration: InputDecoration(
-                        hintText: "Flight Duration (minutes)",
-                        hintStyle: const TextStyle(
-                          color: Colors.grey,
-                        ),
-                        icon: Icon(Icons.timer)
+                          hintText: "Flight Duration (minutes)",
+                          hintStyle: const TextStyle(
+                            color: Colors.grey,
+                          ),
+                          icon: Icon(Icons.timer)
                       ),
                       validator: (value) {
                         if (value == null ||
@@ -169,68 +169,68 @@ class FlightsPageState extends State<FlightsPage> {
                     TextFormField(
                       controller: descriptionController,
                       decoration: InputDecoration(
-                        hintText: "Description",
-                        hintStyle: const TextStyle(
-                          color: Colors.grey,
-                        ),
-                        icon: Icon(Icons.description)
+                          hintText: "Description",
+                          hintStyle: const TextStyle(
+                            color: Colors.grey,
+                          ),
+                          icon: Icon(Icons.description)
                       ),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Cancel Button
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextButton(
-                            onPressed: () {
-                              overlayEntry.remove(); // Close overlay
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.deepOrange, backgroundColor: Colors.white, // Button background
-                              side: BorderSide(color: Colors.deepOrange), // Border color
-                              textStyle: TextStyle(fontSize: 14.0), // Text size
-                            ),
-                            child: Text('Cancel'),
-                          ),
-                        ),
-                        // Save Button (only visible if form is valid)
-                        Visibility(
-                          visible: isFormValid,
-                          child: Padding(
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Cancel Button
+                          Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                try {
-                                  await _saveNewFlight();
-                                  setState(() {
-                                    futureFlights = _fetchFlights();
-                                  });
-                                  overlayEntry.remove(); // Close the overlay
-                                } catch (e) {
-                                  print("Failed to save flight, error: $e");
-                                }
+                            child: TextButton(
+                              onPressed: () {
+                                overlayEntry.remove(); // Close overlay
                               },
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.black, backgroundColor: Colors.deepOrange, // Text color
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.deepOrange, backgroundColor: Colors.white, // Button background
+                                side: BorderSide(color: Colors.deepOrange), // Border color
                                 textStyle: TextStyle(fontSize: 14.0), // Text size
                               ),
-                              child: Text('Save'),
+                              child: Text('Cancel'),
                             ),
                           ),
-                        ),
-                      ],
+                          // Save Button (only visible if form is valid)
+                          Visibility(
+                            visible: isFormValid,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  try {
+                                    await _saveNewFlight();
+                                    setState(() {
+                                      futureFlights = _fetchFlights();
+                                    });
+                                    overlayEntry.remove(); // Close the overlay
+                                  } catch (e) {
+                                    print("Failed to save flight, error: $e");
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.black, backgroundColor: Colors.deepOrange, // Text color
+                                  textStyle: TextStyle(fontSize: 14.0), // Text size
+                                ),
+                                child: Text('Save'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),
       ),
-    ),
-    ),
     );
 
   }
@@ -240,6 +240,7 @@ class FlightsPageState extends State<FlightsPage> {
     return Scaffold(
       body: Stack(children: [
         const FloatyBackgroundWidget(),
+        Header(),
         Column(
           children: [
             SizedBox(
@@ -270,6 +271,36 @@ class FlightsPageState extends State<FlightsPage> {
                   future: futureFlights,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
+                      if (snapshot.data!.isEmpty) {
+                        // Show a custom message when no flights are logged
+                        return Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(width: 10),
+                                Text(
+                                  'You have no flights logged yet. Go fly! 🚀',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
                       return ListView.builder(
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
@@ -378,12 +409,12 @@ class FlightsPageState extends State<FlightsPage> {
               alignment: Alignment.bottomRight,
               child: Padding(
                 padding:
-                    const EdgeInsets.only(right: 30.0, bottom: 30.0, top: 5),
+                const EdgeInsets.only(right: 30.0, bottom: 30.0, top: 5),
                 child: SizedBox(
                   width: 80, // provide a custom width
                   height: 80, // provide a custom height
                   child: FloatingActionButton(
-                    backgroundColor: Color(0xFF8BC34A),
+                    backgroundColor: Colors.deepOrangeAccent,
                     onPressed: () => showOverlay(context),
                     child: Icon(Icons.add, size: 40),
                   ),
