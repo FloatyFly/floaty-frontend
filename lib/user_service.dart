@@ -5,7 +5,7 @@ import 'constants.dart';
 import 'model.dart';
 
 Future<FloatyUser> fetchUserById(String userId) async {
-  final String apiUrl = '$BASE_URL/users/$userId';
+  final String apiUrl = '$backendUrl/users/$userId';
 
   final response = await http.get(Uri.parse(apiUrl));
 

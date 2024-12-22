@@ -29,7 +29,7 @@ class LandingPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Column(
                     children: [
-                      SizedBox(height: 100.0), // Spacing below the top banner
+                      SizedBox(height: 250.0), // Spacing below the top banner
 
                       // AuthContainer for Register Form
                       AuthContainer(

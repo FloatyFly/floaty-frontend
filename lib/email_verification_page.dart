@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:floaty_client/api.dart';
-import 'package:provider/provider.dart';
 import 'constants.dart';
-import 'main.dart';
+import 'ui_components.dart';
 
 class EmailVerificationPage extends StatefulWidget {
-  final String username;
-
-  const EmailVerificationPage({Key? key, required this.username}) : super(key: key);
+  const EmailVerificationPage({Key? key}) : super(key: key);
 
   @override
   _EmailVerificationPageState createState() => _EmailVerificationPageState();
@@ -28,13 +25,14 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     });
 
     try {
-      final apiClient = ApiClient(basePath: BASE_URL);
+      final apiClient = ApiClient(basePath: backendUrl);
       final authApi = AuthApi(apiClient);
 
       await authApi.authVerifyEmailEmailVerificationTokenPost(token);
+
       setState(() {
         _isProcessing = false;
-        _message = "Email successfully verified. You can now continue to login.";
+        _message = "Your email has been successfully verified! You may now continue to login.";
         _isSuccess = true;
       });
     } catch (e) {
@@ -48,127 +46,90 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Access AppState
-    final appState = Provider.of<AppState>(context);
-    final isLargeScreen = MediaQuery.of(context).size.width >= 600;
-
-    return Container(
-      height: 75.0,
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      body: Stack(
         children: [
-          // Logo (aligned left)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Floaty",
-                style: TextStyle(
-                  color: Colors.black, // Larger and black
-                  fontSize: 28.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2.0),
-              Text(
-                "Simple paragliding logbook",
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14.0,
-                ),
-              ),
-            ],
-          ),
-
-          // Show navigation links or menu only when logged in
-          if (appState.isLoggedIn)
-            if (isLargeScreen)
-              Row(
+          // Background
+          const FloatyBackgroundWidget(),
+          // AuthContainer with Email Verification Form
+          Header(),
+          AuthContainer(
+            headerText: "Email Verification",
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, HOME_ROUTE),
-                    child: const Text(
-                      "Home",
-                      style: TextStyle(color: Colors.black, fontSize: 18.0),
-                    ),
+                  const SizedBox(height: 40.0),
+                  // Instruction Text
+                  const Text(
+                    "Only one step left to using Floaty! Please check your email for the email verification token to enter below.",
+                    style: TextStyle(fontSize: 14.0, color: Colors.white),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(width: 16.0),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, FLIGHTS_ROUTE),
-                    child: const Text(
-                      "Flights",
-                      style: TextStyle(color: Colors.black, fontSize: 18.0),
+                  const SizedBox(height: 40.0),
+
+                  // Token Input Field
+                  TextFormField(
+                    controller: _tokenController,
+                    decoration: const InputDecoration(
+                      hintText: "Enter Verification Code",
+                      prefixIcon: Icon(Icons.code, color: Colors.grey),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the verification code.';
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(width: 16.0),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, PROFILE_ROUTE),
-                    child: const Text(
-                      "Profile",
-                      style: TextStyle(color: Colors.black, fontSize: 18.0),
+                  const SizedBox(height: 16.0),
+
+                  // Error or Success Message
+                  if (_message != null)
+                    Text(
+                      _message!,
+                      style: TextStyle(
+                        color: _isSuccess ? Colors.green : Colors.red,
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  const SizedBox(height: 32.0),
+
+                  // Verify Button
+                  _isProcessing
+                      ? const CircularProgressIndicator()
+                      : SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_isSuccess) {
+                          Navigator.pushNamed(context, LOGIN_ROUTE);
+                        } else if (_formKey.currentState!.validate()) {
+                          _verifyEmail(_tokenController.text);
+                        }
+                      },
+                      child: Text(
+                        _isSuccess ? 'Go to Login' : 'Verify Email',
+                        style: const TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
                   ),
                 ],
-              )
-            else
-              IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  _showMenuDialog(context, appState);
-                },
               ),
+            ),
+          ),
+          // Footer
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Footer(),
+          ),
         ],
       ),
     );
   }
-
-  void _showMenuDialog(BuildContext context, AppState appState) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: appState.isLoggedIn
-                ? [
-              ListTile(
-                title: const Text("Home"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, HOME_ROUTE);
-                },
-              ),
-              ListTile(
-                title: const Text("Flights"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, FLIGHTS_ROUTE);
-                },
-              ),
-              ListTile(
-                title: const Text("Profile"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, PROFILE_ROUTE);
-                },
-              ),
-            ]
-                : [
-              ListTile(
-                title: const Text("Login"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, LOGIN_ROUTE);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
 }

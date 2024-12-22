@@ -149,7 +149,7 @@ class ProfilePageState extends State<ProfilePage> {
                             Provider.of<AppState>(context,
                                 listen: false)
                                 .logout();
-                            Navigator.pushReplacementNamed(context, HOME_ROUTE);
+                            Navigator.pushReplacementNamed(context, LOGIN_ROUTE);
                           } catch (e) {
                             // Handle error if logout fails
                             print('Logout failed: $e');

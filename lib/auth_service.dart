@@ -4,7 +4,7 @@ import 'CookieAuth.dart';
 import 'constants.dart';
 
 Future<void> logout(int userId, CookieAuth cookieAuth) async {
-  final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
+  final apiClient = api.ApiClient(basePath: backendUrl, authentication: cookieAuth);
 
   final usersApi = api.AuthApi(apiClient);
 
