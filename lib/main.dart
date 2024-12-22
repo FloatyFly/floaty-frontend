@@ -7,6 +7,7 @@ import 'package:floaty/register_page.dart';
 import 'package:floaty/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'add_flight_page.dart';
 import 'forgot_password_page.dart';
 
 import 'flights_page.dart';
@@ -34,15 +35,16 @@ class FloatyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Floaty',
         theme: buildThemeData(),
-        initialRoute: '/',
+        initialRoute: REGISTER_ROUTE,
         routes: {
-          HOME_ROUTE: (context) => HomePage(),
+          HOME_ROUTE: (context) => RegisterPage(),
           LOGIN_ROUTE: (context) => LoginPage(),
           PROFILE_ROUTE: (context) => ProfilePage(user: Provider.of<AppState>(context).currentUser),
           REGISTER_ROUTE: (context) => RegisterPage(),
           FORGOT_PASSWORD_ROUTE: (context) => ForgotPasswordPage(),
           FLIGHTS_ROUTE: (context) => FlightsPage(user: Provider.of<AppState>(context).currentUser),
-          EMAIL_VERIFICATION_ROUTE: (context) => EmailVerificationPage(username: ''),
+          ADD_FLIGHT_ROUTE: (context) => AddFlightPage(),
+          EMAIL_VERIFICATION_ROUTE: (context) => EmailVerificationPage(),
         },
       ),
     );

@@ -205,7 +205,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
 /// Register logic helper
 Future<User?> registerUser(String username, String email, String password) async {
-  final apiClient = ApiClient(basePath: BASE_URL);
+  final apiClient = ApiClient(basePath: backendUrl);
   final authApi = AuthApi(apiClient);
 
   final registerRequest = RegisterRequest(

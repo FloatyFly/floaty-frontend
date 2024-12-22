@@ -20,7 +20,7 @@ jobs:
           flutter create --project-name floaty .
           flutter config --enable-web
           flutter pub get
-          flutter build web --no-tree-shake-icons
+          flutter build web --no-tree-shake-icons --dart-define=ENV=prod
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'

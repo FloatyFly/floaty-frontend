@@ -5,7 +5,7 @@ import 'constants.dart';
 import 'model.dart' as model;
 
 Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async {
-  final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
+  final apiClient = api.ApiClient(basePath: backendUrl, authentication: cookieAuth);
   final flightsApi = api.FlightsApi(apiClient);
 
   try {
@@ -27,7 +27,7 @@ Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async
 }
 
 Future<api.Flight?> addFlight(model.Flight flight, CookieAuth cookieAuth) async {
-  final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
+  final apiClient = api.ApiClient(basePath: backendUrl, authentication: cookieAuth);
   final flightsApi = api.FlightsApi(apiClient);
 
   api.Flight? flightDto = api.Flight.fromJson(flight.toJson());
@@ -43,7 +43,7 @@ Future<api.Flight?> addFlight(model.Flight flight, CookieAuth cookieAuth) async 
 }
 
 Future<void> deleteFlight(String flightId, CookieAuth cookieAuth) async {
-  final apiClient = api.ApiClient(basePath: BASE_URL, authentication: cookieAuth);
+  final apiClient = api.ApiClient(basePath: backendUrl, authentication: cookieAuth);
   final flightsApi = api.FlightsApi(apiClient);
 
   try {

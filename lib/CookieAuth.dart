@@ -10,7 +10,7 @@ class CookieAuth implements Authentication {
 
   @override
   Future<void> applyToParams(List<QueryParam> queryParams, Map<String, String> headerParams) async {
-    final uri = Uri.parse(BASE_URL); // The URL your API is hosted at
+    final uri = Uri.parse(backendUrl); // The URL your API is hosted at
     final cookies = await cookieJar.loadForRequest(uri);
 
     // Find the session token

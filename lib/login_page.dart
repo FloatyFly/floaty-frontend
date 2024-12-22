@@ -195,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
 
                     Provider.of<AppState>(context, listen: false).login(floatyUser);
 
-                    Navigator.pushNamed(context, HOME_ROUTE);
+                    Navigator.pushNamed(context, FLIGHTS_ROUTE);
                   }
                 } on EmailNotVerifiedException {
                   setState(() {
@@ -231,7 +231,7 @@ class _LoginPageState extends State<LoginPage> {
 /// Login logic helper
 Future<User?> loginAndExtractSessionCookie(
     String username, String password, CookieJar cookieJar) async {
-  final apiClient = ApiClient(basePath: BASE_URL);
+  final apiClient = ApiClient(basePath: backendUrl);
   final authApi = AuthApi(apiClient);
 
   final loginRequest = LoginRequest(name: username, password: password);
@@ -251,7 +251,7 @@ Future<User?> loginAndExtractSessionCookie(
 
   final setCookieHeader = response.headers['set-cookie'];
   if (setCookieHeader != null) {
-    final uri = Uri.parse(BASE_URL);
+    final uri = Uri.parse(backendUrl);
     cookieJar.saveFromResponse(uri, [Cookie.fromSetCookieValue(setCookieHeader)]);
   }
 

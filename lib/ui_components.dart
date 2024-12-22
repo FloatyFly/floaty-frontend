@@ -116,15 +116,16 @@ class AuthContainer extends StatelessWidget {
   }
 }
 
-
 class Header extends StatelessWidget {
   const Header({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Access AppState
     final appState = Provider.of<AppState>(context);
-    final isLargeScreen = MediaQuery.of(context).size.width >= 600;
+    final isLargeScreen = MediaQuery
+        .of(context)
+        .size
+        .width >= 600;
 
     return Container(
       height: 75.0,
@@ -133,28 +134,11 @@ class Header extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Floaty Logo
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Floaty",
-                style: TextStyle(
-                  color: Colors.black, // Changed to black
-                  fontSize: 28.0, // Larger size
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2.0),
-              Text(
-                "Simple paragliding logbook",
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14.0,
-                ),
-              ),
-            ],
+          // Replace text with image logo
+          Image.asset(
+            "assets/logo.png",
+            height: 55.0,
+            fit: BoxFit.contain,
           ),
 
           // Show navigation links or menu only when logged in
@@ -162,28 +146,25 @@ class Header extends StatelessWidget {
             if (isLargeScreen)
               Row(
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, HOME_ROUTE),
-                    child: const Text(
-                      "Home",
-                      style: TextStyle(color: Colors.black, fontSize: 18.0),
-                    ),
+                  _buildNavButton(
+                    context,
+                    "Home",
+                    0,
+                    appState.selectedIndex,
                   ),
                   const SizedBox(width: 16.0),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, FLIGHTS_ROUTE),
-                    child: const Text(
-                      "Flights",
-                      style: TextStyle(color: Colors.black, fontSize: 18.0),
-                    ),
+                  _buildNavButton(
+                    context,
+                    "Flights",
+                    1,
+                    appState.selectedIndex,
                   ),
                   const SizedBox(width: 16.0),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, PROFILE_ROUTE),
-                    child: const Text(
-                      "Profile",
-                      style: TextStyle(color: Colors.black, fontSize: 18.0),
-                    ),
+                  _buildNavButton(
+                    context,
+                    "Profile",
+                    2,
+                    appState.selectedIndex,
                   ),
                 ],
               )
@@ -199,8 +180,40 @@ class Header extends StatelessWidget {
     );
   }
 
+  // Helper function to build navigation buttons
+  Widget _buildNavButton(BuildContext context, String label, int index,
+      int selectedIndex) {
+    final isSelected = index == selectedIndex;
+    return TextButton(
+      onPressed: () {
+        // Update the selected index in AppState
+        Provider.of<AppState>(context, listen: false).setSelectedIndex(index);
+        // Navigate to the corresponding page
+        if (index == 0) {
+          Navigator.pushNamed(context, HOME_ROUTE);
+        } else if (index == 1) {
+          Navigator.pushNamed(context, FLIGHTS_ROUTE);
+        } else if (index == 2) {
+          Navigator.pushNamed(context, PROFILE_ROUTE);
+        }
+      },
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.blue : Colors.black,
+          // Blue color for selected item
+          fontSize: 18.0,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight
+              .normal, // Bold for selected item
+        ),
+      ),
+    );
+  }
+
+
   void _showMenuDialog(BuildContext context, AppState appState) {
-    if (!appState.isLoggedIn) return; // If the user is not logged in, do nothing
+    if (!appState.isLoggedIn)
+      return; // If the user is not logged in, do nothing
 
     showModalBottomSheet(
       context: context,
@@ -237,6 +250,7 @@ class Header extends StatelessWidget {
     );
   }
 }
+
 
 class Footer extends StatelessWidget {
   const Footer({
