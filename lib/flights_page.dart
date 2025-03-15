@@ -211,7 +211,6 @@ class _FlightsPageState extends State<FlightsPage> {
   }
 }
 
-
 class FlightListView extends StatelessWidget {
   final Future<List<Flight>> futureFlights;
   final Function(Flight) onDeleteFlight;
@@ -244,8 +243,8 @@ class FlightListView extends StatelessWidget {
             itemBuilder: (context, index) {
               final flight = flights[index];
 
-              // Generate the flight number based on the index
-              final flightNumber = "${index + 1}";
+              // Generate the flight number based on the index such that the newest flight gets the highest number
+              final flightNumber = "${flights.length - index}";  // Reverse the order of numbering
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -263,7 +262,7 @@ class FlightListView extends StatelessWidget {
                           ),
                           Text(
                             flight.dateTime.toString().substring(0, 10).split("-").reversed.join("."),
-                            style: TextStyle(fontSize: 14, color: Colors.black54),
+                            style: TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -344,6 +343,7 @@ class FlightListView extends StatelessWidget {
     );
   }
 }
+
 
 
 
