@@ -31,6 +31,16 @@ class _RegisterFormState extends State<RegisterForm> {
   final _focusPassword = FocusNode();
 
   @override
+
+  void initState() {
+    super.initState();
+    // Set focus on the username field when the page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_focusUserName);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
@@ -52,6 +62,10 @@ class _RegisterFormState extends State<RegisterForm> {
               }
               return null;
             },
+            textInputAction: TextInputAction.next,
+            onFieldSubmitted: (_) {
+              FocusScope.of(context).requestFocus(_focusEmail);
+            },
           ),
           const SizedBox(height: 14.0),
           // Email Field
@@ -64,6 +78,10 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             style: const TextStyle(color: Colors.black),
             validator: (value) => Validator.validateEmail(email: value),
+            textInputAction: TextInputAction.next,
+            onFieldSubmitted: (_) {
+              FocusScope.of(context).requestFocus(_focusPassword);
+            },
           ),
           const SizedBox(height: 14.0),
           // Password Field
@@ -77,6 +95,11 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             style: const TextStyle(color: Colors.black),
             validator: (value) => Validator.validatePassword(password: value),
+            textInputAction: TextInputAction.done, // Done action on password field
+            onFieldSubmitted: (_) {
+              // When 'Enter' is pressed on the password field, submit the form
+              _submitForm();
+            },
           ),
           const SizedBox(height: 16.0),
           // Error Message
@@ -141,6 +164,20 @@ class _RegisterFormState extends State<RegisterForm> {
         ],
       ),
     );
+  }
+
+  // Submit form when 'Enter' is pressed
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      _focusUserName.unfocus();
+      _focusEmail.unfocus();
+      _focusPassword.unfocus();
+      widget.onSubmit(
+        _userNameTextController.text,
+        _emailTextController.text,
+        _passwordTextController.text,
+      );
+    }
   }
 }
 

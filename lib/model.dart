@@ -39,6 +39,7 @@ class Flight {
         "dateTime": dateTime,
         "takeOff": takeOff,
         "duration": duration,
+        "description": description
       };
 }
 

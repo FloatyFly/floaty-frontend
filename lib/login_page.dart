@@ -11,7 +11,6 @@ import 'ui_components.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 
 
-/// Login Form Widget
 class LoginForm extends StatefulWidget {
   final Function(String username, String password) onSubmit;
   final String? errorMessage;
@@ -36,6 +35,15 @@ class _LoginFormState extends State<LoginForm> {
   final _focusPassword = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    // Set focus on the username field when the page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_focusUserName);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
@@ -57,6 +65,11 @@ class _LoginFormState extends State<LoginForm> {
               }
               return null;
             },
+            textInputAction: TextInputAction.next, // Move to next field on enter
+            onFieldSubmitted: (_) {
+              // When 'Enter' is pressed, focus on password field
+              FocusScope.of(context).requestFocus(_focusPassword);
+            },
           ),
           const SizedBox(height: 14.0),
           // Password Field
@@ -68,8 +81,13 @@ class _LoginFormState extends State<LoginForm> {
               hintText: "Password",
               prefixIcon: Icon(Icons.lock, color: Colors.grey),
             ),
-            style: const TextStyle(color: Colors.black  ),
+            style: const TextStyle(color: Colors.black),
             validator: (value) => Validator.validatePassword(password: value),
+            textInputAction: TextInputAction.done, // Done action on password field
+            onFieldSubmitted: (_) {
+              // When 'Enter' is pressed on the password field, submit the form
+              _submitForm();
+            },
           ),
           const SizedBox(height: 16.0),
           // Error Message
@@ -145,7 +163,20 @@ class _LoginFormState extends State<LoginForm> {
       ),
     );
   }
+
+  // Submit form when 'Enter' is pressed
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      _focusUserName.unfocus();
+      _focusPassword.unfocus();
+      widget.onSubmit(
+        _userNameTextController.text,
+        _passwordTextController.text,
+      );
+    }
+  }
 }
+
 
 /// Login Page
 class LoginPage extends StatefulWidget {

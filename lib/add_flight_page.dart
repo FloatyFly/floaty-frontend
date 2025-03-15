@@ -8,7 +8,7 @@ import 'CookieAuth.dart';
 import 'model.dart';
 
 class AddFlightPage extends StatefulWidget {
-  const AddFlightPage();
+  const AddFlightPage({Key? key}) : super(key: key);
 
   @override
   _AddFlightPageState createState() => _AddFlightPageState();
@@ -16,14 +16,31 @@ class AddFlightPage extends StatefulWidget {
 
 class _AddFlightPageState extends State<AddFlightPage> {
   final _formKey = GlobalKey<FormState>();
-  bool isFormValid = false;
+  final _dateController = TextEditingController();
+  final _takeoffController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _focusDate = FocusNode();
+  final _focusTakeoff = FocusNode();
+  final _focusDescription = FocusNode();
 
-  final TextEditingController dateController = TextEditingController();
-  final TextEditingController takeoffController = TextEditingController();
-  final TextEditingController durationController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
+  bool isProcessing = false;
+  String? errorMessage;
+  String? flightTimeErrorMessage; // Error message for flight time
+
+  // Duration selection variables
+  int? selectedHours;
+  int? selectedMinutes;
 
   final DateFormat formatter = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
+  @override
+  void initState() {
+    super.initState();
+    _dateController.text = DateFormat("dd.MM.yyyy").format(DateTime.now());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_focusTakeoff); // Focus on the Takeoff Location field
+    });
+  }
 
   CookieAuth _getCookieAuth() {
     CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
@@ -31,21 +48,62 @@ class _AddFlightPageState extends State<AddFlightPage> {
   }
 
   Future<void> _saveNewFlight() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    // Check if both hours and minutes are zero
+    if ((selectedHours ?? 0) == 0 && (selectedMinutes ?? 0) == 0) {
+      setState(() {
+        flightTimeErrorMessage = "Flight time can not be 0 minutes.";
+      });
+      return;
+    }
+
+    setState(() {
+      isProcessing = true;
+      errorMessage = null;
+      flightTimeErrorMessage = null; // Clear any previous flight time error
+    });
+
     try {
-      final formattedDate = formatter.format(DateTime.parse(dateController.text));
+      DateFormat dateFormat = DateFormat('dd.MM.yyyy');
+      final formattedDate = formatter.format(dateFormat.parseStrict(_dateController.text));
+
+      // Calculate total duration in minutes
+      final duration = (selectedHours ?? 0) * 60 + (selectedMinutes ?? 0);
 
       Flight flight = Flight(
         flightId: "",
         dateTime: formattedDate,
-        takeOff: takeoffController.text,
-        duration: int.parse(durationController.text),
-        description: descriptionController.text,
+        takeOff: _takeoffController.text,
+        duration: duration,
+        description: _descriptionController.text,
       );
 
       await addFlight(flight, _getCookieAuth());
-      Navigator.pop(context); // Return to FlightsPage after saving the flight
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     } catch (e) {
-      print("Failed to save flight, error: $e");
+      setState(() {
+        errorMessage = "Failed to save flight. Please try again.";
+        isProcessing = false;
+      });
+    }
+  }
+
+  // Show the date picker dialog
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != DateTime.now()) {
+      setState(() {
+        _dateController.text = DateFormat("dd.MM.yyy").format(picked);
+      });
     }
   }
 
@@ -54,151 +112,214 @@ class _AddFlightPageState extends State<AddFlightPage> {
     return Scaffold(
       body: Stack(
         children: [
-          const FloatyBackgroundWidget(), // The background remains in the stack
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            child: Header(), // Header is at the top
-          ),
-          Positioned(
-            top: 120.0, // Adjust for header space
-            left: 0,
-            right: 0,
-            bottom: 0, // Ensure the form takes up the remaining space
-            child: AddFlightContainer(
-              headerText: "Add New Flight",
-              child: Form(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                onChanged: () {
-                  setState(() {
-                    isFormValid = _formKey.currentState?.validate() ?? false;
-                  });
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: dateController,
-                      decoration: InputDecoration(labelText: "Date (YYYY-MM-DD)"),
-                      validator: (value) {
-                        if (value == null || value.isEmpty || DateTime.tryParse(value) == null || DateTime.parse(value).isAfter(DateTime.now())) {
-                          return "Please enter a valid date.";
-                        }
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                      controller: takeoffController,
-                      decoration: InputDecoration(labelText: "Takeoff Location"),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter a takeoff location.";
-                        }
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                      controller: durationController,
-                      decoration: InputDecoration(labelText: "Flight Duration (minutes)"),
-                      validator: (value) {
-                        if (value == null || value.isEmpty || int.tryParse(value) == null) {
-                          return "Please enter a valid duration in minutes.";
-                        }
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                      controller: descriptionController,
-                      decoration: InputDecoration(labelText: "Description"),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Save Button
-                          ElevatedButton(
-                            onPressed: isFormValid ? _saveNewFlight : null,
-                            child: Text("Save Flight"),
+          const FloatyBackgroundWidget(),
+          Header(),
+          AuthContainer(
+            headerText: "Add New Flight",
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Date Picker Field with Button
+                  GestureDetector(
+                    onTap: () => _selectDate(context),
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        controller: _dateController,
+                        focusNode: _focusDate,
+                        decoration: InputDecoration(
+                          hintText: "dd.MM.yyyy",
+                          prefixIcon: IconButton(
+                            icon: Icon(Icons.calendar_today, color: Colors.orange),
+                            onPressed: () => _selectDate(context),
+                            padding: EdgeInsets.only(left: 7), // Set padding of the icon to zero
                           ),
-                          SizedBox(width: 16),
-                          // Cancel Button
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Navigate back to the Flights page
-                            },
-                            child: Text("Cancel"),
+                          prefixIconConstraints: BoxConstraints(
+                            maxWidth: 32, // Icon size width
                           ),
-                        ],
+                          contentPadding: EdgeInsets.only(left: 60), // Add padding to the left side of the text (after the icon)
+                          isDense: false, // Tighter vertical spacing
+                          border: OutlineInputBorder(), // Optional: To make it look more consistent
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Enter a valid date.";
+                          }
+
+                          try {
+                            // Try to parse the date using the custom format
+                            DateFormat dateFormat = DateFormat('dd.MM.yyyy');
+                            dateFormat.parseStrict(value); // This will throw if the date is invalid
+                            return null; // Date is valid
+                          } catch (e) {
+                            // If parsing fails, return an error message
+                            return "Enter a valid date.";
+                          }
+                        },
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusTakeoff),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Takeoff Location Field
+                  TextFormField(
+                    controller: _takeoffController,
+                    focusNode: _focusTakeoff,
+                    decoration: InputDecoration(
+                      hintText: "Takeoff Location",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(3.0), // Rounded corners
+                      ),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? "Enter a takeoff location." : null,
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_focusDescription),
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Duration (Hours and Minutes) - Initial Text
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Hours Dropdown
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          value: selectedHours,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedHours = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: "Hours",
+                            border: OutlineInputBorder(),
+                          ),
+                          items: List.generate(12, (index) {
+                            return DropdownMenuItem<int>(
+                              value: index + 1,
+                              child: Text("${index + 1} Hours"),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Minutes Dropdown
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          value: selectedMinutes,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedMinutes = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: "Minutes",
+                            border: OutlineInputBorder(),
+                          ),
+                          items: List.generate(12, (index) {
+                            return DropdownMenuItem<int>(
+                              value: (index + 1) * 5,
+                              child: Text("${(index + 1) * 5} Minutes"),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Show flight time error message if both hours and minutes are zero
+                  if (flightTimeErrorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 0.0),
+                      child: Text(
+                        flightTimeErrorMessage!,
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
+                      ),
+                    ),
+
+                  const SizedBox(height: 14.0),
+
+                  // Description Field
+                  TextField(
+                    controller: _descriptionController,
+                    focusNode: _focusDescription,
+                    maxLines: null, // Allow unlimited lines
+                    minLines: 3, // Initial size
+                    decoration: InputDecoration(
+                      hintText: "Description",
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Error Message
+                  if (errorMessage != null)
+                    Text(
+                      errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                    ),
+                  const SizedBox(height: 32.0),
+
+                  // Buttons (Save and Cancel)
+                  isProcessing
+                      ? const CircularProgressIndicator()
+                      : SizedBox(
+                    width: double.infinity,
+                    child: Row(
+                      children: [
+                        // Save Button (Black)
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                FocusScope.of(context).unfocus();
+                                _saveNewFlight();
+                              }
+                            },
+                            child: const Text(
+                              'Save',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16), // Add some space between buttons
+                        // Cancel Button (Grey)
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Navigate back to the Flights Page
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey, // Set background color to grey
+                            ),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Footer(),
           ),
         ],
       ),
     );
   }
 }
-
-
-class AddFlightContainer extends StatelessWidget {
-  final String headerText;
-  final Widget child;
-
-  const AddFlightContainer({
-    Key? key,
-    required this.headerText,
-    required this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 400,
-        height: 550,
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(6.0),
-        ),
-        child: Column(
-          children: [
-            // Header Box
-            Container(
-              width: double.infinity,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.8),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12.0),
-                ),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                headerText,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            // Child widget (the form input logic)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-                child: child,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
