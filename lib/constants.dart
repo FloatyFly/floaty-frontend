@@ -10,3 +10,4 @@ const PROFILE_ROUTE = '/profile';
 const FLIGHTS_ROUTE = '/flights';
 const ADD_FLIGHT_ROUTE = '/add-flight';
 const EMAIL_VERIFICATION_ROUTE = '/email-validation';
+const STATS_ROUTE = '/stats';

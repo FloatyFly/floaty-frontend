@@ -4,6 +4,7 @@ import 'package:floaty/email_verification_page.dart';
 import 'package:floaty/model.dart';
 import 'package:floaty/profile_page.dart';
 import 'package:floaty/register_page.dart';
+import 'package:floaty/stats_page.dart';
 import 'package:floaty/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -45,6 +46,7 @@ class FloatyApp extends StatelessWidget {
           FLIGHTS_ROUTE: (context) => FlightsPage(user: Provider.of<AppState>(context).currentUser),
           ADD_FLIGHT_ROUTE: (context) => AddFlightPage(),
           EMAIL_VERIFICATION_ROUTE: (context) => EmailVerificationPage(),
+          STATS_ROUTE: (context) => StatsPage(user: Provider.of<AppState>(context).currentUser),
         },
       ),
     );
@@ -112,6 +114,9 @@ class _HomePageState extends State<HomePage> {
               page = FlightsPage(user: appState.currentUser);
               break;
             case 2:
+              page = StatsPage(user: appState.currentUser);
+              break;
+            case 3:
               page = ProfilePage(user: appState.currentUser);
               break;
             default:

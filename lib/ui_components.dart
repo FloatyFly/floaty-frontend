@@ -162,8 +162,15 @@ class Header extends StatelessWidget {
                   const SizedBox(width: 16.0),
                   _buildNavButton(
                     context,
-                    "Profile",
+                    "Statistics",
                     2,
+                    appState.selectedIndex,
+                  ),
+                  const SizedBox(width: 16.0),
+                  _buildNavButton(
+                    context,
+                    "Profile",
+                    3,
                     appState.selectedIndex,
                   ),
                 ],
@@ -194,6 +201,8 @@ class Header extends StatelessWidget {
         } else if (index == 1) {
           Navigator.pushNamed(context, FLIGHTS_ROUTE);
         } else if (index == 2) {
+          Navigator.pushNamed(context, STATS_ROUTE);
+        } else if (index == 3) {
           Navigator.pushNamed(context, PROFILE_ROUTE);
         }
       },
@@ -234,6 +243,13 @@ class Header extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, FLIGHTS_ROUTE);
+                },
+              ),
+              ListTile(
+                title: const Text("Statistics"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, STATS_ROUTE);
                 },
               ),
               ListTile(

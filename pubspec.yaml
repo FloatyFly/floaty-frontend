@@ -23,6 +23,7 @@ dependencies:
   csv: ^6.0.0
   path_provider: ^2.1.5
   file_saver: ^0.2.14
+  fl_chart: ^0.70.2
 
 dev_dependencies:
   flutter_test:
