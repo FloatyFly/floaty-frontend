@@ -17,10 +17,7 @@ import 'login_page.dart';
 
 void main() async {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AppState(),
-      child: FloatyApp(),
-    ),
+    ChangeNotifierProvider(create: (context) => AppState(), child: FloatyApp()),
   );
 }
 
@@ -40,13 +37,19 @@ class FloatyApp extends StatelessWidget {
         routes: {
           HOME_ROUTE: (context) => RegisterPage(),
           LOGIN_ROUTE: (context) => LoginPage(),
-          PROFILE_ROUTE: (context) => ProfilePage(user: Provider.of<AppState>(context).currentUser),
+          PROFILE_ROUTE:
+              (context) =>
+                  ProfilePage(user: Provider.of<AppState>(context).currentUser),
           REGISTER_ROUTE: (context) => RegisterPage(),
           FORGOT_PASSWORD_ROUTE: (context) => ForgotPasswordPage(),
-          FLIGHTS_ROUTE: (context) => FlightsPage(user: Provider.of<AppState>(context).currentUser),
+          FLIGHTS_ROUTE:
+              (context) =>
+                  FlightsPage(user: Provider.of<AppState>(context).currentUser),
           ADD_FLIGHT_ROUTE: (context) => AddFlightPage(),
           EMAIL_VERIFICATION_ROUTE: (context) => EmailVerificationPage(),
-          STATS_ROUTE: (context) => StatsPage(user: Provider.of<AppState>(context).currentUser),
+          STATS_ROUTE:
+              (context) =>
+                  StatsPage(user: Provider.of<AppState>(context).currentUser),
         },
       ),
     );

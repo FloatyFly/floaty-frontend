@@ -13,6 +13,7 @@ Method | HTTP request | Description
 [**deleteFlightById**](FlightsApi.md#deleteflightbyid) | **DELETE** /flights/{flightId} | Delete a Flight by ID.
 [**findAllFlights**](FlightsApi.md#findallflights) | **GET** /flights | Find all flights.
 [**getFlights**](FlightsApi.md#getflights) | **GET** /flights/{userId} | Find all flights for a given User.
+[**updateFlightById**](FlightsApi.md#updateflightbyid) | **PUT** /flights/{flightId} | Update a Flight by ID.
 
 
 # **createFlight**
@@ -178,6 +179,51 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updateFlightById**
+> Flight updateFlightById(flightId, flightUpdate)
+
+Update a Flight by ID.
+
+Updates a single flight with the provided data.
+
+### Example
+```dart
+import 'package:floaty_client/api.dart';
+
+final api_instance = FlightsApi();
+final flightId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | ID of the flight to update
+final flightUpdate = FlightUpdate(); // FlightUpdate | Updated flight information
+
+try {
+    final result = api_instance.updateFlightById(flightId, flightUpdate);
+    print(result);
+} catch (e) {
+    print('Exception when calling FlightsApi->updateFlightById: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **flightId** | **String**| ID of the flight to update | 
+ **flightUpdate** | [**FlightUpdate**](FlightUpdate.md)| Updated flight information | 
+
+### Return type
+
+[**Flight**](Flight.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

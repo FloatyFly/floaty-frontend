@@ -196,12 +196,18 @@ class ApiClient {
           return AuthVerifyEmailEmailVerificationTokenPost404Response.fromJson(value);
         case 'Flight':
           return Flight.fromJson(value);
+        case 'FlightUpdate':
+          return FlightUpdate.fromJson(value);
         case 'LoginRequest':
           return LoginRequest.fromJson(value);
         case 'RegisterRequest':
           return RegisterRequest.fromJson(value);
         case 'ResetPasswordRequest':
           return ResetPasswordRequest.fromJson(value);
+        case 'UpdateFlightById400Response':
+          return UpdateFlightById400Response.fromJson(value);
+        case 'UpdateFlightById404Response':
+          return UpdateFlightById404Response.fromJson(value);
         case 'User':
           return User.fromJson(value);
         default:

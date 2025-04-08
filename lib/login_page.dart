@@ -10,7 +10,6 @@ import 'validator.dart';
 import 'ui_components.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 
-
 class LoginForm extends StatefulWidget {
   final Function(String username, String password) onSubmit;
   final String? errorMessage;
@@ -65,7 +64,8 @@ class _LoginFormState extends State<LoginForm> {
               }
               return null;
             },
-            textInputAction: TextInputAction.next, // Move to next field on enter
+            textInputAction:
+                TextInputAction.next, // Move to next field on enter
             onFieldSubmitted: (_) {
               // When 'Enter' is pressed, focus on password field
               FocusScope.of(context).requestFocus(_focusPassword);
@@ -83,7 +83,8 @@ class _LoginFormState extends State<LoginForm> {
             ),
             style: const TextStyle(color: Colors.black),
             validator: (value) => Validator.validatePassword(password: value),
-            textInputAction: TextInputAction.done, // Done action on password field
+            textInputAction:
+                TextInputAction.done, // Done action on password field
             onFieldSubmitted: (_) {
               // When 'Enter' is pressed on the password field, submit the form
               _submitForm();
@@ -101,26 +102,24 @@ class _LoginFormState extends State<LoginForm> {
           widget.isProcessing
               ? const CircularProgressIndicator()
               : SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _focusUserName.unfocus();
-                  _focusPassword.unfocus();
-                  widget.onSubmit(
-                    _userNameTextController.text,
-                    _passwordTextController.text,
-                  );
-                }
-              },
-              child: const Text(
-                'Login',
-                style: TextStyle(
-                  color: Colors.black,
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _focusUserName.unfocus();
+                      _focusPassword.unfocus();
+                      widget.onSubmit(
+                        _userNameTextController.text,
+                        _passwordTextController.text,
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ),
-            ),
-          ),
           const SizedBox(height: 32.0),
           // Forgot Password and Register Links
           Row(
@@ -132,18 +131,12 @@ class _LoginFormState extends State<LoginForm> {
                 },
                 child: const Text(
                   "Forgot Password?",
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.blue, fontSize: 14),
                 ),
               ),
               const Text(
                 " | ",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
               GestureDetector(
                 onTap: () {
@@ -151,10 +144,7 @@ class _LoginFormState extends State<LoginForm> {
                 },
                 child: const Text(
                   "Register",
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.blue, fontSize: 14),
                 ),
               ),
             ],
@@ -176,7 +166,6 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 }
-
 
 /// Login Page
 class LoginPage extends StatefulWidget {
@@ -224,7 +213,10 @@ class _LoginPageState extends State<LoginPage> {
                   if (user != null) {
                     var floatyUser = FloatyUser.fromUserDto(user);
 
-                    Provider.of<AppState>(context, listen: false).login(floatyUser);
+                    Provider.of<AppState>(
+                      context,
+                      listen: false,
+                    ).login(floatyUser);
 
                     Navigator.pushNamed(context, FLIGHTS_ROUTE);
                   }
@@ -247,12 +239,7 @@ class _LoginPageState extends State<LoginPage> {
               },
             ),
           ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Footer()
-        ),
+          Positioned(left: 0, right: 0, bottom: 0, child: Footer()),
         ],
       ),
     );
@@ -261,7 +248,10 @@ class _LoginPageState extends State<LoginPage> {
 
 /// Login logic helper
 Future<User?> loginAndExtractSessionCookie(
-    String username, String password, CookieJar cookieJar) async {
+  String username,
+  String password,
+  CookieJar cookieJar,
+) async {
   final apiClient = ApiClient(basePath: backendUrl);
   final authApi = AuthApi(apiClient);
 
@@ -283,14 +273,17 @@ Future<User?> loginAndExtractSessionCookie(
   final setCookieHeader = response.headers['set-cookie'];
   if (setCookieHeader != null) {
     final uri = Uri.parse(backendUrl);
-    cookieJar.saveFromResponse(uri, [Cookie.fromSetCookieValue(setCookieHeader)]);
+    cookieJar.saveFromResponse(uri, [
+      Cookie.fromSetCookieValue(setCookieHeader),
+    ]);
   }
 
   if (response.body.isNotEmpty && response.statusCode != 204) {
     return await apiClient.deserializeAsync(
-      await _decodeBodyBytes(response),
-      'User',
-    ) as User;
+          await _decodeBodyBytes(response),
+          'User',
+        )
+        as User;
   }
 
   return null;
@@ -298,10 +291,11 @@ Future<User?> loginAndExtractSessionCookie(
 
 Future<String> _decodeBodyBytes(Response response) async {
   final contentType = response.headers['content-type'];
-  return contentType != null && contentType.toLowerCase().startsWith('application/json')
+  return contentType != null &&
+          contentType.toLowerCase().startsWith('application/json')
       ? response.bodyBytes.isEmpty
-      ? ''
-      : utf8.decode(response.bodyBytes)
+          ? ''
+          : utf8.decode(response.bodyBytes)
       : response.body;
 }
 

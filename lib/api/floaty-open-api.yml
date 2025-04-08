@@ -90,6 +90,54 @@ paths:
           description: No content, successful deletion
         '404':
           description: Flight not found
+    put:
+      tags:
+        - flights
+      summary: Update a Flight by ID.
+      description: Updates a single flight with the provided data.
+      operationId: updateFlightById
+      parameters:
+        - name: flightId
+          in: path
+          description: ID of the flight to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated flight information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlightUpdate'
+      responses:
+        '200':
+          description: Flight successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data"
+        '404':
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Flight not found"
   /flights:
     post:
       tags:
@@ -294,8 +342,7 @@ components:
           type: string
           description: 'A unique id for this user. Property must not be given when creating a new user.'
           maxLength: 14
-          example: 'USER0000123456'
-          pattern: 'USER[0-9]{10}'
+          example: '1'
         name:
           type: string
           example: 'Free Willy'
@@ -320,6 +367,26 @@ components:
         dateTime:
           type: string
           example: '22.03.23'
+          description: 'Datetime of the flight. Format: 2024-05-12T08:59:10. Local date time.'
+        takeOff:
+          type: string
+          example: 'Titlis'
+          description: 'Take off location'
+        duration:
+          type: integer
+          format: int64
+          example: 60
+          description: 'Duration in minutes'
+        description:
+          type: string
+          example: "This flight was epic."
+          description: "Some textual description of the flight experience."
+    FlightUpdate:
+      type: object
+      properties:
+        dateTime:
+          type: string
+          example: '2024-05-12T08:59:10'
           description: 'Datetime of the flight. Format: 2024-05-12T08:59:10. Local date time.'
         takeOff:
           type: string

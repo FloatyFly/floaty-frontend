@@ -237,4 +237,69 @@ class FlightsApi {
     }
     return null;
   }
+
+  /// Update a Flight by ID.
+  ///
+  /// Updates a single flight with the provided data.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [String] flightId (required):
+  ///   ID of the flight to update
+  ///
+  /// * [FlightUpdate] flightUpdate (required):
+  ///   Updated flight information
+  Future<Response> updateFlightByIdWithHttpInfo(String flightId, FlightUpdate flightUpdate,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/flights/{flightId}'
+      .replaceAll('{flightId}', flightId);
+
+    // ignore: prefer_final_locals
+    Object? postBody = flightUpdate;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>['application/json'];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'PUT',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Update a Flight by ID.
+  ///
+  /// Updates a single flight with the provided data.
+  ///
+  /// Parameters:
+  ///
+  /// * [String] flightId (required):
+  ///   ID of the flight to update
+  ///
+  /// * [FlightUpdate] flightUpdate (required):
+  ///   Updated flight information
+  Future<Flight?> updateFlightById(String flightId, FlightUpdate flightUpdate,) async {
+    final response = await updateFlightByIdWithHttpInfo(flightId, flightUpdate,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Flight',) as Flight;
+    
+    }
+    return null;
+  }
 }

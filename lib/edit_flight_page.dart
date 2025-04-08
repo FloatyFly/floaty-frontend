@@ -7,27 +7,28 @@ import 'package:provider/provider.dart';
 import 'CookieAuth.dart';
 import 'model.dart';
 
-class AddFlightPage extends StatefulWidget {
-  const AddFlightPage({Key? key}) : super(key: key);
+class EditFlightPage extends StatefulWidget {
+  final Flight flight;
+
+  const EditFlightPage({Key? key, required this.flight}) : super(key: key);
 
   @override
-  _AddFlightPageState createState() => _AddFlightPageState();
+  _EditFlightPageState createState() => _EditFlightPageState();
 }
 
-class _AddFlightPageState extends State<AddFlightPage> {
+class _EditFlightPageState extends State<EditFlightPage> {
   final _formKey = GlobalKey<FormState>();
-  final _dateController = TextEditingController();
-  final _takeoffController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  late TextEditingController _dateController;
+  late TextEditingController _takeoffController;
+  late TextEditingController _descriptionController;
   final _focusDate = FocusNode();
   final _focusTakeoff = FocusNode();
   final _focusDescription = FocusNode();
 
   bool isProcessing = false;
   String? errorMessage;
-  String? flightTimeErrorMessage; // Error message for flight time
+  String? flightTimeErrorMessage;
 
-  // Duration selection variables
   int? selectedHours;
   int? selectedMinutes;
 
@@ -36,12 +37,40 @@ class _AddFlightPageState extends State<AddFlightPage> {
   @override
   void initState() {
     super.initState();
-    _dateController.text = DateFormat("dd.MM.yyyy").format(DateTime.now());
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(
-        context,
-      ).requestFocus(_focusTakeoff); // Focus on the Takeoff Location field
-    });
+
+    // Initialize controllers with existing flight data
+    final date = DateTime.parse(widget.flight.dateTime);
+    _dateController = TextEditingController(
+      text: DateFormat("dd.MM.yyyy").format(date),
+    );
+    _takeoffController = TextEditingController(text: widget.flight.takeOff);
+    _descriptionController = TextEditingController(
+      text: widget.flight.description,
+    );
+
+    // Set initial duration values
+    selectedHours = widget.flight.duration ~/ 60;
+    selectedMinutes = widget.flight.duration % 60;
+
+    // Adjust selectedMinutes to match dropdown values (multiples of 5)
+    if (selectedMinutes != null && selectedMinutes! % 5 != 0) {
+      selectedMinutes = (selectedMinutes! / 5).round() * 5;
+      if (selectedMinutes == 60) {
+        selectedMinutes = 0;
+        selectedHours = (selectedHours ?? 0) + 1;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    _takeoffController.dispose();
+    _descriptionController.dispose();
+    _focusDate.dispose();
+    _focusTakeoff.dispose();
+    _focusDescription.dispose();
+    super.dispose();
   }
 
   CookieAuth _getCookieAuth() {
@@ -49,7 +78,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
     return CookieAuth(cookieJar);
   }
 
-  Future<void> _saveNewFlight() async {
+  Future<void> _updateFlight() async {
     if (!_formKey.currentState!.validate()) return;
 
     // Check if both hours and minutes are zero
@@ -63,7 +92,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
     setState(() {
       isProcessing = true;
       errorMessage = null;
-      flightTimeErrorMessage = null; // Clear any previous flight time error
+      flightTimeErrorMessage = null;
     });
 
     try {
@@ -75,24 +104,67 @@ class _AddFlightPageState extends State<AddFlightPage> {
       // Calculate total duration in minutes
       final duration = (selectedHours ?? 0) * 60 + (selectedMinutes ?? 0);
 
-      Flight flight = Flight(
-        flightId: "",
+      Flight updatedFlight = Flight(
+        flightId: widget.flight.flightId,
         dateTime: formattedDate,
         takeOff: _takeoffController.text,
         duration: duration,
         description: _descriptionController.text,
       );
 
-      await addFlight(flight, _getCookieAuth());
+      await updateFlight(updatedFlight, _getCookieAuth());
 
       if (mounted) {
         Navigator.pop(context, true);
       }
     } catch (e) {
       setState(() {
-        errorMessage = "Failed to save flight. Please try again.";
+        errorMessage = "Failed to update flight. Please try again.";
         isProcessing = false;
       });
+    }
+  }
+
+  Future<void> _deleteFlight() async {
+    // Show confirmation dialog before deleting
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Delete Flight'),
+            content: Text('Are you sure you want to delete this flight?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text('Delete'),
+              ),
+            ],
+          ),
+    );
+
+    if (shouldDelete == true) {
+      setState(() {
+        isProcessing = true;
+        errorMessage = null;
+      });
+
+      try {
+        await deleteFlight(widget.flight.flightId, _getCookieAuth());
+
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
+      } catch (e) {
+        setState(() {
+          errorMessage = "Failed to delete flight. Please try again.";
+          isProcessing = false;
+        });
+      }
     }
   }
 
@@ -100,13 +172,13 @@ class _AddFlightPageState extends State<AddFlightPage> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: DateTime.parse(widget.flight.dateTime),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != DateTime.now()) {
+    if (picked != null) {
       setState(() {
-        _dateController.text = DateFormat("dd.MM.yyy").format(picked);
+        _dateController.text = DateFormat("dd.MM.yyyy").format(picked);
       });
     }
   }
@@ -119,7 +191,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
           const FloatyBackgroundWidget(),
           Header(),
           AuthContainer(
-            headerText: "Add New Flight",
+            headerText: "Edit Flight",
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -141,19 +213,12 @@ class _AddFlightPageState extends State<AddFlightPage> {
                               color: Colors.orange,
                             ),
                             onPressed: () => _selectDate(context),
-                            padding: EdgeInsets.only(
-                              left: 7,
-                            ), // Set padding of the icon to zero
+                            padding: EdgeInsets.only(left: 7),
                           ),
-                          prefixIconConstraints: BoxConstraints(
-                            maxWidth: 32, // Icon size width
-                          ),
-                          contentPadding: EdgeInsets.only(
-                            left: 60,
-                          ), // Add padding to the left side of the text (after the icon)
-                          isDense: false, // Tighter vertical spacing
-                          border:
-                              OutlineInputBorder(), // Optional: To make it look more consistent
+                          prefixIconConstraints: BoxConstraints(maxWidth: 32),
+                          contentPadding: EdgeInsets.only(left: 60),
+                          isDense: false,
+                          border: OutlineInputBorder(),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -161,14 +226,10 @@ class _AddFlightPageState extends State<AddFlightPage> {
                           }
 
                           try {
-                            // Try to parse the date using the custom format
                             DateFormat dateFormat = DateFormat('dd.MM.yyyy');
-                            dateFormat.parseStrict(
-                              value,
-                            ); // This will throw if the date is invalid
-                            return null; // Date is valid
+                            dateFormat.parseStrict(value);
+                            return null;
                           } catch (e) {
-                            // If parsing fails, return an error message
                             return "Enter a valid date.";
                           }
                         },
@@ -189,9 +250,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
                     decoration: InputDecoration(
                       hintText: "Takeoff Location",
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          3.0,
-                        ), // Rounded corners
+                        borderRadius: BorderRadius.circular(3.0),
                       ),
                     ),
                     validator:
@@ -207,7 +266,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Duration (Hours and Minutes) - Initial Text
+                  // Duration (Hours and Minutes)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -224,13 +283,18 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             hintText: "Hours",
                             border: OutlineInputBorder(),
                           ),
-                          items:
-                              List.generate(12, (index) {
-                                return DropdownMenuItem<int>(
-                                  value: index + 1,
-                                  child: Text("${index + 1} Hours"),
-                                );
-                              }).toList(),
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text("0 Hours"),
+                            ),
+                            ...List.generate(12, (index) {
+                              return DropdownMenuItem<int>(
+                                value: index + 1,
+                                child: Text("${index + 1} Hours"),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -248,13 +312,18 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             hintText: "Minutes",
                             border: OutlineInputBorder(),
                           ),
-                          items:
-                              List.generate(12, (index) {
-                                return DropdownMenuItem<int>(
-                                  value: (index + 1) * 5,
-                                  child: Text("${(index + 1) * 5} Minutes"),
-                                );
-                              }).toList(),
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text("0 Minutes"),
+                            ),
+                            ...List.generate(12, (index) {
+                              return DropdownMenuItem<int>(
+                                value: (index + 1) * 5,
+                                child: Text("${(index + 1) * 5} Minutes"),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                     ],
@@ -277,8 +346,8 @@ class _AddFlightPageState extends State<AddFlightPage> {
                   TextField(
                     controller: _descriptionController,
                     focusNode: _focusDescription,
-                    maxLines: null, // Allow unlimited lines
-                    minLines: 3, // Initial size
+                    maxLines: null,
+                    minLines: 3,
                     decoration: InputDecoration(
                       hintText: "Description",
                       border: OutlineInputBorder(),
@@ -298,20 +367,20 @@ class _AddFlightPageState extends State<AddFlightPage> {
                     ),
                   const SizedBox(height: 32.0),
 
-                  // Buttons (Save and Cancel)
+                  // Buttons (Save, Delete, and Cancel)
                   isProcessing
                       ? const CircularProgressIndicator()
                       : SizedBox(
                         width: double.infinity,
                         child: Row(
                           children: [
-                            // Save Button (Black)
+                            // Save Button
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (_formKey.currentState!.validate()) {
                                     FocusScope.of(context).unfocus();
-                                    _saveNewFlight();
+                                    _updateFlight();
                                   }
                                 },
                                 child: const Text(
@@ -320,21 +389,32 @@ class _AddFlightPageState extends State<AddFlightPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(
-                              width: 16,
-                            ), // Add some space between buttons
-                            // Cancel Button (Grey)
+                            const SizedBox(width: 8),
+
+                            // Delete Button
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _deleteFlight,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                ),
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            // Cancel Button
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  Navigator.pop(
-                                    context,
-                                  ); // Navigate back to the Flights Page
+                                  Navigator.pop(context);
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors
-                                          .grey, // Set background color to grey
+                                  backgroundColor: Colors.grey,
                                 ),
                                 child: const Text(
                                   'Cancel',

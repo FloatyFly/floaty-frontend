@@ -12,7 +12,7 @@ class Flight {
     required this.dateTime,
     required this.takeOff,
     required this.duration,
-    this.description = ''
+    this.description = '',
   });
 
   factory Flight.fromJson(Map<String, dynamic> json) {
@@ -21,26 +21,21 @@ class Flight {
       dateTime: json['dateTime'],
       takeOff: json['takeOff'],
       duration: json['duration'],
-      description: json['description'] ?? ''
+      description: json['description'] ?? '',
     );
   }
 
   Flight empty() {
-    return Flight(
-      flightId: "",
-      dateTime: "",
-      takeOff: "",
-      duration: 0,
-    );
+    return Flight(flightId: "", dateTime: "", takeOff: "", duration: 0);
   }
 
   Map<String, dynamic> toJson() => {
-        "flightId": flightId,
-        "dateTime": dateTime,
-        "takeOff": takeOff,
-        "duration": duration,
-        "description": description
-      };
+    "flightId": flightId,
+    "dateTime": dateTime,
+    "takeOff": takeOff,
+    "duration": duration,
+    "description": description,
+  };
 }
 
 class FloatyUser {
@@ -49,14 +44,19 @@ class FloatyUser {
   String email;
   bool emailVerified;
 
-  FloatyUser({required this.id, required this.name, required this.email, required this.emailVerified});
+  FloatyUser({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.emailVerified,
+  });
 
   factory FloatyUser.fromUserDto(User userDto) {
     return FloatyUser(
       id: int.parse(userDto.id),
       name: userDto.name,
       email: userDto.email,
-      emailVerified: userDto.emailVerified
+      emailVerified: userDto.emailVerified,
     );
   }
 
@@ -65,7 +65,7 @@ class FloatyUser {
       id: int.parse(json['id']),
       name: json['name'],
       email: json['email'],
-      emailVerified: bool.parse(json['emailVerified'])
+      emailVerified: bool.parse(json['emailVerified']),
     );
   }
 }

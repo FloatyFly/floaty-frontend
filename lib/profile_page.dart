@@ -70,7 +70,9 @@ class ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               'Pilot',
-                              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.headlineSmall!.copyWith(
                                 color: Colors.blue.shade900,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -90,10 +92,14 @@ class ProfilePageState extends State<ProfilePage> {
                               _currentUser.emailVerified
                                   ? 'Email Verified'
                                   : 'Email Not Verified',
-                              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                color: _currentUser.emailVerified
-                                    ? Colors.green
-                                    : Colors.red,                              ),
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge!.copyWith(
+                                color:
+                                    _currentUser.emailVerified
+                                        ? Colors.green
+                                        : Colors.red,
+                              ),
                             ),
                           ],
                         ),
@@ -146,10 +152,14 @@ class ProfilePageState extends State<ProfilePage> {
                             });
                             // After successful logout, navigate to HomePage
                             // Use pushReplacementNamed to replace the ProfilePage with HomePage
-                            Provider.of<AppState>(context,
-                                listen: false)
-                                .logout();
-                            Navigator.pushReplacementNamed(context, LOGIN_ROUTE);
+                            Provider.of<AppState>(
+                              context,
+                              listen: false,
+                            ).logout();
+                            Navigator.pushReplacementNamed(
+                              context,
+                              LOGIN_ROUTE,
+                            );
                           } catch (e) {
                             // Handle error if logout fails
                             print('Logout failed: $e');
@@ -162,7 +172,7 @@ class ProfilePageState extends State<ProfilePage> {
                           'Logout',
                           style: TextStyle(
                             color: Colors.black,
-                            backgroundColor: Colors.deepOrange
+                            backgroundColor: Colors.deepOrange,
                           ),
                         ),
                       ),

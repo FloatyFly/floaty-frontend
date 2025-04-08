@@ -1,11 +1,19 @@
+import 'dart:convert';
 import 'package:floaty_client/api.dart' as api;
+import 'package:http/http.dart' as http;
 
 import 'CookieAuth.dart';
 import 'constants.dart';
 import 'model.dart' as model;
 
-Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async {
-  final apiClient = api.ApiClient(basePath: backendUrl, authentication: cookieAuth);
+Future<List<model.Flight>> fetchFlights(
+  int userId,
+  CookieAuth cookieAuth,
+) async {
+  final apiClient = api.ApiClient(
+    basePath: backendUrl,
+    authentication: cookieAuth,
+  );
   final flightsApi = api.FlightsApi(apiClient);
 
   try {
@@ -13,7 +21,9 @@ Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async
 
     if (response != null && response.isNotEmpty) {
       // Map the fetched flights to your model and return
-      return response.map((flight) => model.Flight.fromJson(flight.toJson())).toList();
+      return response
+          .map((flight) => model.Flight.fromJson(flight.toJson()))
+          .toList();
     } else {
       // Return an empty list when no flights are found
       return [];
@@ -26,8 +36,14 @@ Future<List<model.Flight>> fetchFlights(int userId, CookieAuth cookieAuth) async
   }
 }
 
-Future<api.Flight?> addFlight(model.Flight flight, CookieAuth cookieAuth) async {
-  final apiClient = api.ApiClient(basePath: backendUrl, authentication: cookieAuth);
+Future<api.Flight?> addFlight(
+  model.Flight flight,
+  CookieAuth cookieAuth,
+) async {
+  final apiClient = api.ApiClient(
+    basePath: backendUrl,
+    authentication: cookieAuth,
+  );
   final flightsApi = api.FlightsApi(apiClient);
 
   api.Flight? flightDto = api.Flight.fromJson(flight.toJson());
@@ -43,12 +59,37 @@ Future<api.Flight?> addFlight(model.Flight flight, CookieAuth cookieAuth) async 
 }
 
 Future<void> deleteFlight(String flightId, CookieAuth cookieAuth) async {
-  final apiClient = api.ApiClient(basePath: backendUrl, authentication: cookieAuth);
+  final apiClient = api.ApiClient(
+    basePath: backendUrl,
+    authentication: cookieAuth,
+  );
   final flightsApi = api.FlightsApi(apiClient);
 
   try {
     await flightsApi.deleteFlightById(flightId);
   } catch (e) {
     throw Exception('Failed to delete flight: $e');
+  }
+}
+
+Future<void> updateFlight(model.Flight flight, CookieAuth cookieAuth) async {
+  final apiClient = api.ApiClient(
+    basePath: backendUrl,
+    authentication: cookieAuth,
+  );
+  final flightsApi = api.FlightsApi(apiClient);
+
+  // Create FlightUpdate object
+  final flightUpdate = api.FlightUpdate(
+    dateTime: flight.dateTime,
+    takeOff: flight.takeOff,
+    duration: flight.duration,
+    description: flight.description,
+  );
+
+  try {
+    await flightsApi.updateFlightById(flight.flightId, flightUpdate);
+  } catch (e) {
+    throw Exception('Failed to update flight: $e');
   }
 }

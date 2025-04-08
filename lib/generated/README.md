@@ -70,6 +70,7 @@ Class | Method | HTTP request | Description
 *FlightsApi* | [**deleteFlightById**](doc//FlightsApi.md#deleteflightbyid) | **DELETE** /flights/{flightId} | Delete a Flight by ID.
 *FlightsApi* | [**findAllFlights**](doc//FlightsApi.md#findallflights) | **GET** /flights | Find all flights.
 *FlightsApi* | [**getFlights**](doc//FlightsApi.md#getflights) | **GET** /flights/{userId} | Find all flights for a given User.
+*FlightsApi* | [**updateFlightById**](doc//FlightsApi.md#updateflightbyid) | **PUT** /flights/{flightId} | Update a Flight by ID.
 *UsersApi* | [**findUserById**](doc//UsersApi.md#finduserbyid) | **GET** /users/{userId} | Find user by ID.
 *UsersApi* | [**getUsers**](doc//UsersApi.md#getusers) | **GET** /users | Find all users.
 
@@ -79,9 +80,12 @@ Class | Method | HTTP request | Description
  - [AuthVerifyEmailEmailVerificationTokenPost400Response](doc//AuthVerifyEmailEmailVerificationTokenPost400Response.md)
  - [AuthVerifyEmailEmailVerificationTokenPost404Response](doc//AuthVerifyEmailEmailVerificationTokenPost404Response.md)
  - [Flight](doc//Flight.md)
+ - [FlightUpdate](doc//FlightUpdate.md)
  - [LoginRequest](doc//LoginRequest.md)
  - [RegisterRequest](doc//RegisterRequest.md)
  - [ResetPasswordRequest](doc//ResetPasswordRequest.md)
+ - [UpdateFlightById400Response](doc//UpdateFlightById400Response.md)
+ - [UpdateFlightById404Response](doc//UpdateFlightById404Response.md)
  - [User](doc//User.md)
 
 
