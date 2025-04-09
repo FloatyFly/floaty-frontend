@@ -14,6 +14,7 @@ import 'forgot_password_page.dart';
 import 'flights_page.dart';
 import 'landing_page.dart';
 import 'login_page.dart';
+import 'home_page.dart';
 
 void main() async {
   runApp(
@@ -33,9 +34,9 @@ class FloatyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Floaty',
         theme: buildThemeData(),
-        initialRoute: REGISTER_ROUTE,
+        initialRoute: HOME_ROUTE,
         routes: {
-          HOME_ROUTE: (context) => RegisterPage(),
+          HOME_ROUTE: (context) => HomePage(),
           LOGIN_ROUTE: (context) => LoginPage(),
           PROFILE_ROUTE:
               (context) =>
@@ -82,56 +83,12 @@ class AppState extends ChangeNotifier {
   void logout() {
     _currentUser = null;
     _isUserLoggedIn = false;
-    _selectedIndex = 2; // Navigate to LoginPage after logout
+    _selectedIndex = 0; // Navigate to HomePage after logout
     notifyListeners();
   }
 
   void setSelectedIndex(int index) {
     _selectedIndex = index;
     notifyListeners();
-  }
-}
-
-class HomePage extends StatefulWidget {
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        Widget page;
-
-        if (!appState.isLoggedIn) {
-          // Redirect to LandingPage if not logged in
-          page = LandingPage();
-        } else {
-          // Determine which page to display based on selected index
-          switch (appState.selectedIndex) {
-            case 0:
-              page = LandingPage();
-              break;
-            case 1:
-              page = FlightsPage(user: appState.currentUser);
-              break;
-            case 2:
-              page = StatsPage(user: appState.currentUser);
-              break;
-            case 3:
-              page = ProfilePage(user: appState.currentUser);
-              break;
-            default:
-              page = LandingPage(); // Fallback to LandingPage
-              break;
-          }
-        }
-
-        return Scaffold(
-          body: page, // Directly display the selected page
-        );
-      },
-    );
   }
 }

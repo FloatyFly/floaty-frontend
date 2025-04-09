@@ -186,60 +186,129 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           // Background
           const FloatyBackgroundWidget(),
-          // AuthContainer with LoginForm
-          Header(),
-          AuthContainer(
-            headerText: "Login",
-            child: LoginForm(
-              isProcessing: _isProcessing,
-              errorMessage: _errorMessage,
-              onSubmit: (username, password) async {
-                setState(() {
-                  _isProcessing = true;
-                  _errorMessage = null;
-                });
+          // Content
+          Column(
+            children: [
+              // Custom header with Register button
+              Container(
+                height: 75.0,
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Logo
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, HOME_ROUTE);
+                      },
+                      child: Image.asset(
+                        "assets/logo.png",
+                        height: 55.0,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    // Register button
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, REGISTER_ROUTE);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade900,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        textStyle: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: Text('Register'),
+                    ),
+                  ],
+                ),
+              ),
+              // Main content area with scrolling
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // AuthContainer with LoginForm
+                      Container(
+                        height: 500,
+                        width: double.infinity,
+                        margin: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(
+                          child: AuthContainer(
+                            headerText: "Login",
+                            child: LoginForm(
+                              isProcessing: _isProcessing,
+                              errorMessage: _errorMessage,
+                              onSubmit: (username, password) async {
+                                setState(() {
+                                  _isProcessing = true;
+                                  _errorMessage = null;
+                                });
 
-                try {
-                  final user = await loginAndExtractSessionCookie(
-                    username,
-                    password,
-                    cookieJar,
-                  );
+                                try {
+                                  final user =
+                                      await loginAndExtractSessionCookie(
+                                        username,
+                                        password,
+                                        cookieJar,
+                                      );
 
-                  setState(() {
-                    _isProcessing = false;
-                  });
+                                  setState(() {
+                                    _isProcessing = false;
+                                  });
 
-                  if (user != null) {
-                    var floatyUser = FloatyUser.fromUserDto(user);
+                                  if (user != null) {
+                                    var floatyUser = FloatyUser.fromUserDto(
+                                      user,
+                                    );
 
-                    Provider.of<AppState>(
-                      context,
-                      listen: false,
-                    ).login(floatyUser);
+                                    Provider.of<AppState>(
+                                      context,
+                                      listen: false,
+                                    ).login(floatyUser);
 
-                    Navigator.pushNamed(context, FLIGHTS_ROUTE);
-                  }
-                } on EmailNotVerifiedException {
-                  setState(() {
-                    _isProcessing = false;
-                  });
+                                    Navigator.pushNamed(context, FLIGHTS_ROUTE);
+                                  }
+                                } on EmailNotVerifiedException {
+                                  setState(() {
+                                    _isProcessing = false;
+                                  });
 
-                  Navigator.pushNamed(
-                    context,
-                    EMAIL_VERIFICATION_ROUTE,
-                    arguments: username,
-                  );
-                } catch (e) {
-                  setState(() {
-                    _isProcessing = false;
-                    _errorMessage = 'Login failed. Please try again.';
-                  });
-                }
-              },
-            ),
+                                  Navigator.pushNamed(
+                                    context,
+                                    EMAIL_VERIFICATION_ROUTE,
+                                    arguments: username,
+                                  );
+                                } catch (e) {
+                                  setState(() {
+                                    _isProcessing = false;
+                                    _errorMessage =
+                                        'Login failed. Please try again.';
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Footer at the bottom
+              Footer(),
+            ],
           ),
-          Positioned(left: 0, right: 0, bottom: 0, child: Footer()),
         ],
       ),
     );

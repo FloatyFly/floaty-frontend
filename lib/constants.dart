@@ -2,7 +2,7 @@ import 'config.dart';
 
 var backendUrl = Config.backendUrl;
 
-const HOME_ROUTE = '/register';
+const HOME_ROUTE = '/home';
 const LOGIN_ROUTE = '/login';
 const REGISTER_ROUTE = '/register';
 const FORGOT_PASSWORD_ROUTE = '/forgot-password';

@@ -34,7 +34,7 @@ class _FlightsPageState extends State<FlightsPage> {
     super.initState();
 
     // ONLY FOR DEBUGGING TO PREVENT NEED FOR LOGIN DUE TO STATE RESET ON HOT RELOAD.
-    bool isDebug = true;
+    bool isDebug = false;
     if (isDebug) {
       _currentUser = FloatyUser(
         id: 1,
@@ -131,6 +131,8 @@ class _FlightsPageState extends State<FlightsPage> {
         children: [
           // Only show background if not on mobile
           if (!isMobile) const FloatyBackgroundWidget(),
+          // For mobile, use a white background
+          if (isMobile) Container(color: Colors.white),
           Column(
             children: [
               Header(),

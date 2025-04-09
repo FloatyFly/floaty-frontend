@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:floaty_client/api.dart';
+import 'package:floaty_client/api.dart' show UserDto;
 import 'constants.dart';
 import 'validator.dart';
 import 'ui_components.dart';
+import 'package:provider/provider.dart';
+import 'package:floaty/main.dart';
+import 'package:floaty/CookieAuth.dart';
+import 'package:floaty/user_service.dart';
+import 'package:floaty/model.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 
 /// Register Form Widget
 class RegisterForm extends StatefulWidget {
@@ -31,7 +38,6 @@ class _RegisterFormState extends State<RegisterForm> {
   final _focusPassword = FocusNode();
 
   @override
-
   void initState() {
     super.initState();
     // Set focus on the username field when the page loads
@@ -95,7 +101,8 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             style: const TextStyle(color: Colors.black),
             validator: (value) => Validator.validatePassword(password: value),
-            textInputAction: TextInputAction.done, // Done action on password field
+            textInputAction:
+                TextInputAction.done, // Done action on password field
             onFieldSubmitted: (_) {
               // When 'Enter' is pressed on the password field, submit the form
               _submitForm();
@@ -113,28 +120,26 @@ class _RegisterFormState extends State<RegisterForm> {
           widget.isProcessing
               ? const CircularProgressIndicator()
               : SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _focusUserName.unfocus();
-                  _focusEmail.unfocus();
-                  _focusPassword.unfocus();
-                  widget.onSubmit(
-                    _userNameTextController.text,
-                    _emailTextController.text,
-                    _passwordTextController.text,
-                  );
-                }
-              },
-              child: const Text(
-                'Register',
-                style: TextStyle(
-                  color: Colors.black,
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _focusUserName.unfocus();
+                      _focusEmail.unfocus();
+                      _focusPassword.unfocus();
+                      widget.onSubmit(
+                        _userNameTextController.text,
+                        _emailTextController.text,
+                        _passwordTextController.text,
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'Register',
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ),
-            ),
-          ),
           const SizedBox(height: 32.0),
           // Login Link
           Row(
@@ -142,10 +147,7 @@ class _RegisterFormState extends State<RegisterForm> {
             children: [
               const Text(
                 "Already have an account? ",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
               GestureDetector(
                 onTap: () {
@@ -153,10 +155,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 },
                 child: const Text(
                   "Login",
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.blue, fontSize: 14),
                 ),
               ),
             ],
@@ -196,43 +195,113 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background
           const FloatyBackgroundWidget(),
-          Header(),
-          // AuthContainer with RegisterForm
-          AuthContainer(
-            headerText: "Register",
-            child: RegisterForm(
-              isProcessing: _isProcessing,
-              errorMessage: _errorMessage,
-              onSubmit: (username, email, password) async {
-                setState(() {
-                  _isProcessing = true;
-                  _errorMessage = null;
-                });
+          // Content
+          Column(
+            children: [
+              // Custom header with Login button
+              Container(
+                height: 75.0,
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Logo
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, HOME_ROUTE);
+                      },
+                      child: Image.asset(
+                        "assets/logo.png",
+                        height: 55.0,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    // Login button
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, LOGIN_ROUTE);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade900,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        textStyle: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: Text('Login'),
+                    ),
+                  ],
+                ),
+              ),
+              // Main content area with scrolling
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Register form
+                      Container(
+                        height: 500,
+                        width: double.infinity,
+                        margin: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(
+                          child: AuthContainer(
+                            headerText: "Register",
+                            child: RegisterForm(
+                              isProcessing: _isProcessing,
+                              errorMessage: _errorMessage,
+                              onSubmit: (username, email, password) async {
+                                setState(() {
+                                  _isProcessing = true;
+                                  _errorMessage = null;
+                                });
 
-                try {
-                  await registerUser(username, email, password);
+                                try {
+                                  final user = await registerUser(
+                                    username,
+                                    email,
+                                    password,
+                                  );
 
-                  setState(() {
-                    _isProcessing = false;
-                  });
+                                  setState(() {
+                                    _isProcessing = false;
+                                  });
 
-                  Navigator.pushNamed(context, EMAIL_VERIFICATION_ROUTE);
-                } catch (e) {
-                  setState(() {
-                    _isProcessing = false;
-                    _errorMessage = 'Registration failed. Please try again.';
-                  });
-                }
-              },
-            ),
-          ),
-          Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Footer()
+                                  if (user != null) {
+                                    Navigator.pushNamed(
+                                      context,
+                                      EMAIL_VERIFICATION_ROUTE,
+                                      arguments: username,
+                                    );
+                                  }
+                                } catch (e) {
+                                  setState(() {
+                                    _isProcessing = false;
+                                    _errorMessage =
+                                        'Registration failed. Please try again.';
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Footer at the bottom
+              Footer(),
+            ],
           ),
         ],
       ),
@@ -241,7 +310,11 @@ class _RegisterPageState extends State<RegisterPage> {
 }
 
 /// Register logic helper
-Future<User?> registerUser(String username, String email, String password) async {
+Future<User?> registerUser(
+  String username,
+  String email,
+  String password,
+) async {
   final apiClient = ApiClient(basePath: backendUrl);
   final authApi = AuthApi(apiClient);
 
@@ -251,5 +324,9 @@ Future<User?> registerUser(String username, String email, String password) async
     password: password,
   );
 
-  return await authApi.registerUser(registerRequest);
+  try {
+    return await authApi.registerUser(registerRequest);
+  } catch (e) {
+    throw Exception('Failed to register user: $e');
+  }
 }

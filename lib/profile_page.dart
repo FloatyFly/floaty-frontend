@@ -43,143 +43,210 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
+    // For mobile, use full width; for desktop use 2/3 of width
+    final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+
     return Scaffold(
       body: Stack(
         children: [
-          // Background
-          const FloatyBackgroundWidget(),
-          Header(),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // User Info Card
-                    Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
+          // Only show background if not on mobile
+          if (!isMobile) const FloatyBackgroundWidget(),
+          // For mobile, use a white background
+          if (isMobile) Container(color: Colors.white),
+          Column(
+            children: [
+              Header(),
+              SizedBox(height: 8), // Reduced gap between header and container
+              Expanded(
+                child: Center(
+                  child: Container(
+                    width: containerWidth,
+                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Pilot',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.headlineSmall!.copyWith(
-                                color: Colors.blue.shade900,
-                                fontWeight: FontWeight.bold,
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow:
+                          isMobile
+                              ? [] // No shadow on mobile
+                              : [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pilot',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.headlineSmall!.copyWith(
+                              color: Colors.blue.shade900,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 24.0),
+                          // User Info
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                child: Text(
+                                  'Name',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge!.copyWith(
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  _currentUser.name ?? "Not set",
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.0),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                child: Text(
+                                  'Email',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge!.copyWith(
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      _currentUser.email ?? "Not set",
+                                      style:
+                                          Theme.of(context).textTheme.bodyLarge,
+                                    ),
+                                    if (_currentUser.emailVerified) ...[
+                                      SizedBox(width: 8),
+                                      Text(
+                                        '(verified)',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge!.copyWith(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 32.0),
+                          // Verify Email Button
+                          if (_isSendingVerification)
+                            CircularProgressIndicator()
+                          else if (!_currentUser.emailVerified)
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                setState(() {
+                                  _isSendingVerification = true;
+                                });
+
+                                // Simulate email verification process
+                                await Future.delayed(Duration(seconds: 2));
+
+                                setState(() {
+                                  _isSendingVerification = false;
+                                });
+                              },
+                              icon: Icon(Icons.email_outlined),
+                              label: Text('Verify Email'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
                               ),
                             ),
-                            SizedBox(height: 16.0),
-                            Text(
-                              'Name: ${_currentUser.name ?? "Not set"}',
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            SizedBox(height: 8.0),
-                            Text(
-                              'Email: ${_currentUser.email ?? "Not set"}',
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            SizedBox(height: 8.0),
-                            Text(
-                              _currentUser.emailVerified
-                                  ? 'Email Verified'
-                                  : 'Email Not Verified',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge!.copyWith(
-                                color:
-                                    _currentUser.emailVerified
-                                        ? Colors.green
-                                        : Colors.red,
+                          SizedBox(height: 16.0),
+                          // Sign Out Button
+                          if (_isSigningOut)
+                            CircularProgressIndicator()
+                          else
+                            Padding(
+                              padding: EdgeInsets.only(left: 8),
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  setState(() {
+                                    _isSigningOut = true;
+                                  });
+
+                                  try {
+                                    await logout(
+                                      _currentUser.id,
+                                      _getCookieAuth(),
+                                    );
+                                    _emptyCookieJar();
+
+                                    setState(() {
+                                      _isSigningOut = false;
+                                    });
+                                    // After successful logout, navigate to HomePage
+                                    // Use pushReplacementNamed to replace the ProfilePage with HomePage
+                                    Provider.of<AppState>(
+                                      context,
+                                      listen: false,
+                                    ).logout();
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      HOME_ROUTE,
+                                    );
+                                  } catch (e) {
+                                    // Handle error if logout fails
+                                    print('Logout failed: $e');
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepOrange,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Logout',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 32.0),
-                    // Verify Email Button
-                    if (_isSendingVerification)
-                      CircularProgressIndicator()
-                    else if (!_currentUser.emailVerified)
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          setState(() {
-                            _isSendingVerification = true;
-                          });
-
-                          // Simulate email verification process
-                          await Future.delayed(Duration(seconds: 2));
-
-                          setState(() {
-                            _isSendingVerification = false;
-                          });
-                        },
-                        icon: Icon(Icons.email_outlined),
-                        label: Text('Verify Email'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                        ),
-                      ),
-                    SizedBox(height: 16.0),
-                    // Sign Out Button
-                    if (_isSigningOut)
-                      CircularProgressIndicator()
-                    else
-                      ElevatedButton(
-                        onPressed: () async {
-                          setState(() {
-                            _isSigningOut = true;
-                          });
-
-                          try {
-                            await logout(_currentUser.id, _getCookieAuth());
-                            _emptyCookieJar();
-
-                            setState(() {
-                              _isSigningOut = false;
-                            });
-                            // After successful logout, navigate to HomePage
-                            // Use pushReplacementNamed to replace the ProfilePage with HomePage
-                            Provider.of<AppState>(
-                              context,
-                              listen: false,
-                            ).logout();
-                            Navigator.pushReplacementNamed(
-                              context,
-                              LOGIN_ROUTE,
-                            );
-                          } catch (e) {
-                            // Handle error if logout fails
-                            print('Logout failed: $e');
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepOrange,
-                        ),
-                        child: Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Colors.black,
-                            backgroundColor: Colors.deepOrange,
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),

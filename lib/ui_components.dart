@@ -19,21 +19,18 @@ class FloatyBackgroundWidget extends StatelessWidget {
             image: DecorationImage(
               image: AssetImage("assets/background.jpg"),
               fit: BoxFit.cover,
+              alignment: Alignment(0, 0.2), // Shift the image down slightly
             ),
           ),
         ),
-        // Semi-transparent overlay
+        // Semi-transparent overlay - darker to match other pages
         Container(
           width: double.infinity,
           height: double.infinity,
-          color: Colors.grey.withOpacity(0.5),
+          color: Colors.black.withOpacity(0.3),
         ),
         // Dot Grid Overlay
-        Positioned.fill(
-          child: CustomPaint(
-            painter: DotGridPainter(),
-          ),
-        ),
+        Positioned.fill(child: CustomPaint(painter: DotGridPainter())),
       ],
     );
   }
@@ -43,14 +40,19 @@ class DotGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const double dotSpacing = 20.0; // Adjust for desired spacing between dots
-    final dotPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.4) // Semi-transparent grey
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.fill;
+    final dotPaint =
+        Paint()
+          ..color = Colors.white.withOpacity(0.4) // Semi-transparent white dots
+          ..strokeWidth = 2.0
+          ..style = PaintingStyle.fill;
 
     for (var i = 1.0; i < size.width; i += dotSpacing) {
       for (var j = 0.0; j < size.height; j += dotSpacing) {
-        canvas.drawCircle(Offset(i, j), 1.1, dotPaint); // Adjust radius for dot size
+        canvas.drawCircle(
+          Offset(i, j),
+          1.1,
+          dotPaint,
+        ); // Adjust radius for dot size
       }
     }
   }
@@ -64,11 +66,8 @@ class AuthContainer extends StatelessWidget {
   final String headerText;
   final Widget child;
 
-  const AuthContainer({
-    Key? key,
-    required this.headerText,
-    required this.child,
-  }) : super(key: key);
+  const AuthContainer({Key? key, required this.headerText, required this.child})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +104,10 @@ class AuthContainer extends StatelessWidget {
             // Child widget (e.g., LoginForm)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32.0,
+                  vertical: 16.0,
+                ),
                 child: child,
               ),
             ),
@@ -122,10 +124,7 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final isLargeScreen = MediaQuery
-        .of(context)
-        .size
-        .width >= 600;
+    final isLargeScreen = MediaQuery.of(context).size.width >= 600;
 
     return Container(
       height: 75.0,
@@ -135,24 +134,24 @@ class Header extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Replace text with image logo
-          Image.asset(
-            "assets/logo.png",
-            height: 55.0,
-            fit: BoxFit.contain,
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, HOME_ROUTE);
+            },
+            child: Image.asset(
+              "assets/logo.png",
+              height: 55.0,
+              fit: BoxFit.contain,
+            ),
           ),
 
-          // Show navigation links or menu only when logged in
-          if (appState.isLoggedIn)
-            if (isLargeScreen)
-              Row(
-                children: [
-                  _buildNavButton(
-                    context,
-                    "Home",
-                    0,
-                    appState.selectedIndex,
-                  ),
-                  const SizedBox(width: 16.0),
+          // Show navigation links or menu for all users
+          if (isLargeScreen)
+            Row(
+              children: [
+                _buildNavButton(context, "Home", 0, appState.selectedIndex),
+                const SizedBox(width: 16.0),
+                if (appState.isLoggedIn) ...[
                   _buildNavButton(
                     context,
                     "Flights",
@@ -173,23 +172,48 @@ class Header extends StatelessWidget {
                     3,
                     appState.selectedIndex,
                   ),
+                ] else ...[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, LOGIN_ROUTE);
+                    },
+                    child: Text(
+                      "Login",
+                      style: TextStyle(color: Colors.black, fontSize: 18.0),
+                    ),
+                  ),
+                  const SizedBox(width: 16.0),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, REGISTER_ROUTE);
+                    },
+                    child: Text(
+                      "Register",
+                      style: TextStyle(color: Colors.black, fontSize: 18.0),
+                    ),
+                  ),
                 ],
-              )
-            else
-              IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  _showMenuDialog(context, appState);
-                },
-              ),
+              ],
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                _showMenuDialog(context, appState);
+              },
+            ),
         ],
       ),
     );
   }
 
   // Helper function to build navigation buttons
-  Widget _buildNavButton(BuildContext context, String label, int index,
-      int selectedIndex) {
+  Widget _buildNavButton(
+    BuildContext context,
+    String label,
+    int index,
+    int selectedIndex,
+  ) {
     final isSelected = index == selectedIndex;
     return TextButton(
       onPressed: () {
@@ -212,18 +236,16 @@ class Header extends StatelessWidget {
           color: isSelected ? Colors.blue : Colors.black,
           // Blue color for selected item
           fontSize: 18.0,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight
-              .normal, // Bold for selected item
+          fontWeight:
+              isSelected
+                  ? FontWeight.bold
+                  : FontWeight.normal, // Bold for selected item
         ),
       ),
     );
   }
 
-
   void _showMenuDialog(BuildContext context, AppState appState) {
-    if (!appState.isLoggedIn)
-      return; // If the user is not logged in, do nothing
-
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -238,27 +260,44 @@ class Header extends StatelessWidget {
                   Navigator.pushNamed(context, HOME_ROUTE);
                 },
               ),
-              ListTile(
-                title: const Text("Flights"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, FLIGHTS_ROUTE);
-                },
-              ),
-              ListTile(
-                title: const Text("Statistics"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, STATS_ROUTE);
-                },
-              ),
-              ListTile(
-                title: const Text("Profile"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, PROFILE_ROUTE);
-                },
-              ),
+              if (appState.isLoggedIn) ...[
+                ListTile(
+                  title: const Text("Flights"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, FLIGHTS_ROUTE);
+                  },
+                ),
+                ListTile(
+                  title: const Text("Statistics"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, STATS_ROUTE);
+                  },
+                ),
+                ListTile(
+                  title: const Text("Profile"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, PROFILE_ROUTE);
+                  },
+                ),
+              ] else ...[
+                ListTile(
+                  title: const Text("Login"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, LOGIN_ROUTE);
+                  },
+                ),
+                ListTile(
+                  title: const Text("Register"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, REGISTER_ROUTE);
+                  },
+                ),
+              ],
             ],
           ),
         );
@@ -267,11 +306,8 @@ class Header extends StatelessWidget {
   }
 }
 
-
 class Footer extends StatelessWidget {
-  const Footer({
-    super.key,
-  });
+  const Footer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -284,15 +320,10 @@ class Footer extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8.0),
           child: Text(
             '© 2024 Floaty. All rights reserved.',
-            style: TextStyle(
-              fontSize: 14.0,
-              color: Colors.black,
-            ),
+            style: TextStyle(fontSize: 14.0, color: Colors.black),
           ),
         ),
       ),
     );
   }
 }
-
-

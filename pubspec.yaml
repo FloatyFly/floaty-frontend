@@ -36,4 +36,8 @@ flutter:
   assets:
     - assets/background.jpg
     - assets/logo.png
+    - assets/images/flight_list.png
+    - assets/images/flight_stats.png
+    - assets/images/flight_profile.png
+    - assets/images/mobile.png
     - staticwebapp.config.json
