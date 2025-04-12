@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'constants.dart';
 import 'main.dart';
@@ -256,59 +257,198 @@ class Header extends StatelessWidget {
   }
 
   void _showMenuDialog(BuildContext context, AppState appState) {
-    showModalBottomSheet(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final menuWidth = screenWidth * 0.6; // 3/5 of screen width
+
+    showDialog(
       context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text("Home"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, HOME_ROUTE);
-                },
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1.0, 0.0),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: ModalRoute.of(context)!.animation!,
+              curve: Curves.easeOut,
+            ),
+          ),
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Material(
+              child: Container(
+                width: menuWidth,
+                height: MediaQuery.of(context).size.height, // Full height
+                color: Colors.white,
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView(
+                          children: [
+                            ListTile(
+                              leading: Icon(
+                                Icons.home,
+                                color: Color(0xFF0078D7),
+                              ),
+                              title: Text(
+                                "Home",
+                                style: TextStyle(fontSize: 16.0),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Navigator.pushNamed(context, HOME_ROUTE);
+                              },
+                            ),
+                            if (appState.isLoggedIn) ...[
+                              ListTile(
+                                leading: Icon(
+                                  Icons.paragliding,
+                                  color: Color(0xFF0078D7),
+                                ),
+                                title: Text(
+                                  "Flights",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, FLIGHTS_ROUTE);
+                                },
+                              ),
+                              ListTile(
+                                leading: Icon(
+                                  Icons.bar_chart,
+                                  color: Color(0xFF0078D7),
+                                ),
+                                title: Text(
+                                  "Statistics",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, STATS_ROUTE);
+                                },
+                              ),
+                              ListTile(
+                                leading: Icon(
+                                  Icons.person,
+                                  color: Color(0xFF0078D7),
+                                ),
+                                title: Text(
+                                  "Profile",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, PROFILE_ROUTE);
+                                },
+                              ),
+                            ] else ...[
+                              ListTile(
+                                leading: Icon(
+                                  Icons.login,
+                                  color: Color(0xFF0078D7),
+                                ),
+                                title: Text(
+                                  "Login",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, LOGIN_ROUTE);
+                                },
+                              ),
+                              ListTile(
+                                leading: Icon(
+                                  Icons.person_add,
+                                  color: Color(0xFF0078D7),
+                                ),
+                                title: Text(
+                                  "Register",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, REGISTER_ROUTE);
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      // Bottom buttons
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            // Feedback Button
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                launchUrl(
+                                  Uri.parse(
+                                    'https://github.com/FloatyFly/floaty-frontend/issues',
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFFFFA500),
+                                foregroundColor: Colors.white,
+                                minimumSize: Size(double.infinity, 40),
+                                textStyle: TextStyle(fontSize: 16.0),
+                              ),
+                              child: Text('Feedback'),
+                            ),
+                            SizedBox(height: 12),
+                            // Logout Button (only show if logged in)
+                            if (appState.isLoggedIn)
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Provider.of<AppState>(
+                                    context,
+                                    listen: false,
+                                  ).logout();
+                                  Navigator.pushNamed(context, HOME_ROUTE);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFFFF4500),
+                                  foregroundColor: Colors.white,
+                                  minimumSize: Size(double.infinity, 40),
+                                  textStyle: TextStyle(fontSize: 16.0),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.logout, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Logout'),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              if (appState.isLoggedIn) ...[
-                ListTile(
-                  title: const Text("Flights"),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, FLIGHTS_ROUTE);
-                  },
-                ),
-                ListTile(
-                  title: const Text("Statistics"),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, STATS_ROUTE);
-                  },
-                ),
-                ListTile(
-                  title: const Text("Profile"),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, PROFILE_ROUTE);
-                  },
-                ),
-              ] else ...[
-                ListTile(
-                  title: const Text("Login"),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, LOGIN_ROUTE);
-                  },
-                ),
-                ListTile(
-                  title: const Text("Register"),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, REGISTER_ROUTE);
-                  },
-                ),
-              ],
-            ],
+            ),
           ),
         );
       },
