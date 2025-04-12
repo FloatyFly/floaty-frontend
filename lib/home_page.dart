@@ -130,7 +130,37 @@ class HomePage extends StatelessWidget {
                       Container(
                         height: 500,
                         width: double.infinity,
-                        child: Center(child: SizedBox.shrink()),
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, FLIGHTS_ROUTE);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade900,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              textStyle: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              elevation: 5,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.rocket_launch, size: 24),
+                                SizedBox(width: 10),
+                                Text('Go to Flights'),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
 
                     // App Screenshots Section
@@ -195,9 +225,7 @@ class HomePage extends StatelessWidget {
                           Container(
                             constraints: BoxConstraints(maxWidth: 800),
                             child: Text(
-                              'Floaty is a flight tracking application designed for pilots and aviation enthusiasts. '
-                              'Our mission is to provide a simple, intuitive platform for recording and analyzing flight data. '
-                              'Whether you\'re a student pilot or an experienced aviator, Floaty helps you keep track of your flying journey.',
+                              'Floaty is a simple and intuitive paragliding flight log. It does one thing and it does it well.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 18,

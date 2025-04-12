@@ -71,10 +71,20 @@ class AuthContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final containerWidth =
+        screenWidth > 400.0
+            ? 400.0
+            : screenWidth - 32.0; // 16px margin on each side
+    final containerHeight = 550.0;
+
     return Center(
       child: Container(
-        width: 400,
-        height: 550,
+        width: containerWidth,
+        height: containerHeight,
+        margin: EdgeInsets.symmetric(
+          horizontal: 16.0,
+        ), // 16px margin on each side
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.7),
           borderRadius: BorderRadius.circular(6.0),

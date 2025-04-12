@@ -367,7 +367,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
                     ),
                   const SizedBox(height: 32.0),
 
-                  // Buttons (Save, Delete, and Cancel)
+                  // Buttons (Save, Cancel, and Delete)
                   isProcessing
                       ? const CircularProgressIndicator()
                       : SizedBox(
@@ -376,6 +376,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
                           children: [
                             // Save Button
                             Expanded(
+                              flex: 2,
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (_formKey.currentState!.validate()) {
@@ -391,8 +392,25 @@ class _EditFlightPageState extends State<EditFlightPage> {
                             ),
                             const SizedBox(width: 8),
 
+                            // Cancel Button
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade300,
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+
                             // Delete Button
                             Expanded(
+                              flex: 2,
                               child: ElevatedButton(
                                 onPressed: _deleteFlight,
                                 style: ElevatedButton.styleFrom(
@@ -400,24 +418,6 @@ class _EditFlightPageState extends State<EditFlightPage> {
                                 ),
                                 child: const Text(
                                   'Delete',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 8),
-
-                            // Cancel Button
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey,
-                                ),
-                                child: const Text(
-                                  'Cancel',
                                   style: TextStyle(color: Colors.white),
                                 ),
                               ),
