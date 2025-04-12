@@ -707,7 +707,7 @@ Widget _buildStatBox(String title, String value, double width, bool isMobile) {
 Widget _buildTopFlightsList(List<Flight> flights, double width, bool isMobile) {
   return Container(
     width: width,
-    padding: EdgeInsets.all(isMobile ? 12 : 20),
+    padding: EdgeInsets.all(isMobile ? 8 : 20),
     decoration: BoxDecoration(
       color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
       borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
@@ -727,66 +727,59 @@ Widget _buildTopFlightsList(List<Flight> flights, double width, bool isMobile) {
         ...flights.map(
           (flight) => Padding(
             padding: EdgeInsets.symmetric(
-              vertical: isMobile ? 6 : 8,
-              horizontal: isMobile ? 12 : 40,
+              vertical: isMobile ? 4 : 8,
+              horizontal: isMobile ? 4 : 40,
             ),
             child: Row(
               children: [
                 SizedBox(
-                  width: isMobile ? 90 : 130, // Reduced width for mobile
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        flight.dateTime
-                            .substring(0, 10)
-                            .split("-")
-                            .reversed
-                            .join("."),
-                        style: TextStyle(
-                          fontSize: isMobile ? 12 : 14,
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.visible,
-                      ),
-                    ],
+                  width: isMobile ? 70 : 130,
+                  child: Text(
+                    flight.dateTime
+                        .substring(0, 10)
+                        .split("-")
+                        .reversed
+                        .join("."),
+                    style: TextStyle(
+                      fontSize: isMobile ? 11 : 14,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                SizedBox(width: isMobile ? 4 : 10),
+                SizedBox(width: isMobile ? 2 : 10),
                 Expanded(
-                  flex: 5,
+                  flex: 4,
                   child: Text(
                     flight.takeOff,
                     style: TextStyle(
-                      fontSize: isMobile ? 14 : 16,
+                      fontSize: isMobile ? 13 : 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey[900],
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                SizedBox(width: isMobile ? 2 : 10),
                 Expanded(
-                  flex: 1,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: isMobile ? 12 : 15,
-                          color: Colors.black54,
+                  flex: 2,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: isMobile ? 11 : 15,
+                        color: Colors.black54,
+                      ),
+                      SizedBox(width: 2),
+                      Text(
+                        "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
+                        style: TextStyle(
+                          fontSize: isMobile ? 11 : 14,
+                          fontWeight: FontWeight.bold,
                         ),
-                        SizedBox(width: 4),
-                        Text(
-                          "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
-                          style: TextStyle(
-                            fontSize: isMobile ? 12 : 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -1209,31 +1202,22 @@ Widget _buildMonthlyAirtimeChart(
                       if (value >= 0 && value < 12) {
                         int month = value.toInt() + 1;
                         String monthName = _getMonthName(month);
-                        bool isJanuary = month == 1;
-                        bool isEvenMonth = month % 2 == 0;
 
-                        // Show January and every second month
-                        if (isJanuary || isEvenMonth) {
-                          return Transform.rotate(
-                            angle: -34 * pi / 180, // -34 degrees in radians
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                isJanuary
-                                    ? '$monthName ${DateTime.now().year}'
-                                    : monthName,
-                                style: TextStyle(
-                                  fontSize: isMobile ? 10 : 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                        // Always show all months with no tilt
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            monthName,
+                            style: TextStyle(
+                              fontSize: isMobile ? 10 : 12,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        }
+                          ),
+                        );
                       }
                       return Container();
                     },
-                    reservedSize: 40, // Increased space for tilted labels
+                    reservedSize: 32, // Reduced space since no tilting
                   ),
                 ),
                 leftTitles: AxisTitles(
@@ -1362,7 +1346,7 @@ Widget _buildYearlySummaryBox(
 
   return Container(
     width: width,
-    padding: EdgeInsets.all(isMobile ? 12 : 16),
+    padding: EdgeInsets.all(isMobile ? 8 : 20),
     decoration: BoxDecoration(
       color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
       borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
@@ -1378,74 +1362,59 @@ Widget _buildYearlySummaryBox(
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: isMobile ? 8 : 12),
-        // Table header
-        Padding(
-          padding: EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              SizedBox(
-                width: isMobile ? 40 : 60,
-                child: Text(
-                  'Year',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: isMobile ? 12 : 14,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Flights',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: isMobile ? 12 : 14,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Airtime',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: isMobile ? 12 : 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        SizedBox(height: isMobile ? 6 : 10),
         // Table rows
         ...yearlyStats.map((stats) {
           return Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.symmetric(
+              vertical: isMobile ? 4 : 8,
+              horizontal: isMobile ? 4 : 40,
+            ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: isMobile ? 40 : 60,
+                  width: isMobile ? 70 : 130,
                   child: Text(
                     stats['year'],
                     style: TextStyle(
+                      fontSize: isMobile ? 11 : 14,
+                      color: Colors.black54,
                       fontWeight: FontWeight.bold,
-                      fontSize: isMobile ? 12 : 14,
                     ),
                   ),
                 ),
+                SizedBox(width: isMobile ? 2 : 10),
                 Expanded(
-                  flex: 1,
+                  flex: 4,
                   child: Text(
-                    '${stats['flightCount']}',
-                    style: TextStyle(fontSize: isMobile ? 12 : 14),
+                    '${stats['flightCount']} flights',
+                    style: TextStyle(
+                      fontSize: isMobile ? 13 : 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey[900],
+                    ),
                   ),
                 ),
+                SizedBox(width: isMobile ? 2 : 10),
                 Expanded(
-                  flex: 1,
-                  child: Text(
-                    '${stats['airtime'].toStringAsFixed(1)} h',
-                    style: TextStyle(fontSize: isMobile ? 12 : 14),
+                  flex: 2,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: isMobile ? 11 : 15,
+                        color: Colors.black54,
+                      ),
+                      SizedBox(width: 2),
+                      Text(
+                        '${stats['airtime'].toStringAsFixed(1)} h',
+                        style: TextStyle(
+                          fontSize: isMobile ? 11 : 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

@@ -58,15 +58,19 @@ class ProfilePageState extends State<ProfilePage> {
           Column(
             children: [
               Header(),
-              SizedBox(height: 8), // Reduced gap between header and container
+              SizedBox(height: isMobile ? 0 : 8), // No gap on mobile
               Expanded(
-                child: Center(
+                child: SingleChildScrollView(
                   child: Container(
                     width: containerWidth,
-                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    margin: EdgeInsets.symmetric(
+                      horizontal:
+                          isMobile ? 0 : (screenWidth - containerWidth) / 2,
+                    ),
+                    padding: EdgeInsets.all(isMobile ? 16 : 16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(isMobile ? 0 : 6),
                       boxShadow:
                           isMobile
                               ? [] // No shadow on mobile
@@ -79,91 +83,114 @@ class ProfilePageState extends State<ProfilePage> {
                                 ),
                               ],
                     ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Pilot',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.headlineSmall!.copyWith(
-                              color: Colors.blue.shade900,
-                              fontWeight: FontWeight.bold,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pilot',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineSmall!.copyWith(
+                            color: Colors.blue.shade900,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: isMobile ? 16 : 24),
+                        // User Info
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isMobile ? 8 : 0,
+                            vertical: isMobile ? 12 : 0,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                isMobile
+                                    ? Colors.grey.shade50
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              isMobile ? 8 : 0,
                             ),
                           ),
-                          SizedBox(height: 24.0),
-                          // User Info
-                          Row(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(
-                                width: 100,
-                                child: Text(
-                                  'Name',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge!.copyWith(
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: isMobile ? 80 : 100,
+                                    child: Text(
+                                      'Name',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge!.copyWith(
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  _currentUser.name ?? "Not set",
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 12.0),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 100,
-                                child: Text(
-                                  'Email',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge!.copyWith(
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      _currentUser.email ?? "Not set",
+                                  Expanded(
+                                    child: Text(
+                                      _currentUser.name ?? "Not set",
                                       style:
                                           Theme.of(context).textTheme.bodyLarge,
                                     ),
-                                    if (_currentUser.emailVerified) ...[
-                                      SizedBox(width: 8),
-                                      Text(
-                                        '(verified)',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge!.copyWith(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: isMobile ? 12 : 12),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: isMobile ? 80 : 100,
+                                    child: Text(
+                                      'Email',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge!.copyWith(
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
                                       ),
-                                    ],
-                                  ],
-                                ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          _currentUser.email ?? "Not set",
+                                          style:
+                                              Theme.of(
+                                                context,
+                                              ).textTheme.bodyLarge,
+                                        ),
+                                        if (_currentUser.emailVerified) ...[
+                                          SizedBox(width: 8),
+                                          Text(
+                                            '(verified)',
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyLarge!.copyWith(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          SizedBox(height: 32.0),
-                          // Verify Email Button
-                          if (_isSendingVerification)
-                            CircularProgressIndicator()
-                          else if (!_currentUser.emailVerified)
-                            ElevatedButton.icon(
+                        ),
+                        SizedBox(height: isMobile ? 16 : 32),
+                        // Verify Email Button
+                        if (_isSendingVerification)
+                          Center(child: CircularProgressIndicator())
+                        else if (!_currentUser.emailVerified)
+                          Center(
+                            child: ElevatedButton.icon(
                               onPressed: () async {
                                 setState(() {
                                   _isSendingVerification = true;
@@ -183,65 +210,14 @@ class ProfilePageState extends State<ProfilePage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
-                              ),
-                            ),
-                          SizedBox(height: 16.0),
-                          // Sign Out Button
-                          if (_isSigningOut)
-                            CircularProgressIndicator()
-                          else
-                            Padding(
-                              padding: EdgeInsets.only(left: 8),
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  setState(() {
-                                    _isSigningOut = true;
-                                  });
-
-                                  try {
-                                    await logout(
-                                      _currentUser.id,
-                                      _getCookieAuth(),
-                                    );
-                                    _emptyCookieJar();
-
-                                    setState(() {
-                                      _isSigningOut = false;
-                                    });
-                                    // After successful logout, navigate to HomePage
-                                    // Use pushReplacementNamed to replace the ProfilePage with HomePage
-                                    Provider.of<AppState>(
-                                      context,
-                                      listen: false,
-                                    ).logout();
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      HOME_ROUTE,
-                                    );
-                                  } catch (e) {
-                                    // Handle error if logout fails
-                                    print('Logout failed: $e');
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepOrange,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 12,
-                                  ),
-                                ),
-                                child: Text(
-                                  'Logout',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
                                 ),
                               ),
                             ),
-                        ],
-                      ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
