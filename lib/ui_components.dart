@@ -398,13 +398,17 @@ class Header extends StatelessWidget {
                           children: [
                             // Feedback Button
                             ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 Navigator.pop(context);
-                                launchUrl(
-                                  Uri.parse(
-                                    'https://github.com/FloatyFly/floaty-frontend/issues',
-                                  ),
+                                final url = Uri.parse(
+                                  'https://github.com/FloatyFly/floaty-frontend/issues',
                                 );
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(
+                                    url,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFFFFA500),
