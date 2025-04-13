@@ -348,7 +348,36 @@ class FlightListView extends StatelessWidget {
           } else if (snapshot.hasError) {
             return Center(child: Text("Error loading flights"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text("No flights available"));
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height * 0.33,
+                  left: 16,
+                  right: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.rocket_launch,
+                      size: 24,
+                      color: Color(0xFF0078D7),
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        "Start your Floaty journey by adding your first flight!",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           // Sort flights by date, assuming Flight has a DateTime property called `dateTime`

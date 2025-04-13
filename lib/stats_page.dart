@@ -26,19 +26,7 @@ class _StatsPageState extends State<StatsPage> {
   void initState() {
     super.initState();
 
-    bool isDebug = true;
-    if (isDebug) {
-      _currentUser = FloatyUser(
-        id: 1,
-        name: "Floater",
-        email: "floater@test.com",
-        emailVerified: true,
-      );
-      Provider.of<AppState>(context, listen: false).setUser(_currentUser);
-    } else {
-      _currentUser = Provider.of<AppState>(context, listen: false).currentUser!;
-    }
-
+    _currentUser = Provider.of<AppState>(context, listen: false).currentUser!;
     futureFlights = _fetchFlights();
   }
 
@@ -148,42 +136,78 @@ class _StatsPageState extends State<StatsPage> {
                                   ),
                                 ),
                                 SizedBox(height: isMobile ? 16 : 20),
-                                _buildFlightTrendChart(
-                                  flights,
-                                  containerWidth,
-                                  isMobile,
-                                ),
-                                SizedBox(height: isMobile ? 16 : 20),
-                                _buildAirtimeEvolutionChart(
-                                  flights,
-                                  containerWidth,
-                                  isMobile,
-                                ),
-                                SizedBox(height: isMobile ? 16 : 20),
-                                _buildMonthlyFlightsChart(
-                                  flights,
-                                  containerWidth,
-                                  isMobile,
-                                ),
-                                SizedBox(height: isMobile ? 16 : 20),
-                                _buildMonthlyAirtimeChart(
-                                  flights,
-                                  containerWidth,
-                                  isMobile,
-                                ),
-                                SizedBox(height: isMobile ? 16 : 20),
-                                _buildYearlySummaryBox(
-                                  flights,
-                                  containerWidth,
-                                  isMobile,
-                                ),
-                                SizedBox(height: isMobile ? 16 : 20),
-                                _buildTopFlightsList(
-                                  topFlights,
-                                  containerWidth,
-                                  isMobile,
-                                ),
-                                SizedBox(height: isMobile ? 16 : 20),
+                                if (flights.isEmpty)
+                                  Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom:
+                                            MediaQuery.of(context).size.height *
+                                            0.33,
+                                        left: 16,
+                                        right: 16,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.lightbulb,
+                                            size: 24,
+                                            color: Color(0xFF0078D7),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Flexible(
+                                            child: Text(
+                                              "Add flights to get statistical analysis",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                else ...[
+                                  _buildFlightTrendChart(
+                                    flights,
+                                    containerWidth,
+                                    isMobile,
+                                  ),
+                                  SizedBox(height: isMobile ? 16 : 20),
+                                  _buildAirtimeEvolutionChart(
+                                    flights,
+                                    containerWidth,
+                                    isMobile,
+                                  ),
+                                  SizedBox(height: isMobile ? 16 : 20),
+                                  _buildMonthlyFlightsChart(
+                                    flights,
+                                    containerWidth,
+                                    isMobile,
+                                  ),
+                                  SizedBox(height: isMobile ? 16 : 20),
+                                  _buildMonthlyAirtimeChart(
+                                    flights,
+                                    containerWidth,
+                                    isMobile,
+                                  ),
+                                  SizedBox(height: isMobile ? 16 : 20),
+                                  _buildYearlySummaryBox(
+                                    flights,
+                                    containerWidth,
+                                    isMobile,
+                                  ),
+                                  SizedBox(height: isMobile ? 16 : 20),
+                                  _buildTopFlightsList(
+                                    topFlights,
+                                    containerWidth,
+                                    isMobile,
+                                  ),
+                                  SizedBox(height: isMobile ? 16 : 20),
+                                ],
                               ],
                             ),
                           );
