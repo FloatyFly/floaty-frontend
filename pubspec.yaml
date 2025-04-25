@@ -25,6 +25,7 @@ dependencies:
   file_saver: ^0.2.14
   fl_chart: ^0.70.2
   url_launcher: ^6.2.4
+  visibility_detector: ^0.4.0+2
 
 dev_dependencies:
   flutter_test:
@@ -37,8 +38,7 @@ flutter:
   assets:
     - assets/background.jpg
     - assets/logo.png
-    - assets/images/flight_list.png
-    - assets/images/flight_stats.png
-    - assets/images/flight_profile.png
-    - assets/images/mobile.png
+    - assets/images/floaty_laptop_phone.png
+    - assets/images/floaty_statistics.png
+    - assets/images/coffee-cup.png
     - staticwebapp.config.json

@@ -9,8 +9,116 @@ import 'package:floaty/constants.dart';
 import 'package:floaty/model.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/CookieAuth.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _imageKey = GlobalKey();
+  final GlobalKey _statsImageKey = GlobalKey();
+  final GlobalKey _textKey = GlobalKey();
+  double _imageSlidePosition = 1.0;
+  double _statsSlidePosition = 1.0;
+  double _textOpacity = 0.0;
+  bool _imageAnimationCompleted = false;
+  bool _statsAnimationCompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    _updateImagePosition(_imageKey, true, (progress) {
+      _imageSlidePosition = progress;
+    });
+    _updateImagePosition(_statsImageKey, false, (progress) {
+      _statsSlidePosition = progress;
+    });
+    _updateTextOpacity();
+  }
+
+  void _updateImagePosition(
+    GlobalKey key,
+    bool fromRight,
+    Function(double) updatePosition,
+  ) {
+    final RenderBox? imageBox =
+        key.currentContext?.findRenderObject() as RenderBox?;
+    if (imageBox == null) return;
+
+    // Check if this is for the first or second image
+    bool isFirstImage = key == _imageKey;
+    if ((isFirstImage && _imageAnimationCompleted) ||
+        (!isFirstImage && _statsAnimationCompleted)) {
+      updatePosition(0.0); // Keep the image in its final position
+      return;
+    }
+
+    final imagePosition = imageBox.localToGlobal(Offset.zero);
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final startPosition = screenHeight + imageBox.size.height;
+    final endPosition = screenHeight - imageBox.size.height;
+
+    double progress = ((imagePosition.dy - endPosition) /
+            (startPosition - endPosition))
+        .clamp(0.0, 1.0);
+
+    if (mounted) {
+      setState(() {
+        updatePosition(progress);
+        // If the animation has completed (progress is 0), mark it as done
+        if (progress == 0.0) {
+          if (isFirstImage) {
+            _imageAnimationCompleted = true;
+          } else {
+            _statsAnimationCompleted = true;
+          }
+        }
+      });
+    }
+  }
+
+  void _updateTextOpacity() {
+    final RenderBox? textBox =
+        _textKey.currentContext?.findRenderObject() as RenderBox?;
+    if (textBox == null) return;
+
+    final textPosition = textBox.localToGlobal(Offset.zero);
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Start fading in as soon as text enters view
+    final startPosition = screenHeight + textBox.size.height;
+    final endPosition = screenHeight - textBox.size.height;
+
+    // Calculate opacity (0 = invisible, 1 = fully visible)
+    double opacity =
+        1.0 -
+        ((textPosition.dy - endPosition) / (startPosition - endPosition)).clamp(
+          0.0,
+          1.0,
+        );
+
+    if (mounted) {
+      setState(() {
+        _textOpacity = opacity;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -21,6 +129,7 @@ class HomePage extends StatelessWidget {
               const FloatyBackgroundWidget(),
               // Content
               SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   children: [
                     // Custom header with Register button for non-logged in users
@@ -173,37 +282,232 @@ class HomePage extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          // Screenshots
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildScreenshotCard(
-                                  'assets/images/flight_list.png',
-                                  'Flight List',
-                                  'View all your flights in a clean, organized list',
+                          // Title
+                          Text(
+                            'Floaty - The simple paragliding flight log',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 40),
+                          // Description
+                          Container(
+                            constraints: BoxConstraints(maxWidth: 800),
+                            child: Text(
+                              'Floaty is a simple and intuitive flight log that puts ease of use first. You can access your flights from any device and analyze your data with in-depth statistics. Your flying history stays private and secure.',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.black87,
+                                height: 1.5,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(height: 60),
+                          // First screenshot with scroll-based animation
+                          Container(
+                            key: _imageKey,
+                            constraints: BoxConstraints(maxWidth: 1200),
+                            transform: Matrix4.translationValues(
+                              MediaQuery.of(context).size.width *
+                                  _imageSlidePosition,
+                              0,
+                              0,
+                            ),
+                            child: Image.asset(
+                              'assets/images/floaty_laptop_phone.png',
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          SizedBox(height: 40),
+                          // Divider between devices and analysis
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 40),
+                            child: Divider(
+                              color: Colors.grey.shade300,
+                              thickness: 1,
+                            ),
+                          ),
+                          SizedBox(height: 40),
+                          // Animated text section
+                          Container(
+                            key: _textKey,
+                            constraints: BoxConstraints(maxWidth: 800),
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Opacity(
+                              opacity: _textOpacity,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Track your progress with meaningful insights',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    'Get detailed statistics about your flights and airtime. Monthly and yearly summaries help you understand your flying patterns. Make informed decisions about your training based on actual flight data.',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      height: 1.5,
+                                      color: Colors.black87,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 40),
+                          // Statistics screenshot with scroll-based animation
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isMobile = constraints.maxWidth < 700;
+                              return Container(
+                                key: _statsImageKey,
+                                constraints: BoxConstraints(
+                                  maxWidth: isMobile ? double.infinity : 650,
                                 ),
-                                SizedBox(width: 20),
-                                _buildScreenshotCard(
-                                  'assets/images/flight_stats.png',
-                                  'Flight Statistics',
-                                  'Analyze your flying patterns with detailed statistics',
+                                transform: Matrix4.translationValues(
+                                  -MediaQuery.of(context).size.width *
+                                      _statsSlidePosition,
+                                  0,
+                                  0,
                                 ),
-                                SizedBox(width: 20),
-                                _buildScreenshotCard(
-                                  'assets/images/mobile.png',
-                                  'Mobile First',
-                                  'Access your flight data anywhere, anytime',
+                                child: Image.asset(
+                                  'assets/images/floaty_statistics.png',
+                                  width: double.infinity,
+                                  fit: BoxFit.contain,
                                 ),
-                              ],
+                              );
+                            },
+                          ),
+                          SizedBox(height: 40),
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 40),
+                            child: Divider(
+                              color: Colors.grey.shade300,
+                              thickness: 1,
                             ),
                           ),
                         ],
                       ),
                     ),
 
-                    // About Section
+                    // Buy me a coffee Section
+                    Container(
+                      width: double.infinity,
+                      color: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 40),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isMobile = constraints.maxWidth < 700;
+
+                                final textWidget = RichText(
+                                  textAlign:
+                                      isMobile
+                                          ? TextAlign.center
+                                          : TextAlign.center,
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black87,
+                                      height: 1.5,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            'Do you enjoy using Floaty? It is entirely ',
+                                      ),
+                                      TextSpan(
+                                        text: 'free',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextSpan(text: ' of use.\n'),
+                                      TextSpan(text: 'Support me and...'),
+                                    ],
+                                  ),
+                                );
+
+                                final buttonWidget = ElevatedButton(
+                                  onPressed: () {
+                                    // Add your buy me a coffee link here
+                                    // Launch URL for buy me a coffee
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    padding: EdgeInsets.all(12),
+                                    minimumSize: Size(200, 50),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  child: Image.asset(
+                                    'assets/images/coffee-cup.png',
+                                    height: 35,
+                                    fit: BoxFit.contain,
+                                  ),
+                                );
+
+                                if (isMobile) {
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        constraints: BoxConstraints(
+                                          maxWidth: 500,
+                                        ),
+                                        child: textWidget,
+                                      ),
+                                      SizedBox(height: 20),
+                                      buttonWidget,
+                                    ],
+                                  );
+                                }
+
+                                return Row(
+                                  children: [
+                                    Container(
+                                      width: constraints.maxWidth * 0.5,
+                                      child: Center(
+                                        child: Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: 500,
+                                          ),
+                                          child: textWidget,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: constraints.maxWidth * 0.5,
+                                      child: Center(child: buttonWidget),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+
+                    // Contact Section
                     Container(
                       width: double.infinity,
                       color: Colors.grey.shade100,
@@ -214,7 +518,7 @@ class HomePage extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(
-                            'About Floaty',
+                            'Contact',
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -223,17 +527,18 @@ class HomePage extends StatelessWidget {
                           ),
                           SizedBox(height: 20),
                           Container(
-                            constraints: BoxConstraints(maxWidth: 800),
+                            constraints: BoxConstraints(maxWidth: 600),
                             child: Text(
-                              'Floaty is a simple and intuitive paragliding flight log. It does one thing and it does it well.',
-                              textAlign: TextAlign.center,
+                              'If you have any feedback, suggestions for improvement or simply want to get to know us, do not hesitate to contact us!',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.black87,
+                                height: 1.5,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                          SizedBox(height: 30),
+                          SizedBox(height: 20),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

@@ -70,7 +70,9 @@ class ProfilePageState extends State<ProfilePage> {
                           isMobile
                               ? BorderRadius
                                   .zero // No rounded corners on mobile
-                              : BorderRadius.vertical(top: Radius.circular(6)),
+                              : BorderRadius.circular(
+                                6,
+                              ), // Rounded corners on all sides for desktop
                       boxShadow:
                           isMobile
                               ? [] // No shadow on mobile
