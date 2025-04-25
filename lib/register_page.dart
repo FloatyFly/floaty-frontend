@@ -299,6 +299,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
               ),
+              // Add Footer
+              Footer(),
             ],
           ),
         ],

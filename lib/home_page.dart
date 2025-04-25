@@ -136,7 +136,7 @@ class HomePage extends StatelessWidget {
                               Navigator.pushNamed(context, FLIGHTS_ROUTE);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade900,
+                              backgroundColor: Color(0xFF0078D7),
                               foregroundColor: Colors.white,
                               padding: EdgeInsets.symmetric(
                                 horizontal: 32,
@@ -154,7 +154,7 @@ class HomePage extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.rocket_launch, size: 24),
+                                Icon(Icons.arrow_forward, size: 24),
                                 SizedBox(width: 10),
                                 Text('Go to Flights'),
                               ],

@@ -181,9 +181,9 @@ class _StatsPageState extends State<StatsPage> {
                   SizedBox(height: 20),
                   _buildMonthlyAirtimeChart(flights, containerWidth),
                   SizedBox(height: 20),
-                  _buildYearlySummaryBox(flights, containerWidth),
+                  _buildYearlySummaryBox(flights, containerWidth, isMobile),
                   SizedBox(height: 20),
-                  _buildTopFlightsList(topFlights, containerWidth),
+                  _buildTopFlightsList(topFlights, containerWidth, isMobile),
                   SizedBox(height: 20),
                 ],
               ],
@@ -252,6 +252,17 @@ Widget _buildFlightTrendChart(List<Flight> flights, double width) {
     ); // Vertical line
   }
 
+  // Calculate label interval based on time range
+  int totalMonths = sortedMonths.length;
+  int labelInterval = 1;
+  if (totalMonths > 96) {
+    labelInterval = 12; // Show yearly labels
+  } else if (totalMonths > 48) {
+    labelInterval = 6; // Show labels every 6 months
+  } else if (totalMonths > 24) {
+    labelInterval = 3; // Show labels every 3 months
+  }
+
   return Container(
     width: width,
     height: 250,
@@ -310,29 +321,20 @@ Widget _buildFlightTrendChart(List<Flight> flights, double width) {
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
+                    reservedSize: 45, // Increased space for tilted labels
+                    interval: labelInterval.toDouble(),
                     getTitlesWidget: (value, meta) {
                       final index = value.toInt();
-                      if (index < 0 || index >= sortedMonths.length)
-                        return Container();
-
-                      String monthYear = sortedMonths[index];
-                      List<String> parts = monthYear.split('-');
-                      String year = parts[0].substring(
-                        2,
-                      ); // Just the last 2 digits
-                      int month = int.parse(parts[1]);
-                      String monthName = _getMonthName(month);
-
-                      // Show only odd-numbered months (Jan, Mar, May, etc.)
-                      bool shouldShowLabel = month % 2 == 1;
-
-                      // Show year only for January
-                      final String label =
-                          month == 1 ? "$monthName $year" : monthName;
-
-                      if (shouldShowLabel) {
+                      if (index >= 0 &&
+                          index < sortedMonths.length &&
+                          index % labelInterval == 0) {
+                        String monthYear = sortedMonths[index];
+                        List<String> parts = monthYear.split('-');
+                        String year = parts[0];
+                        int month = int.parse(parts[1]);
+                        String monthName = _getMonthName(month);
                         return Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
+                          padding: const EdgeInsets.only(top: 8.0),
                           child: Transform.rotate(
                             angle:
                                 -34 *
@@ -340,7 +342,7 @@ Widget _buildFlightTrendChart(List<Flight> flights, double width) {
                                 180, // -34 degrees in radians (upward tilt)
                             alignment: Alignment.center,
                             child: Text(
-                              label,
+                              '$monthName $year',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -349,11 +351,8 @@ Widget _buildFlightTrendChart(List<Flight> flights, double width) {
                           ),
                         );
                       }
-                      return Container(); // Return empty container for months to skip
+                      return Container();
                     },
-                    interval: 1,
-                    reservedSize:
-                        45, // Increased space for upward tilted labels
                   ),
                 ),
               ),
@@ -467,6 +466,17 @@ Widget _buildAirtimeEvolutionChart(List<Flight> flights, double width) {
     spots.add(FlSpot(i.toDouble(), cumulativeAirtime)); // Vertical line
   }
 
+  // Calculate label interval based on time range
+  int totalMonths = sortedDates.length;
+  int labelInterval = 1;
+  if (totalMonths > 96) {
+    labelInterval = 12; // Show yearly labels
+  } else if (totalMonths > 48) {
+    labelInterval = 6; // Show labels every 6 months
+  } else if (totalMonths > 24) {
+    labelInterval = 3; // Show labels every 3 months
+  }
+
   return Container(
     width: width,
     height: 250,
@@ -523,29 +533,20 @@ Widget _buildAirtimeEvolutionChart(List<Flight> flights, double width) {
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
+                    reservedSize: 45, // Increased space for tilted labels
+                    interval: labelInterval.toDouble(),
                     getTitlesWidget: (value, meta) {
                       final index = value.toInt();
-                      if (index < 0 || index >= sortedDates.length)
-                        return Container();
-
-                      String dateString = sortedDates[index];
-                      List<String> parts = dateString.split('-');
-                      String year = parts[0].substring(
-                        2,
-                      ); // Just the last 2 digits
-                      int month = int.parse(parts[1]);
-                      String monthName = _getMonthName(month);
-
-                      // Show only odd-numbered months (Jan, Mar, May, etc.)
-                      bool shouldShowLabel = month % 2 == 1;
-
-                      // Show year only for January
-                      final String label =
-                          month == 1 ? "$monthName $year" : monthName;
-
-                      if (shouldShowLabel) {
+                      if (index >= 0 &&
+                          index < sortedDates.length &&
+                          index % labelInterval == 0) {
+                        String monthYear = sortedDates[index];
+                        List<String> parts = monthYear.split('-');
+                        String year = parts[0];
+                        int month = int.parse(parts[1]);
+                        String monthName = _getMonthName(month);
                         return Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
+                          padding: const EdgeInsets.only(top: 8.0),
                           child: Transform.rotate(
                             angle:
                                 -34 *
@@ -553,7 +554,7 @@ Widget _buildAirtimeEvolutionChart(List<Flight> flights, double width) {
                                 180, // -34 degrees in radians (upward tilt)
                             alignment: Alignment.center,
                             child: Text(
-                              label,
+                              '$monthName $year',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -562,11 +563,8 @@ Widget _buildAirtimeEvolutionChart(List<Flight> flights, double width) {
                           ),
                         );
                       }
-                      return Container(); // Return empty container for months to skip
+                      return Container();
                     },
-                    interval: 1,
-                    reservedSize:
-                        45, // Increased space for upward tilted labels
                   ),
                 ),
               ),
@@ -678,10 +676,10 @@ Widget _buildStatBox(String title, String value, double width) {
   );
 }
 
-Widget _buildTopFlightsList(List<Flight> flights, double width) {
+Widget _buildTopFlightsList(List<Flight> flights, double width, bool isMobile) {
   return Container(
     width: width,
-    padding: EdgeInsets.all(20),
+    padding: EdgeInsets.all(isMobile ? 8 : 20),
     decoration: BoxDecoration(
       color: Colors.white.withOpacity(0.8),
       borderRadius: BorderRadius.circular(10),
@@ -697,11 +695,14 @@ Widget _buildTopFlightsList(List<Flight> flights, double width) {
         SizedBox(height: 10),
         ...flights.map(
           (flight) => Padding(
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 40),
+            padding: EdgeInsets.symmetric(
+              vertical: 8,
+              horizontal: isMobile ? 8 : 40,
+            ),
             child: Row(
               children: [
                 SizedBox(
-                  width: 130,
+                  width: isMobile ? 90 : 130,
                   child: Text(
                     flight.dateTime
                         .substring(0, 10)
@@ -709,37 +710,41 @@ Widget _buildTopFlightsList(List<Flight> flights, double width) {
                         .reversed
                         .join("."),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isMobile ? 12 : 14,
                       color: Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: isMobile ? 4 : 10),
                 Expanded(
                   flex: 4,
                   child: Text(
                     flight.takeOff,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isMobile ? 14 : 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey[900],
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: isMobile ? 4 : 10),
                 Expanded(
                   flex: 2,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.access_time, size: 15, color: Colors.black54),
+                      Icon(
+                        Icons.access_time,
+                        size: isMobile ? 12 : 15,
+                        color: Colors.black54,
+                      ),
                       SizedBox(width: 2),
                       Text(
                         "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: isMobile ? 12 : 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1254,7 +1259,11 @@ Widget _buildMonthlyAirtimeChart(List<Flight> flights, double width) {
   );
 }
 
-Widget _buildYearlySummaryBox(List<Flight> flights, double width) {
+Widget _buildYearlySummaryBox(
+  List<Flight> flights,
+  double width,
+  bool isMobile,
+) {
   if (flights.isEmpty) {
     return Container(
       width: width,
@@ -1292,7 +1301,7 @@ Widget _buildYearlySummaryBox(List<Flight> flights, double width) {
 
   return Container(
     width: width,
-    padding: EdgeInsets.all(20),
+    padding: EdgeInsets.all(isMobile ? 8 : 20),
     decoration: BoxDecoration(
       color: Colors.white.withOpacity(0.8),
       borderRadius: BorderRadius.circular(10),
@@ -1309,44 +1318,51 @@ Widget _buildYearlySummaryBox(List<Flight> flights, double width) {
         // Table rows
         ...yearlyStats.map((stats) {
           return Padding(
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 40),
+            padding: EdgeInsets.symmetric(
+              vertical: 8,
+              horizontal: isMobile ? 8 : 40,
+            ),
             child: Row(
               children: [
                 SizedBox(
-                  width: 130,
+                  width: isMobile ? 60 : 130,
                   child: Text(
                     stats['year'],
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isMobile ? 12 : 14,
                       color: Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: isMobile ? 4 : 10),
                 Expanded(
                   flex: 4,
                   child: Text(
                     '${stats['flightCount']} flights',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isMobile ? 14 : 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey[900],
                     ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: isMobile ? 4 : 10),
                 Expanded(
                   flex: 2,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.access_time, size: 15, color: Colors.black54),
+                      Icon(
+                        Icons.access_time,
+                        size: isMobile ? 12 : 15,
+                        color: Colors.black54,
+                      ),
                       SizedBox(width: 2),
                       Text(
                         '${stats['airtime'].toStringAsFixed(1)} h',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: isMobile ? 12 : 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
