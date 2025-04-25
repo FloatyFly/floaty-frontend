@@ -192,6 +192,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
           Header(),
           AuthContainer(
             headerText: "Edit Flight",
+            isFlightPage: true,
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -429,7 +430,6 @@ class _EditFlightPageState extends State<EditFlightPage> {
               ),
             ),
           ),
-          Positioned(left: 0, right: 0, bottom: 0, child: Footer()),
         ],
       ),
     );

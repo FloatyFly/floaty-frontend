@@ -305,8 +305,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              // Footer at the bottom
-              Footer(),
             ],
           ),
         ],

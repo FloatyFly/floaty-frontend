@@ -66,9 +66,14 @@ class DotGridPainter extends CustomPainter {
 class AuthContainer extends StatelessWidget {
   final String headerText;
   final Widget child;
+  final bool isFlightPage; // New parameter to identify flight pages
 
-  const AuthContainer({Key? key, required this.headerText, required this.child})
-    : super(key: key);
+  const AuthContainer({
+    Key? key,
+    required this.headerText,
+    required this.child,
+    this.isFlightPage = false, // Default to false for backward compatibility
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +88,12 @@ class AuthContainer extends StatelessWidget {
       child: Container(
         width: containerWidth,
         height: containerHeight,
-        margin: EdgeInsets.symmetric(
-          horizontal: 16.0,
-        ), // 16px margin on each side
+        margin: EdgeInsets.only(
+          top: isFlightPage ? 100.0 : 24.0, // More top margin for flight pages
+          bottom: 24.0,
+          left: 16.0,
+          right: 16.0,
+        ),
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.7),
           borderRadius: BorderRadius.circular(6.0),
@@ -114,12 +122,14 @@ class AuthContainer extends StatelessWidget {
             ),
             // Child widget (e.g., LoginForm)
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32.0,
-                  vertical: 16.0,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32.0,
+                    vertical: 16.0,
+                  ),
+                  child: child,
                 ),
-                child: child,
               ),
             ),
           ],

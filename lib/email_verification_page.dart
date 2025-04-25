@@ -32,13 +32,15 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
       setState(() {
         _isProcessing = false;
-        _message = "Your email has been successfully verified! You may now continue to login.";
+        _message =
+            "Your email has been successfully verified! You may now continue to login.";
         _isSuccess = true;
       });
     } catch (e) {
       setState(() {
         _isProcessing = false;
-        _message = "Verification failed. The token might be invalid or expired.";
+        _message =
+            "Verification failed. The token might be invalid or expired.";
         _isSuccess = false;
       });
     }
@@ -100,33 +102,24 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                   _isProcessing
                       ? const CircularProgressIndicator()
                       : SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_isSuccess) {
-                          Navigator.pushNamed(context, LOGIN_ROUTE);
-                        } else if (_formKey.currentState!.validate()) {
-                          _verifyEmail(_tokenController.text);
-                        }
-                      },
-                      child: Text(
-                        _isSuccess ? 'Go to Login' : 'Verify Email',
-                        style: const TextStyle(
-                          color: Colors.black,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_isSuccess) {
+                              Navigator.pushNamed(context, LOGIN_ROUTE);
+                            } else if (_formKey.currentState!.validate()) {
+                              _verifyEmail(_tokenController.text);
+                            }
+                          },
+                          child: Text(
+                            _isSuccess ? 'Go to Login' : 'Verify Email',
+                            style: const TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ),
-          // Footer
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Footer(),
           ),
         ],
       ),

@@ -15,12 +15,7 @@ class LandingPage extends StatelessWidget {
               const FloatyBackgroundWidget(),
 
               // Top White Banner
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                child: Header(),
-              ),
+              Positioned(left: 0, right: 0, top: 0, child: Header()),
 
               // Main Content wrapped in SingleChildScrollView
               SingleChildScrollView(
@@ -30,29 +25,22 @@ class LandingPage extends StatelessWidget {
                   child: Column(
                     children: [
                       SizedBox(height: 250.0), // Spacing below the top banner
-
                       // AuthContainer for Register Form
                       AuthContainer(
-                        headerText: "Register",
-                        child: RegisterForm(
-                          onSubmit: (username, email, password) async {
-                            // Handle registration logic here
-                          },
-                          errorMessage: null,
-                          isProcessing: false,
+                        headerText: "Welcome",
+                        child: Form(
+                          child: RegisterForm(
+                            onSubmit: (username, email, password) async {
+                              // Handle registration logic here
+                            },
+                            errorMessage: null,
+                            isProcessing: false,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              // Footer (slightly thinner and cream white color)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Footer(),
               ),
             ],
           ),
@@ -61,5 +49,3 @@ class LandingPage extends StatelessWidget {
     );
   }
 }
-
-

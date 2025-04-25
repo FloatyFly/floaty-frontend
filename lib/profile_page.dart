@@ -58,19 +58,19 @@ class ProfilePageState extends State<ProfilePage> {
           Column(
             children: [
               Header(),
-              SizedBox(height: isMobile ? 0 : 8), // No gap on mobile
+              SizedBox(height: 20), // Space below the header
               Expanded(
-                child: SingleChildScrollView(
+                child: Center(
                   child: Container(
                     width: containerWidth,
-                    margin: EdgeInsets.symmetric(
-                      horizontal:
-                          isMobile ? 0 : (screenWidth - containerWidth) / 2,
-                    ),
-                    padding: EdgeInsets.all(isMobile ? 16 : 16),
+                    padding: EdgeInsets.all(isMobile ? 8 : 16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(isMobile ? 0 : 6),
+                      borderRadius:
+                          isMobile
+                              ? BorderRadius
+                                  .zero // No rounded corners on mobile
+                              : BorderRadius.vertical(top: Radius.circular(6)),
                       boxShadow:
                           isMobile
                               ? [] // No shadow on mobile
@@ -83,141 +83,146 @@ class ProfilePageState extends State<ProfilePage> {
                                 ),
                               ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Pilot',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.headlineSmall!.copyWith(
-                            color: Colors.blue.shade900,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: isMobile ? 16 : 24),
-                        // User Info
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isMobile ? 8 : 0,
-                            vertical: isMobile ? 12 : 0,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                isMobile
-                                    ? Colors.grey.shade50
-                                    : Colors.transparent,
-                            borderRadius: BorderRadius.circular(
-                              isMobile ? 8 : 0,
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pilot',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.headlineSmall!.copyWith(
+                              color: Colors.blue.shade900,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: isMobile ? 80 : 100,
-                                    child: Text(
-                                      'Name',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge!.copyWith(
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      _currentUser.name ?? "Not set",
-                                      style:
-                                          Theme.of(context).textTheme.bodyLarge,
-                                    ),
-                                  ),
-                                ],
+                          SizedBox(height: isMobile ? 16 : 24),
+                          // User Info
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 8 : 0,
+                              vertical: isMobile ? 12 : 0,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  isMobile
+                                      ? Colors.grey.shade50
+                                      : Colors.transparent,
+                              borderRadius: BorderRadius.circular(
+                                isMobile ? 8 : 0,
                               ),
-                              SizedBox(height: isMobile ? 12 : 12),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: isMobile ? 80 : 100,
-                                    child: Text(
-                                      'Email',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge!.copyWith(
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          _currentUser.email ?? "Not set",
-                                          style:
-                                              Theme.of(
-                                                context,
-                                              ).textTheme.bodyLarge,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: isMobile ? 80 : 100,
+                                      child: Text(
+                                        'Name',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge!.copyWith(
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                        if (_currentUser.emailVerified) ...[
-                                          SizedBox(width: 8),
-                                          Text(
-                                            '(verified)',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodyLarge!.copyWith(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: isMobile ? 16 : 32),
-                        // Verify Email Button
-                        if (_isSendingVerification)
-                          Center(child: CircularProgressIndicator())
-                        else if (!_currentUser.emailVerified)
-                          Center(
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                setState(() {
-                                  _isSendingVerification = true;
-                                });
-
-                                // Simulate email verification process
-                                await Future.delayed(Duration(seconds: 2));
-
-                                setState(() {
-                                  _isSendingVerification = false;
-                                });
-                              },
-                              icon: Icon(Icons.email_outlined),
-                              label: Text('Verify Email'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
+                                    Expanded(
+                                      child: Text(
+                                        _currentUser.name ?? "Not set",
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodyLarge,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
+                                SizedBox(height: isMobile ? 12 : 12),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: isMobile ? 80 : 100,
+                                      child: Text(
+                                        'Email',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge!.copyWith(
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            _currentUser.email ?? "Not set",
+                                            style:
+                                                Theme.of(
+                                                  context,
+                                                ).textTheme.bodyLarge,
+                                          ),
+                                          if (_currentUser.emailVerified) ...[
+                                            SizedBox(width: 8),
+                                            Text(
+                                              '(verified)',
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyLarge!.copyWith(
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: isMobile ? 16 : 32),
+                          // Verify Email Button
+                          if (_isSendingVerification)
+                            Center(child: CircularProgressIndicator())
+                          else if (!_currentUser.emailVerified)
+                            Center(
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  setState(() {
+                                    _isSendingVerification = true;
+                                  });
+
+                                  // Simulate email verification process
+                                  await Future.delayed(Duration(seconds: 2));
+
+                                  setState(() {
+                                    _isSendingVerification = false;
+                                  });
+                                },
+                                icon: Icon(Icons.email_outlined),
+                                label: Text('Verify Email'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

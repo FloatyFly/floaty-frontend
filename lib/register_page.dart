@@ -299,8 +299,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
               ),
-              // Footer at the bottom
-              Footer(),
             ],
           ),
         ],

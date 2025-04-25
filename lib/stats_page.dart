@@ -44,7 +44,7 @@ class _StatsPageState extends State<StatsPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 700;
     // For mobile, use full width; for desktop use 2/3 of width
-    final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3 - 10;
+    final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
 
     return Scaffold(
       body: Stack(
@@ -66,11 +66,12 @@ class _StatsPageState extends State<StatsPage> {
                       color: Colors.white,
                       borderRadius:
                           isMobile
-                              ? BorderRadius.zero
+                              ? BorderRadius
+                                  .zero // No rounded corners on mobile
                               : BorderRadius.vertical(top: Radius.circular(6)),
                       boxShadow:
                           isMobile
-                              ? []
+                              ? [] // No shadow on mobile
                               : [
                                 BoxShadow(
                                   color: Colors.grey.withOpacity(0.5),
@@ -80,140 +81,7 @@ class _StatsPageState extends State<StatsPage> {
                                 ),
                               ],
                     ),
-                    child: FutureBuilder<List<Flight>>(
-                      future: futureFlights,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text('Error: ${snapshot.error}'),
-                          );
-                        } else {
-                          List<Flight> flights = snapshot.data ?? [];
-                          int totalFlights = flights.length;
-                          double totalAirtime = flights.fold(
-                            0,
-                            (prev, flight) => prev + (flight.duration / 60),
-                          );
-
-                          List<Flight> topFlights = List.from(flights)
-                            ..sort((a, b) => b.duration.compareTo(a.duration));
-                          topFlights = topFlights.take(5).toList();
-
-                          return SingleChildScrollView(
-                            padding: EdgeInsets.zero, // Remove padding
-                            child: Column(
-                              children: [
-                                // Stat boxes in a Container with opaque background
-                                Container(
-                                  color: Colors.white,
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _buildStatBox(
-                                        'Total Flights',
-                                        '$totalFlights',
-                                        isMobile
-                                            ? containerWidth / 2 - 32
-                                            : containerWidth / 2 - 48,
-                                        isMobile,
-                                      ),
-                                      SizedBox(width: isMobile ? 16 : 24),
-                                      _buildStatBox(
-                                        'Total Airtime',
-                                        '${totalAirtime.toStringAsFixed(0)} hours',
-                                        isMobile
-                                            ? containerWidth / 2 - 32
-                                            : containerWidth / 2 - 48,
-                                        isMobile,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: isMobile ? 16 : 20),
-                                if (flights.isEmpty)
-                                  Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom:
-                                            MediaQuery.of(context).size.height *
-                                            0.33,
-                                        left: 16,
-                                        right: 16,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.lightbulb,
-                                            size: 24,
-                                            color: Color(0xFF0078D7),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Flexible(
-                                            child: Text(
-                                              "Add flights to get statistical analysis",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black87,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                else ...[
-                                  _buildFlightTrendChart(
-                                    flights,
-                                    containerWidth,
-                                    isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 16 : 20),
-                                  _buildAirtimeEvolutionChart(
-                                    flights,
-                                    containerWidth,
-                                    isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 16 : 20),
-                                  _buildMonthlyFlightsChart(
-                                    flights,
-                                    containerWidth,
-                                    isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 16 : 20),
-                                  _buildMonthlyAirtimeChart(
-                                    flights,
-                                    containerWidth,
-                                    isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 16 : 20),
-                                  _buildYearlySummaryBox(
-                                    flights,
-                                    containerWidth,
-                                    isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 16 : 20),
-                                  _buildTopFlightsList(
-                                    topFlights,
-                                    containerWidth,
-                                    isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 16 : 20),
-                                ],
-                              ],
-                            ),
-                          );
-                        }
-                      },
-                    ),
+                    child: _buildContent(isMobile, containerWidth),
                   ),
                 ),
               ),
@@ -223,17 +91,115 @@ class _StatsPageState extends State<StatsPage> {
       ),
     );
   }
+
+  Widget _buildContent(bool isMobile, double containerWidth) {
+    return FutureBuilder<List<Flight>>(
+      future: futureFlights,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          List<Flight> flights = snapshot.data ?? [];
+          int totalFlights = flights.length;
+          double totalAirtime = flights.fold(
+            0,
+            (prev, flight) => prev + (flight.duration / 60),
+          );
+
+          List<Flight> topFlights = List.from(flights)
+            ..sort((a, b) => b.duration.compareTo(a.duration));
+          topFlights = topFlights.take(5).toList();
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                Container(
+                  color: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildStatBox(
+                        'Total Flights',
+                        '$totalFlights',
+                        isMobile
+                            ? (containerWidth / 2 - 16)
+                            : (containerWidth / 2 - 48),
+                      ),
+                      SizedBox(width: isMobile ? 8 : 24),
+                      _buildStatBox(
+                        'Total Airtime',
+                        '${totalAirtime.toStringAsFixed(0)} hours',
+                        isMobile
+                            ? (containerWidth / 2 - 16)
+                            : (containerWidth / 2 - 48),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                if (flights.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).size.height * 0.33,
+                        left: 16,
+                        right: 16,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.lightbulb,
+                            size: 24,
+                            color: Color(0xFF0078D7),
+                          ),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              "Add flights to get statistical analysis",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else ...[
+                  _buildFlightTrendChart(flights, containerWidth),
+                  SizedBox(height: 20),
+                  _buildAirtimeEvolutionChart(flights, containerWidth),
+                  SizedBox(height: 20),
+                  _buildMonthlyFlightsChart(flights, containerWidth),
+                  SizedBox(height: 20),
+                  _buildMonthlyAirtimeChart(flights, containerWidth),
+                  SizedBox(height: 20),
+                  _buildYearlySummaryBox(flights, containerWidth),
+                  SizedBox(height: 20),
+                  _buildTopFlightsList(topFlights, containerWidth),
+                  SizedBox(height: 20),
+                ],
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
 }
 
-Widget _buildFlightTrendChart(
-  List<Flight> flights,
-  double width,
-  bool isMobile,
-) {
+Widget _buildFlightTrendChart(List<Flight> flights, double width) {
   if (flights.isEmpty) {
     return Container(
       width: width,
-      height: isMobile ? 150 : 200,
+      height: 200,
       alignment: Alignment.center,
       child: Text('No flight data available'),
     );
@@ -288,24 +254,21 @@ Widget _buildFlightTrendChart(
 
   return Container(
     width: width,
-    height: isMobile ? 200 : 250,
-    padding: EdgeInsets.all(isMobile ? 12 : 16),
+    height: 250,
+    padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
-      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
-      border: Border.all(color: Colors.grey, width: isMobile ? 0.5 : 1),
+      color: Colors.white.withOpacity(0.8),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Flights',
-          style: TextStyle(
-            fontSize: isMobile ? 16 : 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: isMobile ? 6 : 10),
+        SizedBox(height: 10),
         Expanded(
           child: LineChart(
             LineChartData(
@@ -319,7 +282,7 @@ Widget _buildFlightTrendChart(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: isMobile ? 30 : 40,
+                    reservedSize: 40,
                     interval: (cumulativeCount > 4) ? cumulativeCount / 4 : 1,
                     getTitlesWidget: (value, meta) {
                       if (value == 0 || value % 1 == 0) {
@@ -328,7 +291,7 @@ Widget _buildFlightTrendChart(
                           child: Text(
                             value.toInt().toString(),
                             style: TextStyle(
-                              fontSize: isMobile ? 10 : 12,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -379,7 +342,7 @@ Widget _buildFlightTrendChart(
                             child: Text(
                               label,
                               style: TextStyle(
-                                fontSize: isMobile ? 10 : 12,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -399,7 +362,7 @@ Widget _buildFlightTrendChart(
                 LineChartBarData(
                   spots: spots,
                   isCurved: false,
-                  barWidth: isMobile ? 2 : 3,
+                  barWidth: 3,
                   isStepLineChart: true, // Use step line chart
                   belowBarData: BarAreaData(
                     show: true,
@@ -447,15 +410,11 @@ Widget _buildFlightTrendChart(
   );
 }
 
-Widget _buildAirtimeEvolutionChart(
-  List<Flight> flights,
-  double width,
-  bool isMobile,
-) {
+Widget _buildAirtimeEvolutionChart(List<Flight> flights, double width) {
   if (flights.isEmpty) {
     return Container(
       width: width,
-      height: isMobile ? 150 : 200,
+      height: 200,
       alignment: Alignment.center,
       child: Text('No flight data available'),
     );
@@ -510,24 +469,21 @@ Widget _buildAirtimeEvolutionChart(
 
   return Container(
     width: width,
-    height: isMobile ? 200 : 250,
-    padding: EdgeInsets.all(isMobile ? 12 : 16),
+    height: 250,
+    padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
-      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
-      border: Border.all(color: Colors.grey, width: isMobile ? 0.5 : 1),
+      color: Colors.white.withOpacity(0.8),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Airtime',
-          style: TextStyle(
-            fontSize: isMobile ? 16 : 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: isMobile ? 6 : 10),
+        SizedBox(height: 10),
         Expanded(
           child: LineChart(
             LineChartData(
@@ -541,7 +497,7 @@ Widget _buildAirtimeEvolutionChart(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: isMobile ? 30 : 40,
+                    reservedSize: 40,
                     interval:
                         (cumulativeAirtime > 4) ? cumulativeAirtime / 4 : 1,
                     getTitlesWidget: (value, meta) {
@@ -550,7 +506,7 @@ Widget _buildAirtimeEvolutionChart(
                         child: Text(
                           '${value.toInt()} h',
                           style: TextStyle(
-                            fontSize: isMobile ? 10 : 12,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -599,7 +555,7 @@ Widget _buildAirtimeEvolutionChart(
                             child: Text(
                               label,
                               style: TextStyle(
-                                fontSize: isMobile ? 10 : 12,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -619,7 +575,7 @@ Widget _buildAirtimeEvolutionChart(
                 LineChartBarData(
                   spots: spots,
                   isCurved: false,
-                  barWidth: isMobile ? 2 : 3,
+                  barWidth: 3,
                   isStepLineChart: true, // Use step line chart
                   belowBarData: BarAreaData(
                     show: true,
@@ -686,14 +642,14 @@ String _getMonthName(int month) {
   return months[month - 1];
 }
 
-Widget _buildStatBox(String title, String value, double width, bool isMobile) {
+Widget _buildStatBox(String title, String value, double width) {
   return Container(
     width: width,
-    padding: EdgeInsets.all(isMobile ? 12 : 20),
+    padding: EdgeInsets.all(20),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
-      border: Border.all(color: Colors.grey, width: isMobile ? 0.5 : 1),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey, width: 1),
       boxShadow: [
         BoxShadow(
           color: Colors.grey.withOpacity(0.2),
@@ -708,19 +664,13 @@ Widget _buildStatBox(String title, String value, double width, bool isMobile) {
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: isMobile ? 16 : 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: isMobile ? 6 : 10),
+        SizedBox(height: 10),
         Text(
           value,
-          style: TextStyle(
-            fontSize: isMobile ? 15 : 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
       ],
@@ -728,36 +678,30 @@ Widget _buildStatBox(String title, String value, double width, bool isMobile) {
   );
 }
 
-Widget _buildTopFlightsList(List<Flight> flights, double width, bool isMobile) {
+Widget _buildTopFlightsList(List<Flight> flights, double width) {
   return Container(
     width: width,
-    padding: EdgeInsets.all(isMobile ? 8 : 20),
+    padding: EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
-      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
-      border: Border.all(color: Colors.grey, width: isMobile ? 0.5 : 1),
+      color: Colors.white.withOpacity(0.8),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Top 5 Longest Flights',
-          style: TextStyle(
-            fontSize: isMobile ? 16 : 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: isMobile ? 6 : 10),
+        SizedBox(height: 10),
         ...flights.map(
           (flight) => Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: isMobile ? 4 : 8,
-              horizontal: isMobile ? 4 : 40,
-            ),
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 40),
             child: Row(
               children: [
                 SizedBox(
-                  width: isMobile ? 70 : 130,
+                  width: 130,
                   child: Text(
                     flight.dateTime
                         .substring(0, 10)
@@ -765,41 +709,37 @@ Widget _buildTopFlightsList(List<Flight> flights, double width, bool isMobile) {
                         .reversed
                         .join("."),
                     style: TextStyle(
-                      fontSize: isMobile ? 11 : 14,
+                      fontSize: 14,
                       color: Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(width: isMobile ? 2 : 10),
+                SizedBox(width: 10),
                 Expanded(
                   flex: 4,
                   child: Text(
                     flight.takeOff,
                     style: TextStyle(
-                      fontSize: isMobile ? 13 : 16,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey[900],
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(width: isMobile ? 2 : 10),
+                SizedBox(width: 10),
                 Expanded(
                   flex: 2,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.access_time,
-                        size: isMobile ? 11 : 15,
-                        color: Colors.black54,
-                      ),
+                      Icon(Icons.access_time, size: 15, color: Colors.black54),
                       SizedBox(width: 2),
                       Text(
                         "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
                         style: TextStyle(
-                          fontSize: isMobile ? 11 : 14,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -815,15 +755,11 @@ Widget _buildTopFlightsList(List<Flight> flights, double width, bool isMobile) {
   );
 }
 
-Widget _buildMonthlyFlightsChart(
-  List<Flight> flights,
-  double width,
-  bool isMobile,
-) {
+Widget _buildMonthlyFlightsChart(List<Flight> flights, double width) {
   if (flights.isEmpty) {
     return Container(
       width: width,
-      height: isMobile ? 150 : 200,
+      height: 200,
       alignment: Alignment.center,
       child: Text('No flight data available'),
     );
@@ -875,28 +811,25 @@ Widget _buildMonthlyFlightsChart(
 
   return Container(
     width: width,
-    height: isMobile ? 220 : 300,
-    padding: EdgeInsets.all(isMobile ? 12 : 16),
+    height: 300,
+    padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
-      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
-      border: Border.all(color: Colors.grey, width: isMobile ? 0.5 : 1),
+      color: Colors.white.withOpacity(0.8),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Monthly Flights',
-          style: TextStyle(
-            fontSize: isMobile ? 16 : 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 5),
 
         // Legend
         SizedBox(
-          height: isMobile ? 25 : 30,
+          height: 30,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -920,7 +853,7 @@ Widget _buildMonthlyFlightsChart(
                           Text(
                             '$year',
                             style: TextStyle(
-                              fontSize: isMobile ? 10 : 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -932,7 +865,7 @@ Widget _buildMonthlyFlightsChart(
           ),
         ),
 
-        SizedBox(height: isMobile ? 5 : 10),
+        SizedBox(height: 5),
 
         // Chart with total counts
         Expanded(
@@ -975,7 +908,7 @@ Widget _buildMonthlyFlightsChart(
                           child: Text(
                             monthName,
                             style: TextStyle(
-                              fontSize: isMobile ? 10 : 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -989,7 +922,7 @@ Widget _buildMonthlyFlightsChart(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: isMobile ? 30 : 40,
+                    reservedSize: 40,
                     getTitlesWidget: (value, meta) {
                       if (value % 1 == 0) {
                         return Padding(
@@ -997,7 +930,7 @@ Widget _buildMonthlyFlightsChart(
                           child: Text(
                             value.toInt().toString(),
                             style: TextStyle(
-                              fontSize: isMobile ? 10 : 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1054,7 +987,7 @@ Widget _buildMonthlyFlightsChart(
                     BarChartRodData(
                       toY: stackHeight,
                       rodStackItems: rodStackItems,
-                      width: isMobile ? 15 : 20,
+                      width: 15,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),
                         topRight: Radius.circular(4),
@@ -1072,15 +1005,11 @@ Widget _buildMonthlyFlightsChart(
   );
 }
 
-Widget _buildMonthlyAirtimeChart(
-  List<Flight> flights,
-  double width,
-  bool isMobile,
-) {
+Widget _buildMonthlyAirtimeChart(List<Flight> flights, double width) {
   if (flights.isEmpty) {
     return Container(
       width: width,
-      height: isMobile ? 150 : 200,
+      height: 200,
       alignment: Alignment.center,
       child: Text('No flight data available'),
     );
@@ -1133,28 +1062,25 @@ Widget _buildMonthlyAirtimeChart(
 
   return Container(
     width: width,
-    height: isMobile ? 220 : 300,
-    padding: EdgeInsets.all(isMobile ? 12 : 16),
+    height: 300,
+    padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
-      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
-      border: Border.all(color: Colors.grey, width: isMobile ? 0.5 : 1),
+      color: Colors.white.withOpacity(0.8),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Monthly Airtime',
-          style: TextStyle(
-            fontSize: isMobile ? 16 : 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 5),
 
         // Legend
         SizedBox(
-          height: isMobile ? 25 : 30,
+          height: 30,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -1178,7 +1104,7 @@ Widget _buildMonthlyAirtimeChart(
                           Text(
                             '$year',
                             style: TextStyle(
-                              fontSize: isMobile ? 10 : 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1190,7 +1116,7 @@ Widget _buildMonthlyAirtimeChart(
           ),
         ),
 
-        SizedBox(height: isMobile ? 5 : 10),
+        SizedBox(height: 5),
 
         // Chart with total airtime
         Expanded(
@@ -1233,7 +1159,7 @@ Widget _buildMonthlyAirtimeChart(
                           child: Text(
                             monthName,
                             style: TextStyle(
-                              fontSize: isMobile ? 10 : 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1247,7 +1173,7 @@ Widget _buildMonthlyAirtimeChart(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: isMobile ? 30 : 50,
+                    reservedSize: 50,
                     getTitlesWidget: (value, meta) {
                       // Show hours on y-axis, round to nearest whole number
                       return Padding(
@@ -1255,7 +1181,7 @@ Widget _buildMonthlyAirtimeChart(
                         child: Text(
                           '${value.toInt()} h',
                           style: TextStyle(
-                            fontSize: isMobile ? 10 : 12,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1310,7 +1236,7 @@ Widget _buildMonthlyAirtimeChart(
                     BarChartRodData(
                       toY: stackHeight,
                       rodStackItems: rodStackItems,
-                      width: isMobile ? 15 : 20,
+                      width: 15,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),
                         topRight: Radius.circular(4),
@@ -1328,15 +1254,11 @@ Widget _buildMonthlyAirtimeChart(
   );
 }
 
-Widget _buildYearlySummaryBox(
-  List<Flight> flights,
-  double width,
-  bool isMobile,
-) {
+Widget _buildYearlySummaryBox(List<Flight> flights, double width) {
   if (flights.isEmpty) {
     return Container(
       width: width,
-      height: isMobile ? 150 : 200,
+      height: 200,
       alignment: Alignment.center,
       child: Text('No flight data available'),
     );
@@ -1370,71 +1292,61 @@ Widget _buildYearlySummaryBox(
 
   return Container(
     width: width,
-    padding: EdgeInsets.all(isMobile ? 8 : 20),
+    padding: EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(isMobile ? 1.0 : 0.8),
-      borderRadius: BorderRadius.circular(isMobile ? 8 : 10),
-      border: Border.all(color: Colors.grey, width: isMobile ? 0.5 : 1),
+      color: Colors.white.withOpacity(0.8),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Yearly Summary',
-          style: TextStyle(
-            fontSize: isMobile ? 16 : 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: isMobile ? 6 : 10),
+        SizedBox(height: 10),
         // Table rows
         ...yearlyStats.map((stats) {
           return Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: isMobile ? 4 : 8,
-              horizontal: isMobile ? 4 : 40,
-            ),
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 40),
             child: Row(
               children: [
                 SizedBox(
-                  width: isMobile ? 70 : 130,
+                  width: 130,
                   child: Text(
                     stats['year'],
                     style: TextStyle(
-                      fontSize: isMobile ? 11 : 14,
+                      fontSize: 14,
                       color: Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(width: isMobile ? 2 : 10),
+                SizedBox(width: 10),
                 Expanded(
                   flex: 4,
                   child: Text(
                     '${stats['flightCount']} flights',
                     style: TextStyle(
-                      fontSize: isMobile ? 13 : 16,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey[900],
                     ),
                   ),
                 ),
-                SizedBox(width: isMobile ? 2 : 10),
+                SizedBox(width: 10),
                 Expanded(
                   flex: 2,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.access_time,
-                        size: isMobile ? 11 : 15,
-                        color: Colors.black54,
-                      ),
+                      Icon(Icons.access_time, size: 15, color: Colors.black54),
                       SizedBox(width: 2),
                       Text(
                         '${stats['airtime'].toStringAsFixed(1)} h',
                         style: TextStyle(
-                          fontSize: isMobile ? 11 : 14,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
