@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:math' show pi;
+import 'package:intl/intl.dart';
+import 'package:floaty_client/api.dart' as api;
 
 import 'CookieAuth.dart';
 import 'flight_service.dart';
+import 'spots_service.dart';
+import 'gliders_service.dart';
 import 'main.dart';
 import 'model.dart';
 
@@ -20,6 +24,8 @@ class StatsPage extends StatefulWidget {
 
 class _StatsPageState extends State<StatsPage> {
   late Future<List<Flight>> futureFlights;
+  late Future<List<api.Spot>> futureSpots;
+  late Future<List<api.Glider>> futureGliders;
   late FloatyUser _currentUser;
 
   @override
@@ -28,6 +34,8 @@ class _StatsPageState extends State<StatsPage> {
 
     _currentUser = Provider.of<AppState>(context, listen: false).currentUser!;
     futureFlights = _fetchFlights();
+    futureSpots = _fetchSpots();
+    futureGliders = _fetchGliders();
   }
 
   CookieAuth _getCookieAuth() {
@@ -37,6 +45,14 @@ class _StatsPageState extends State<StatsPage> {
 
   Future<List<Flight>> _fetchFlights() {
     return fetchFlights(_currentUser.id, _getCookieAuth());
+  }
+
+  Future<List<api.Spot>> _fetchSpots() {
+    return fetchSpots(_currentUser.id, _getCookieAuth());
+  }
+
+  Future<List<api.Glider>> _fetchGliders() {
+    return fetchGliders(_getCookieAuth());
   }
 
   @override
@@ -190,6 +206,232 @@ class _StatsPageState extends State<StatsPage> {
             ),
           );
         }
+      },
+    );
+  }
+
+  Widget _buildTopFlightsList(
+    List<Flight> flights,
+    double width,
+    bool isMobile,
+  ) {
+    return FutureBuilder<List<api.Spot>>(
+      future: futureSpots,
+      builder: (context, spotsSnapshot) {
+        if (!spotsSnapshot.hasData) {
+          return Container(
+            width: width,
+            padding: EdgeInsets.all(isMobile ? 8 : 20),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return FutureBuilder<List<api.Glider>>(
+          future: futureGliders,
+          builder: (context, glidersSnapshot) {
+            if (!glidersSnapshot.hasData) {
+              return Container(
+                width: width,
+                padding: EdgeInsets.all(isMobile ? 8 : 20),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final spots = spotsSnapshot.data!;
+            final gliders = glidersSnapshot.data!;
+
+            String getSpotName(String spotId) {
+              final spot = spots.firstWhere(
+                (spot) => spot.id == spotId,
+                orElse:
+                    () => api.Spot(
+                      id: spotId,
+                      name: 'Unknown Spot',
+                      type: api.SpotTypeEnum.LAUNCH_SITE,
+                      latitude: 0,
+                      longitude: 0,
+                      altitude: 0,
+                    ),
+              );
+              return spot.name;
+            }
+
+            String getGliderName(String gliderId) {
+              final glider = gliders.firstWhere(
+                (glider) => glider.id == gliderId,
+                orElse:
+                    () => api.Glider(
+                      id: gliderId,
+                      manufacturer: 'Unknown',
+                      model: 'Unknown',
+                    ),
+              );
+              return '${glider.manufacturer} ${glider.model}';
+            }
+
+            return Container(
+              width: width,
+              padding: EdgeInsets.all(isMobile ? 8 : 20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey, width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Top 5 Longest Flights',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  ...flights
+                      .map(
+                        (flight) => Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: isMobile ? 8 : 40,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.flight_takeoff,
+                                    size: 16,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Launch:",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    getSpotName(flight.launchSpotId),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF0078D7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.flight_land,
+                                    size: 16,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Landing:",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    getSpotName(flight.landingSpotId),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF0078D7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.airplanemode_active,
+                                    size: 16,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Glider:",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    getGliderName(flight.gliderId),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF0078D7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    DateFormat(
+                                      'dd.MM.yyyy',
+                                    ).format(DateTime.parse(flight.dateTime)),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.access_time,
+                                        size: 15,
+                                        color: Colors.black54,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              if (flight.description.isNotEmpty) ...[
+                                SizedBox(height: 4),
+                                Text(
+                                  flight.description,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -670,90 +912,6 @@ Widget _buildStatBox(String title, String value, double width) {
           value,
           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildTopFlightsList(List<Flight> flights, double width, bool isMobile) {
-  return Container(
-    width: width,
-    padding: EdgeInsets.all(isMobile ? 8 : 20),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.8),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey, width: 1),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Top 5 Longest Flights',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 10),
-        ...flights.map(
-          (flight) => Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: 8,
-              horizontal: isMobile ? 8 : 40,
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: isMobile ? 90 : 130,
-                  child: Text(
-                    flight.dateTime
-                        .substring(0, 10)
-                        .split("-")
-                        .reversed
-                        .join("."),
-                    style: TextStyle(
-                      fontSize: isMobile ? 12 : 14,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                SizedBox(width: isMobile ? 4 : 10),
-                Expanded(
-                  flex: 4,
-                  child: Text(
-                    flight.takeOff,
-                    style: TextStyle(
-                      fontSize: isMobile ? 14 : 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey[900],
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(width: isMobile ? 4 : 10),
-                Expanded(
-                  flex: 2,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: isMobile ? 12 : 15,
-                        color: Colors.black54,
-                      ),
-                      SizedBox(width: 2),
-                      Text(
-                        "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
-                        style: TextStyle(
-                          fontSize: isMobile ? 12 : 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ],
     ),

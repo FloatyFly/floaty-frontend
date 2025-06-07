@@ -28,6 +28,18 @@ void main() {
       // TODO
     });
 
+    // The email adress of the user.
+    // String email
+    test('to test the property `email`', () async {
+      // TODO
+    });
+
+    // If the email has been verified by the user already or not.
+    // bool emailVerified
+    test('to test the property `emailVerified`', () async {
+      // TODO
+    });
+
 
   });
 

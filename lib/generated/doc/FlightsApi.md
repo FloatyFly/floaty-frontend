@@ -9,26 +9,26 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**createFlight**](FlightsApi.md#createflight) | **POST** /flights | Create a flight for a given user.
+[**createFlight**](FlightsApi.md#createflight) | **POST** /flights | Create a flight.
 [**deleteFlightById**](FlightsApi.md#deleteflightbyid) | **DELETE** /flights/{flightId} | Delete a Flight by ID.
-[**findAllFlights**](FlightsApi.md#findallflights) | **GET** /flights | Find all flights.
-[**getFlights**](FlightsApi.md#getflights) | **GET** /flights/{userId} | Find all flights for a given User.
+[**getFlightById**](FlightsApi.md#getflightbyid) | **GET** /flights/{flightId} | Get a Flight by ID.
+[**getFlights**](FlightsApi.md#getflights) | **GET** /flights | Find all flights.
 [**updateFlightById**](FlightsApi.md#updateflightbyid) | **PUT** /flights/{flightId} | Update a Flight by ID.
 
 
 # **createFlight**
 > Flight createFlight(flight)
 
-Create a flight for a given user.
+Create a flight.
 
-Register a new flight
+Register a new flight for the authenticated user.
 
 ### Example
 ```dart
 import 'package:floaty_client/api.dart';
 
 final api_instance = FlightsApi();
-final flight = Flight(); // Flight | Optional description in *Markdown*
+final flight = Flight(); // Flight | Flight details including required glider and spots references
 
 try {
     final result = api_instance.createFlight(flight);
@@ -42,7 +42,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **flight** | [**Flight**](Flight.md)| Optional description in *Markdown* | 
+ **flight** | [**Flight**](Flight.md)| Flight details including required glider and spots references | 
 
 ### Return type
 
@@ -71,7 +71,7 @@ Deletes a single flight by its ID.
 import 'package:floaty_client/api.dart';
 
 final api_instance = FlightsApi();
-final flightId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | ID of the flight to delete
+final flightId = 789; // int | ID of the flight to delete
 
 try {
     api_instance.deleteFlightById(flightId);
@@ -84,7 +84,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **flightId** | **String**| ID of the flight to delete | 
+ **flightId** | **int**| ID of the flight to delete | 
 
 ### Return type
 
@@ -101,33 +101,37 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **findAllFlights**
-> List<Flight> findAllFlights()
+# **getFlightById**
+> Flight getFlightById(flightId)
 
-Find all flights.
+Get a Flight by ID.
 
-Returns a list of all Flights for all users.
+Returns a single flight by its ID.
 
 ### Example
 ```dart
 import 'package:floaty_client/api.dart';
 
 final api_instance = FlightsApi();
+final flightId = 789; // int | ID of the flight to retrieve
 
 try {
-    final result = api_instance.findAllFlights();
+    final result = api_instance.getFlightById(flightId);
     print(result);
 } catch (e) {
-    print('Exception when calling FlightsApi->findAllFlights: $e\n');
+    print('Exception when calling FlightsApi->getFlightById: $e\n');
 }
 ```
 
 ### Parameters
-This endpoint does not need any parameter.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **flightId** | **int**| ID of the flight to retrieve | 
 
 ### Return type
 
-[**List<Flight>**](Flight.md)
+[**Flight**](Flight.md)
 
 ### Authorization
 
@@ -141,21 +145,20 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getFlights**
-> List<Flight> getFlights(userId)
+> List<Flight> getFlights()
 
-Find all flights for a given User.
+Find all flights.
 
-Returns a list of Flights for a User.
+Returns a list of all flights for the authenticated user.
 
 ### Example
 ```dart
 import 'package:floaty_client/api.dart';
 
 final api_instance = FlightsApi();
-final userId = 789; // int | ID of user
 
 try {
-    final result = api_instance.getFlights(userId);
+    final result = api_instance.getFlights();
     print(result);
 } catch (e) {
     print('Exception when calling FlightsApi->getFlights: $e\n');
@@ -163,10 +166,7 @@ try {
 ```
 
 ### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **userId** | **int**| ID of user | 
+This endpoint does not need any parameter.
 
 ### Return type
 
@@ -195,7 +195,7 @@ Updates a single flight with the provided data.
 import 'package:floaty_client/api.dart';
 
 final api_instance = FlightsApi();
-final flightId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | ID of the flight to update
+final flightId = 789; // int | ID of the flight to update
 final flightUpdate = FlightUpdate(); // FlightUpdate | Updated flight information
 
 try {
@@ -210,7 +210,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **flightId** | **String**| ID of the flight to update | 
+ **flightId** | **int**| ID of the flight to update | 
  **flightUpdate** | [**FlightUpdate**](FlightUpdate.md)| Updated flight information | 
 
 ### Return type

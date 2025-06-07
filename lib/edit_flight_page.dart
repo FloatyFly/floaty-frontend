@@ -19,10 +19,14 @@ class EditFlightPage extends StatefulWidget {
 class _EditFlightPageState extends State<EditFlightPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _dateController;
-  late TextEditingController _takeoffController;
+  late TextEditingController _launchSpotController;
+  late TextEditingController _landingSpotController;
+  late TextEditingController _gliderController;
   late TextEditingController _descriptionController;
   final _focusDate = FocusNode();
-  final _focusTakeoff = FocusNode();
+  final _focusLaunchSpot = FocusNode();
+  final _focusLandingSpot = FocusNode();
+  final _focusGlider = FocusNode();
   final _focusDescription = FocusNode();
 
   bool isProcessing = false;
@@ -43,7 +47,13 @@ class _EditFlightPageState extends State<EditFlightPage> {
     _dateController = TextEditingController(
       text: DateFormat("dd.MM.yyyy").format(date),
     );
-    _takeoffController = TextEditingController(text: widget.flight.takeOff);
+    _launchSpotController = TextEditingController(
+      text: widget.flight.launchSpotId,
+    );
+    _landingSpotController = TextEditingController(
+      text: widget.flight.landingSpotId,
+    );
+    _gliderController = TextEditingController(text: widget.flight.gliderId);
     _descriptionController = TextEditingController(
       text: widget.flight.description,
     );
@@ -65,10 +75,14 @@ class _EditFlightPageState extends State<EditFlightPage> {
   @override
   void dispose() {
     _dateController.dispose();
-    _takeoffController.dispose();
+    _launchSpotController.dispose();
+    _landingSpotController.dispose();
+    _gliderController.dispose();
     _descriptionController.dispose();
     _focusDate.dispose();
-    _focusTakeoff.dispose();
+    _focusLaunchSpot.dispose();
+    _focusLandingSpot.dispose();
+    _focusGlider.dispose();
     _focusDescription.dispose();
     super.dispose();
   }
@@ -107,7 +121,9 @@ class _EditFlightPageState extends State<EditFlightPage> {
       Flight updatedFlight = Flight(
         flightId: widget.flight.flightId,
         dateTime: formattedDate,
-        takeOff: _takeoffController.text,
+        launchSpotId: _launchSpotController.text,
+        landingSpotId: _landingSpotController.text,
+        gliderId: _gliderController.text,
         duration: duration,
         description: _descriptionController.text,
       );
@@ -238,27 +254,78 @@ class _EditFlightPageState extends State<EditFlightPage> {
                         onFieldSubmitted:
                             (_) => FocusScope.of(
                               context,
-                            ).requestFocus(_focusTakeoff),
+                            ).requestFocus(_focusLaunchSpot),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Takeoff Location Field
+                  // Launch Spot Field
                   TextFormField(
-                    controller: _takeoffController,
-                    focusNode: _focusTakeoff,
+                    controller: _launchSpotController,
+                    focusNode: _focusLaunchSpot,
                     decoration: InputDecoration(
-                      hintText: "Takeoff Location",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(3.0),
+                      hintText: "Launch Spot ID",
+                      prefixIcon: Icon(
+                        Icons.flight_takeoff,
+                        color: Colors.orange,
                       ),
+                      border: OutlineInputBorder(),
                     ),
-                    validator:
-                        (value) =>
-                            value == null || value.isEmpty
-                                ? "Enter a takeoff location."
-                                : null,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Enter a launch spot ID.";
+                      }
+                      return null;
+                    },
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted:
+                        (_) => FocusScope.of(
+                          context,
+                        ).requestFocus(_focusLandingSpot),
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Landing Spot Field
+                  TextFormField(
+                    controller: _landingSpotController,
+                    focusNode: _focusLandingSpot,
+                    decoration: InputDecoration(
+                      hintText: "Landing Spot ID",
+                      prefixIcon: Icon(Icons.flight_land, color: Colors.orange),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Enter a landing spot ID.";
+                      }
+                      return null;
+                    },
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted:
+                        (_) =>
+                            FocusScope.of(context).requestFocus(_focusGlider),
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Glider Field
+                  TextFormField(
+                    controller: _gliderController,
+                    focusNode: _focusGlider,
+                    decoration: InputDecoration(
+                      hintText: "Glider ID",
+                      prefixIcon: Icon(
+                        Icons.airplanemode_active,
+                        color: Colors.orange,
+                      ),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Enter a glider ID.";
+                      }
+                      return null;
+                    },
                     textInputAction: TextInputAction.next,
                     onFieldSubmitted:
                         (_) => FocusScope.of(

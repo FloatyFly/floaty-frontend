@@ -30,7 +30,7 @@ void main() {
     //
     // Returns a list of users.
     //
-    //Future<User> getUsers() async
+    //Future<List<User>> getUsers() async
     test('test getUsers', () async {
       // TODO
     });

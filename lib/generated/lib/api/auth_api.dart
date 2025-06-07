@@ -188,15 +188,9 @@ class AuthApi {
   /// Logs out the authenticated user and invalidates the session.
   ///
   /// Note: This method returns the HTTP [Response].
-  ///
-  /// Parameters:
-  ///
-  /// * [int] userId (required):
-  ///   ID of user
-  Future<Response> logoutUserWithHttpInfo(int userId,) async {
+  Future<Response> logoutUserWithHttpInfo() async {
     // ignore: prefer_const_declarations
-    final path = r'/auth/logout/{userId}'
-      .replaceAll('{userId}', userId.toString());
+    final path = r'/auth/logout';
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -222,13 +216,8 @@ class AuthApi {
   /// Logout the user.
   ///
   /// Logs out the authenticated user and invalidates the session.
-  ///
-  /// Parameters:
-  ///
-  /// * [int] userId (required):
-  ///   ID of user
-  Future<void> logoutUser(int userId,) async {
-    final response = await logoutUserWithHttpInfo(userId,);
+  Future<void> logoutUser() async {
+    final response = await logoutUserWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

@@ -11,15 +11,7 @@
 part of openapi.api;
 
 class ApiClient {
-  ApiClient({this.basePath = 'http://localhost', this.authentication, Client? client}) {
-    _client = client ?? Client();
-
-    // This is needed to enable cookie management with a BrowserClient.
-    // TODO: Look into it how to make this happen without overwriting generated code.
-    if (_client is BrowserClient) {
-      (_client as BrowserClient).withCredentials = true;
-    }
-  }
+  ApiClient({this.basePath = 'http://localhost', this.authentication,});
 
   final String basePath;
   final Authentication? authentication;
@@ -194,16 +186,40 @@ class ApiClient {
           return AuthVerifyEmailEmailVerificationTokenPost400Response.fromJson(value);
         case 'AuthVerifyEmailEmailVerificationTokenPost404Response':
           return AuthVerifyEmailEmailVerificationTokenPost404Response.fromJson(value);
+        case 'CreateFlight400Response':
+          return CreateFlight400Response.fromJson(value);
+        case 'CreateFlight404Response':
+          return CreateFlight404Response.fromJson(value);
+        case 'DeleteGliderById409Response':
+          return DeleteGliderById409Response.fromJson(value);
+        case 'DeleteSpotById409Response':
+          return DeleteSpotById409Response.fromJson(value);
         case 'Flight':
           return Flight.fromJson(value);
         case 'FlightUpdate':
           return FlightUpdate.fromJson(value);
+        case 'GetGliderById404Response':
+          return GetGliderById404Response.fromJson(value);
+        case 'GetSpotById404Response':
+          return GetSpotById404Response.fromJson(value);
+        case 'Glider':
+          return Glider.fromJson(value);
+        case 'GliderCreate':
+          return GliderCreate.fromJson(value);
+        case 'GliderUpdate':
+          return GliderUpdate.fromJson(value);
         case 'LoginRequest':
           return LoginRequest.fromJson(value);
         case 'RegisterRequest':
           return RegisterRequest.fromJson(value);
         case 'ResetPasswordRequest':
           return ResetPasswordRequest.fromJson(value);
+        case 'Spot':
+          return Spot.fromJson(value);
+        case 'SpotCreate':
+          return SpotCreate.fromJson(value);
+        case 'SpotUpdate':
+          return SpotUpdate.fromJson(value);
         case 'UpdateFlightById400Response':
           return UpdateFlightById400Response.fromJson(value);
         case 'UpdateFlightById404Response':

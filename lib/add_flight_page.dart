@@ -17,17 +17,20 @@ class AddFlightPage extends StatefulWidget {
 class _AddFlightPageState extends State<AddFlightPage> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
-  final _takeoffController = TextEditingController();
+  final _launchSpotController = TextEditingController();
+  final _landingSpotController = TextEditingController();
+  final _gliderController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _focusDate = FocusNode();
-  final _focusTakeoff = FocusNode();
+  final _focusLaunchSpot = FocusNode();
+  final _focusLandingSpot = FocusNode();
+  final _focusGlider = FocusNode();
   final _focusDescription = FocusNode();
 
   bool isProcessing = false;
   String? errorMessage;
-  String? flightTimeErrorMessage; // Error message for flight time
+  String? flightTimeErrorMessage;
 
-  // Duration selection variables
   int? selectedHours;
   int? selectedMinutes;
 
@@ -38,10 +41,23 @@ class _AddFlightPageState extends State<AddFlightPage> {
     super.initState();
     _dateController.text = DateFormat("dd.MM.yyyy").format(DateTime.now());
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(
-        context,
-      ).requestFocus(_focusTakeoff); // Focus on the Takeoff Location field
+      FocusScope.of(context).requestFocus(_focusLaunchSpot);
     });
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    _launchSpotController.dispose();
+    _landingSpotController.dispose();
+    _gliderController.dispose();
+    _descriptionController.dispose();
+    _focusDate.dispose();
+    _focusLaunchSpot.dispose();
+    _focusLandingSpot.dispose();
+    _focusGlider.dispose();
+    _focusDescription.dispose();
+    super.dispose();
   }
 
   CookieAuth _getCookieAuth() {
@@ -63,7 +79,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
     setState(() {
       isProcessing = true;
       errorMessage = null;
-      flightTimeErrorMessage = null; // Clear any previous flight time error
+      flightTimeErrorMessage = null;
     });
 
     try {
@@ -78,7 +94,9 @@ class _AddFlightPageState extends State<AddFlightPage> {
       Flight flight = Flight(
         flightId: "",
         dateTime: formattedDate,
-        takeOff: _takeoffController.text,
+        launchSpotId: _launchSpotController.text,
+        landingSpotId: _landingSpotController.text,
+        gliderId: _gliderController.text,
         duration: duration,
         description: _descriptionController.text,
       );
@@ -106,7 +124,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
     );
     if (picked != null && picked != DateTime.now()) {
       setState(() {
-        _dateController.text = DateFormat("dd.MM.yyy").format(picked);
+        _dateController.text = DateFormat("dd.MM.yyyy").format(picked);
       });
     }
   }
@@ -142,19 +160,12 @@ class _AddFlightPageState extends State<AddFlightPage> {
                               color: Colors.orange,
                             ),
                             onPressed: () => _selectDate(context),
-                            padding: EdgeInsets.only(
-                              left: 7,
-                            ), // Set padding of the icon to zero
+                            padding: EdgeInsets.only(left: 7),
                           ),
-                          prefixIconConstraints: BoxConstraints(
-                            maxWidth: 32, // Icon size width
-                          ),
-                          contentPadding: EdgeInsets.only(
-                            left: 60,
-                          ), // Add padding to the left side of the text (after the icon)
-                          isDense: false, // Tighter vertical spacing
-                          border:
-                              OutlineInputBorder(), // Optional: To make it look more consistent
+                          prefixIconConstraints: BoxConstraints(maxWidth: 32),
+                          contentPadding: EdgeInsets.only(left: 60),
+                          isDense: false,
+                          border: OutlineInputBorder(),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -162,14 +173,10 @@ class _AddFlightPageState extends State<AddFlightPage> {
                           }
 
                           try {
-                            // Try to parse the date using the custom format
                             DateFormat dateFormat = DateFormat('dd.MM.yyyy');
-                            dateFormat.parseStrict(
-                              value,
-                            ); // This will throw if the date is invalid
-                            return null; // Date is valid
+                            dateFormat.parseStrict(value);
+                            return null;
                           } catch (e) {
-                            // If parsing fails, return an error message
                             return "Enter a valid date.";
                           }
                         },
@@ -177,29 +184,78 @@ class _AddFlightPageState extends State<AddFlightPage> {
                         onFieldSubmitted:
                             (_) => FocusScope.of(
                               context,
-                            ).requestFocus(_focusTakeoff),
+                            ).requestFocus(_focusLaunchSpot),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Takeoff Location Field
+                  // Launch Spot Field
                   TextFormField(
-                    controller: _takeoffController,
-                    focusNode: _focusTakeoff,
+                    controller: _launchSpotController,
+                    focusNode: _focusLaunchSpot,
                     decoration: InputDecoration(
-                      hintText: "Takeoff Location",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          3.0,
-                        ), // Rounded corners
+                      hintText: "Launch Spot ID",
+                      prefixIcon: Icon(
+                        Icons.flight_takeoff,
+                        color: Colors.orange,
                       ),
+                      border: OutlineInputBorder(),
                     ),
-                    validator:
-                        (value) =>
-                            value == null || value.isEmpty
-                                ? "Enter a takeoff location."
-                                : null,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Enter a launch spot ID.";
+                      }
+                      return null;
+                    },
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted:
+                        (_) => FocusScope.of(
+                          context,
+                        ).requestFocus(_focusLandingSpot),
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Landing Spot Field
+                  TextFormField(
+                    controller: _landingSpotController,
+                    focusNode: _focusLandingSpot,
+                    decoration: InputDecoration(
+                      hintText: "Landing Spot ID",
+                      prefixIcon: Icon(Icons.flight_land, color: Colors.orange),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Enter a landing spot ID.";
+                      }
+                      return null;
+                    },
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted:
+                        (_) =>
+                            FocusScope.of(context).requestFocus(_focusGlider),
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Glider Field
+                  TextFormField(
+                    controller: _gliderController,
+                    focusNode: _focusGlider,
+                    decoration: InputDecoration(
+                      hintText: "Glider ID",
+                      prefixIcon: Icon(
+                        Icons.airplanemode_active,
+                        color: Colors.orange,
+                      ),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Enter a glider ID.";
+                      }
+                      return null;
+                    },
                     textInputAction: TextInputAction.next,
                     onFieldSubmitted:
                         (_) => FocusScope.of(
@@ -208,7 +264,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Duration (Hours and Minutes) - Initial Text
+                  // Duration (Hours and Minutes)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -225,13 +281,18 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             hintText: "Hours",
                             border: OutlineInputBorder(),
                           ),
-                          items:
-                              List.generate(12, (index) {
-                                return DropdownMenuItem<int>(
-                                  value: index + 1,
-                                  child: Text("${index + 1} Hours"),
-                                );
-                              }).toList(),
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text("0 Hours"),
+                            ),
+                            ...List.generate(12, (index) {
+                              return DropdownMenuItem<int>(
+                                value: index + 1,
+                                child: Text("${index + 1} Hours"),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -249,13 +310,18 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             hintText: "Minutes",
                             border: OutlineInputBorder(),
                           ),
-                          items:
-                              List.generate(12, (index) {
-                                return DropdownMenuItem<int>(
-                                  value: (index + 1) * 5,
-                                  child: Text("${(index + 1) * 5} Minutes"),
-                                );
-                              }).toList(),
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text("0 Minutes"),
+                            ),
+                            ...List.generate(12, (index) {
+                              return DropdownMenuItem<int>(
+                                value: (index + 1) * 5,
+                                child: Text("${(index + 1) * 5} Minutes"),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                     ],
@@ -278,8 +344,8 @@ class _AddFlightPageState extends State<AddFlightPage> {
                   TextField(
                     controller: _descriptionController,
                     focusNode: _focusDescription,
-                    maxLines: null, // Allow unlimited lines
-                    minLines: 3, // Initial size
+                    maxLines: null,
+                    minLines: 3,
                     decoration: InputDecoration(
                       hintText: "Description",
                       border: OutlineInputBorder(),
@@ -302,49 +368,39 @@ class _AddFlightPageState extends State<AddFlightPage> {
                   // Buttons (Save and Cancel)
                   isProcessing
                       ? const CircularProgressIndicator()
-                      : SizedBox(
-                        width: double.infinity,
-                        child: Row(
-                          children: [
-                            // Save Button (Black)
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    FocusScope.of(context).unfocus();
-                                    _saveNewFlight();
-                                  }
-                                },
-                                child: const Text(
-                                  'Save',
-                                  style: TextStyle(color: Colors.black),
-                                ),
+                      : Row(
+                        children: [
+                          // Save Button
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  FocusScope.of(context).unfocus();
+                                  _saveNewFlight();
+                                }
+                              },
+                              child: const Text(
+                                'Save',
+                                style: TextStyle(color: Colors.black),
                               ),
                             ),
-                            const SizedBox(
-                              width: 16,
-                            ), // Add some space between buttons
-                            // Cancel Button (Grey)
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(
-                                    context,
-                                  ); // Navigate back to the Flights Page
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors
-                                          .grey, // Set background color to grey
-                                ),
-                                child: const Text(
-                                  'Cancel',
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Cancel Button
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey.shade300,
+                              ),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.black),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                 ],
               ),

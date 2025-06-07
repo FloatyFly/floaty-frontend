@@ -17,9 +17,9 @@ void main() {
   // final instance = FlightsApi();
 
   group('tests for FlightsApi', () {
-    // Create a flight for a given user.
+    // Create a flight.
     //
-    // Register a new flight
+    // Register a new flight for the authenticated user.
     //
     //Future<Flight> createFlight(Flight flight) async
     test('test createFlight', () async {
@@ -30,26 +30,35 @@ void main() {
     //
     // Deletes a single flight by its ID.
     //
-    //Future deleteFlightById(String flightId) async
+    //Future deleteFlightById(int flightId) async
     test('test deleteFlightById', () async {
+      // TODO
+    });
+
+    // Get a Flight by ID.
+    //
+    // Returns a single flight by its ID.
+    //
+    //Future<Flight> getFlightById(int flightId) async
+    test('test getFlightById', () async {
       // TODO
     });
 
     // Find all flights.
     //
-    // Returns a list of all Flights for all users.
+    // Returns a list of all flights for the authenticated user.
     //
-    //Future<List<Flight>> findAllFlights() async
-    test('test findAllFlights', () async {
+    //Future<List<Flight>> getFlights() async
+    test('test getFlights', () async {
       // TODO
     });
 
-    // Find all flights for a given User.
+    // Update a Flight by ID.
     //
-    // Returns a list of Flights for a User.
+    // Updates a single flight with the provided data.
     //
-    //Future<Flight> getFlights(int userId) async
-    test('test getFlights', () async {
+    //Future<Flight> updateFlightById(int flightId, FlightUpdate flightUpdate) async
+    test('test updateFlightById', () async {
       // TODO
     });
 

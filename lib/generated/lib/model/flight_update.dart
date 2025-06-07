@@ -14,28 +14,39 @@ class FlightUpdate {
   /// Returns a new [FlightUpdate] instance.
   FlightUpdate({
     this.dateTime,
-    this.takeOff,
+    this.launchSpotId,
+    this.landingSpotId,
     this.duration,
     this.description,
+    this.gliderId,
   });
 
-  /// Datetime of the flight. Format: 2024-05-12T08:59:10. Local date time.
+  /// Datetime of the flight in UTC (ISO-8601 format with Z suffix)
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
   /// does not include a default value (using the "default:" property), however, the generated
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  String? dateTime;
+  DateTime? dateTime;
 
-  /// Take off location
+  /// Reference to the launch spot used for this flight.
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
   /// does not include a default value (using the "default:" property), however, the generated
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  String? takeOff;
+  int? launchSpotId;
+
+  /// Reference to the landing spot used for this flight.
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  int? landingSpotId;
 
   /// Duration in minutes
   ///
@@ -55,35 +66,53 @@ class FlightUpdate {
   ///
   String? description;
 
+  /// Reference to the glider used for this flight.
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  int? gliderId;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is FlightUpdate &&
     other.dateTime == dateTime &&
-    other.takeOff == takeOff &&
+    other.launchSpotId == launchSpotId &&
+    other.landingSpotId == landingSpotId &&
     other.duration == duration &&
-    other.description == description;
+    other.description == description &&
+    other.gliderId == gliderId;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (dateTime == null ? 0 : dateTime!.hashCode) +
-    (takeOff == null ? 0 : takeOff!.hashCode) +
+    (launchSpotId == null ? 0 : launchSpotId!.hashCode) +
+    (landingSpotId == null ? 0 : landingSpotId!.hashCode) +
     (duration == null ? 0 : duration!.hashCode) +
-    (description == null ? 0 : description!.hashCode);
+    (description == null ? 0 : description!.hashCode) +
+    (gliderId == null ? 0 : gliderId!.hashCode);
 
   @override
-  String toString() => 'FlightUpdate[dateTime=$dateTime, takeOff=$takeOff, duration=$duration, description=$description]';
+  String toString() => 'FlightUpdate[dateTime=$dateTime, launchSpotId=$launchSpotId, landingSpotId=$landingSpotId, duration=$duration, description=$description, gliderId=$gliderId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     if (this.dateTime != null) {
-      json[r'dateTime'] = this.dateTime;
+      json[r'dateTime'] = this.dateTime!.toUtc().toIso8601String();
     } else {
       json[r'dateTime'] = null;
     }
-    if (this.takeOff != null) {
-      json[r'takeOff'] = this.takeOff;
+    if (this.launchSpotId != null) {
+      json[r'launchSpotId'] = this.launchSpotId;
     } else {
-      json[r'takeOff'] = null;
+      json[r'launchSpotId'] = null;
+    }
+    if (this.landingSpotId != null) {
+      json[r'landingSpotId'] = this.landingSpotId;
+    } else {
+      json[r'landingSpotId'] = null;
     }
     if (this.duration != null) {
       json[r'duration'] = this.duration;
@@ -94,6 +123,11 @@ class FlightUpdate {
       json[r'description'] = this.description;
     } else {
       json[r'description'] = null;
+    }
+    if (this.gliderId != null) {
+      json[r'gliderId'] = this.gliderId;
+    } else {
+      json[r'gliderId'] = null;
     }
     return json;
   }
@@ -117,10 +151,12 @@ class FlightUpdate {
       }());
 
       return FlightUpdate(
-        dateTime: mapValueOfType<String>(json, r'dateTime'),
-        takeOff: mapValueOfType<String>(json, r'takeOff'),
+        dateTime: mapDateTime(json, r'dateTime', r''),
+        launchSpotId: mapValueOfType<int>(json, r'launchSpotId'),
+        landingSpotId: mapValueOfType<int>(json, r'landingSpotId'),
         duration: mapValueOfType<int>(json, r'duration'),
         description: mapValueOfType<String>(json, r'description'),
+        gliderId: mapValueOfType<int>(json, r'gliderId'),
       );
     }
     return null;

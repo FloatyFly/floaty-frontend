@@ -2,12 +2,20 @@ openapi: 3.0.3
 info:
   title: Floaty API
   description: |-
-    The backend API for floaty. Just an example. Needs to be developped. \
+    The backend API for Floaty.\
     You might use [https://editor-next.swagger.io/]() for development.
   version: 0.0.1
 tags:
   - name: users
     description: Look up all the users you want.
+  - name: flights
+    description: Operations for managing paragliding flights.
+  - name: gliders
+    description: Operations for managing paragliding equipment.
+  - name: spots
+    description: Operations for managing launch and landing sites.
+  - name: auth
+    description: Authentication and user management operations.
 
 paths:
   /users:
@@ -23,7 +31,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
   /users/{userId}:
     get:
       tags:
@@ -46,17 +56,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  /flights/{userId}:
+  /flights:
     get:
       tags:
         - flights
-      summary: Find all flights for a given User.
-      description: Returns a list of Flights for a User.
+      summary: Find all flights.
+      description: Returns a list of all flights for the authenticated user.
       operationId: getFlights
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flight'
+    post:
+      tags:
+        - flights
+      summary: Create a flight.
+      description: Register a new flight for the authenticated user.
+      operationId: createFlight
+      requestBody:
+        description: Flight details including required glider and spots references
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flight'
+      responses:
+        '201':
+          description: Flight created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+        '400':
+          description: Invalid input or missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data or missing required fields"
+        '404':
+          description: Referenced glider or spots not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Referenced glider or spots not found"
+  /flights/{flightId}:
+    get:
+      tags:
+        - flights
+      summary: Get a Flight by ID.
+      description: Returns a single flight by its ID.
+      operationId: getFlightById
       parameters:
-        - name: userId
+        - name: flightId
           in: path
-          description: ID of user
+          description: ID of the flight to retrieve
           required: true
           schema:
             type: integer
@@ -67,10 +133,9 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Flight'
-  /flights/{flightId}:
+                $ref: '#/components/schemas/Flight'
+        '404':
+          description: Flight not found
     delete:
       tags:
         - flights
@@ -83,10 +148,10 @@ paths:
           description: ID of the flight to delete
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
+            format: int64
       responses:
-        '200':
+        '204':
           description: No content, successful deletion
         '404':
           description: Flight not found
@@ -102,8 +167,8 @@ paths:
           description: ID of the flight to update
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
+            format: int64
       requestBody:
         description: Updated flight information
         required: true
@@ -138,33 +203,13 @@ paths:
                   error:
                     type: string
                     example: "Flight not found"
-  /flights:
-    post:
-      tags:
-        - flights
-      summary: Create a flight for a given user.
-      description: Register a new flight
-      operationId: createFlight
-      requestBody:
-        description: Optional description in *Markdown*
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Flight'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Flight'
+  /gliders:
     get:
       tags:
-        - flights
-      summary: Find all flights.
-      description: Returns a list of all Flights for all users.
-      operationId: findAllFlights
+        - gliders
+      summary: Get all gliders.
+      description: Returns a list of all gliders for the authenticated user.
+      operationId: getAllGliders
       responses:
         '200':
           description: Successful operation
@@ -173,7 +218,317 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Flight'
+                  $ref: '#/components/schemas/Glider'
+    post:
+      tags:
+        - gliders
+      summary: Create a new glider.
+      description: Add a new glider to the database for the authenticated user.
+      operationId: createGlider
+      requestBody:
+        description: Glider details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GliderCreate'
+      responses:
+        '201':
+          description: Glider created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Glider'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data"
+  /gliders/{gliderId}:
+    get:
+      tags:
+        - gliders
+      summary: Get a glider by ID.
+      description: Returns a single glider by its ID.
+      operationId: getGliderById
+      parameters:
+        - name: gliderId
+          in: path
+          description: ID of the glider to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Glider'
+        '404':
+          description: Glider not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Glider not found"
+    put:
+      tags:
+        - gliders
+      summary: Update a glider by ID.
+      description: Updates a single glider with the provided data.
+      operationId: updateGliderById
+      parameters:
+        - name: gliderId
+          in: path
+          description: ID of the glider to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Updated glider information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GliderUpdate'
+      responses:
+        '200':
+          description: Glider successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Glider'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data"
+        '404':
+          description: Glider not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Glider not found"
+    delete:
+      tags:
+        - gliders
+      summary: Delete a glider by ID.
+      description: Deletes a single glider by its ID.
+      operationId: deleteGliderById
+      parameters:
+        - name: gliderId
+          in: path
+          description: ID of the glider to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: No content, successful deletion
+        '404':
+          description: Glider not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Glider not found"
+        '409':
+          description: Conflict - Glider is referenced by one or more flights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Cannot delete glider as it is referenced by existing flights"
+  /spots:
+    get:
+      tags:
+        - spots
+      summary: Get all spots.
+      description: Returns a list of all paragliding spots (launch and landing sites) for the authenticated user.
+      operationId: getSpots
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Spot'
+    post:
+      tags:
+        - spots
+      summary: Create a new spot.
+      description: Add a new paragliding spot to the database for the authenticated user.
+      operationId: createSpot
+      requestBody:
+        description: Spot details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpotCreate'
+      responses:
+        '201':
+          description: Spot created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spot'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data"
+  /spots/{spotId}:
+    get:
+      tags:
+        - spots
+      summary: Get a spot by ID.
+      description: Returns a single paragliding spot by its ID.
+      operationId: getSpotById
+      parameters:
+        - name: spotId
+          in: path
+          description: ID of the spot to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spot'
+        '404':
+          description: Spot not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Spot not found"
+    put:
+      tags:
+        - spots
+      summary: Update a spot by ID.
+      description: Updates a single paragliding spot with the provided data.
+      operationId: updateSpotById
+      parameters:
+        - name: spotId
+          in: path
+          description: ID of the spot to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Updated spot information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpotUpdate'
+      responses:
+        '200':
+          description: Spot successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spot'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data"
+        '404':
+          description: Spot not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Spot not found"
+    delete:
+      tags:
+        - spots
+      summary: Delete a spot by ID.
+      description: Deletes a single paragliding spot by its ID.
+      operationId: deleteSpotById
+      parameters:
+        - name: spotId
+          in: path
+          description: ID of the spot to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: No content, successful deletion
+        '404':
+          description: Spot not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Spot not found"
+        '409':
+          description: Conflict - Spot is referenced by one or more flights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Cannot delete spot as it is referenced by existing flights"
 
   /auth/register:
     post:
@@ -304,21 +659,13 @@ paths:
           description: Successfully reset the password.
         '400':
           description: Password reset failed, e.g., invalid password reset token.
-  /auth/logout/{userId}:
+  /auth/logout:
     post:
       tags:
         - auth
       summary: Logout the user.
       description: Logs out the authenticated user and invalidates the session.
       operationId: logoutUser
-      parameters:
-        - name: userId
-          in: path
-          description: ID of user
-          required: true
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           description: Successful logout.
@@ -355,23 +702,83 @@ components:
           type: boolean
           example: false
           description: 'If the email has been verified by the user already or not.'
+
+    Glider:
+      type: object
+      required:
+        - id
+        - manufacturer
+        - model
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Unique identifier for the glider. Generated by the server.'
+          example: 1234567890123456789
+        manufacturer:
+          type: string
+          description: 'Manufacturer of the glider.'
+          example: 'Advance'
+        model:
+          type: string
+          description: 'Model name of the glider.'
+          example: 'Alpha 7'
+
+    GliderCreate:
+      type: object
+      required:
+        - manufacturer
+        - model
+      properties:
+        manufacturer:
+          type: string
+          description: 'Manufacturer of the glider.'
+          example: 'Advance'
+        model:
+          type: string
+          description: 'Model name of the glider.'
+          example: 'Alpha 7'
+
+    GliderUpdate:
+      type: object
+      properties:
+        manufacturer:
+          type: string
+          description: 'Manufacturer of the glider.'
+          example: 'Advance'
+        model:
+          type: string
+          description: 'Model name of the glider.'
+          example: 'Alpha 7'
+
     Flight:
       type: object
       required:
         - dateTime
-        - takeOff
+        - launchSpotId
+        - landingSpotId
+        - gliderId
       properties:
         flightId:
-          type: string
-          description: 'Unique flight id. Usually generated by the server. UUID format.'
+          type: integer
+          format: int64
+          description: 'Unique identifier for the flight. Generated by the server.'
+          example: 123456789
         dateTime:
           type: string
-          example: '22.03.23'
-          description: 'Datetime of the flight. Format: 2024-05-12T08:59:10. Local date time.'
-        takeOff:
-          type: string
-          example: 'Titlis'
-          description: 'Take off location'
+          format: date-time
+          example: '2024-05-12T08:59:10Z'
+          description: 'Datetime of the flight in UTC (ISO-8601 format with Z suffix)'
+        launchSpotId:
+          type: integer
+          format: int64
+          description: 'Reference to the launch spot used for this flight.'
+          example: '123'
+        landingSpotId:
+          type: integer
+          format: int64
+          description: 'Reference to the landing spot used for this flight.'
+          example: '123'
         duration:
           type: integer
           format: int64
@@ -381,17 +788,30 @@ components:
           type: string
           example: "This flight was epic."
           description: "Some textual description of the flight experience."
+        gliderId:
+          type: integer
+          format: int64
+          description: 'Reference to the glider used for this flight.'
+          example: '123'
+
     FlightUpdate:
       type: object
       properties:
         dateTime:
           type: string
-          example: '2024-05-12T08:59:10'
-          description: 'Datetime of the flight. Format: 2024-05-12T08:59:10. Local date time.'
-        takeOff:
-          type: string
-          example: 'Titlis'
-          description: 'Take off location'
+          format: date-time
+          example: '2024-05-12T08:59:10Z'
+          description: 'Datetime of the flight in UTC (ISO-8601 format with Z suffix)'
+        launchSpotId:
+          type: integer
+          format: int64
+          description: 'Reference to the launch spot used for this flight.'
+          example: '123'
+        landingSpotId:
+          type: integer
+          format: int64
+          description: 'Reference to the landing spot used for this flight.'
+          example: '123'
         duration:
           type: integer
           format: int64
@@ -401,6 +821,123 @@ components:
           type: string
           example: "This flight was epic."
           description: "Some textual description of the flight experience."
+        gliderId:
+          type: integer
+          format: int64
+          description: 'Reference to the glider used for this flight.'
+          example: '123'
+
+    Spot:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - latitude
+        - longitude
+        - altitude
+      properties:
+        spotId:
+          type: integer
+          format: int64
+          description: 'Unique identifier for the spot. Generated by the server.'
+          example: 1234567890123456789
+        name:
+          type: string
+          description: 'Name of the paragliding spot.'
+          example: 'Titlis Launch'
+        type:
+          type: string
+          description: 'Type of the paragliding spot.'
+          enum: [LAUNCH_SITE, LANDING_SITE, LAUNCH_AND_LANDING_SITE]
+          example: 'LAUNCH_SITE'
+        latitude:
+          type: number
+          format: double
+          description: 'Latitude coordinate of the spot.'
+          example: 47.37627
+        longitude:
+          type: number
+          format: double
+          description: 'Longitude coordinate of the spot.'
+          example: 8.54896
+        altitude:
+          type: integer
+          description: 'Height above sea level in meters.'
+          example: 1200
+        description:
+          type: string
+          description: 'Detailed description of the spot including conditions, access instructions, etc.'
+          example: 'North-facing launch site with good thermals in the afternoon. Accessible via cable car.'
+
+    SpotCreate:
+      type: object
+      required:
+        - name
+        - type
+        - latitude
+        - longitude
+        - altitude
+      properties:
+        name:
+          type: string
+          description: 'Name of the paragliding spot.'
+          example: 'Titlis Launch'
+        type:
+          type: string
+          description: 'Type of the paragliding spot.'
+          enum: [LAUNCH_SITE, LANDING_SITE, LAUNCH_AND_LANDING_SITE]
+          example: 'LAUNCH_SITE'
+        latitude:
+          type: number
+          format: double
+          description: 'Latitude coordinate of the spot.'
+          example: 47.37627
+        longitude:
+          type: number
+          format: double
+          description: 'Longitude coordinate of the spot.'
+          example: 8.54896
+        altitude:
+          type: integer
+          description: 'Height above sea level in meters.'
+          example: 1200
+        description:
+          type: string
+          description: 'Detailed description of the spot including conditions, access instructions, etc.'
+          example: 'North-facing launch site with good thermals in the afternoon. Accessible via cable car.'
+
+    SpotUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Name of the paragliding spot.'
+          example: 'Titlis Launch'
+        type:
+          type: string
+          description: 'Type of the paragliding spot.'
+          enum: [LAUNCH_SITE, LANDING_SITE, LAUNCH_AND_LANDING_SITE]
+          example: 'LAUNCH_SITE'
+        latitude:
+          type: number
+          format: double
+          description: 'Latitude coordinate of the spot.'
+          example: 47.37627
+        longitude:
+          type: number
+          format: double
+          description: 'Longitude coordinate of the spot.'
+          example: 8.54896
+        altitude:
+          type: integer
+          description: 'Height above sea level in meters.'
+          example: 1200
+        description:
+          type: string
+          description: 'Detailed description of the spot including conditions, access instructions, etc.'
+          example: 'North-facing launch site with good thermals in the afternoon. Accessible via cable car.'
+
     RegisterRequest:
       type: object
       required:
@@ -421,6 +958,7 @@ components:
           format: email
           description: 'The email address of the user.'
           example: 'floater@floatytest.com'
+
     LoginRequest:
       type: object
       required:
@@ -435,6 +973,7 @@ components:
           type: string
           description: 'The password for the account.'
           example: 'Test12345'
+
     ResetPasswordRequest:
       type: object
       required:

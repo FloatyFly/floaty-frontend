@@ -16,15 +16,21 @@ void main() {
   // final instance = FlightUpdate();
 
   group('test FlightUpdate', () {
-    // Datetime of the flight. Format: 2024-05-12T08:59:10. Local date time.
-    // String dateTime
+    // Datetime of the flight in UTC (ISO-8601 format with Z suffix)
+    // DateTime dateTime
     test('to test the property `dateTime`', () async {
       // TODO
     });
 
-    // Take off location
-    // String takeOff
-    test('to test the property `takeOff`', () async {
+    // Reference to the launch spot used for this flight.
+    // int launchSpotId
+    test('to test the property `launchSpotId`', () async {
+      // TODO
+    });
+
+    // Reference to the landing spot used for this flight.
+    // int landingSpotId
+    test('to test the property `landingSpotId`', () async {
       // TODO
     });
 
@@ -37,6 +43,12 @@ void main() {
     // Some textual description of the flight experience.
     // String description
     test('to test the property `description`', () async {
+      // TODO
+    });
+
+    // Reference to the glider used for this flight.
+    // int gliderId
+    test('to test the property `gliderId`', () async {
       // TODO
     });
 

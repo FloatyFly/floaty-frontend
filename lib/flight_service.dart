@@ -17,7 +17,7 @@ Future<List<model.Flight>> fetchFlights(
   final flightsApi = api.FlightsApi(apiClient);
 
   try {
-    final List<api.Flight>? response = await flightsApi.getFlights(userId);
+    final List<api.Flight>? response = await flightsApi.getFlights();
 
     if (response != null && response.isNotEmpty) {
       // Map the fetched flights to your model and return
@@ -58,7 +58,7 @@ Future<api.Flight?> addFlight(
   }
 }
 
-Future<void> deleteFlight(String flightId, CookieAuth cookieAuth) async {
+Future<void> deleteFlight(int flightId, CookieAuth cookieAuth) async {
   final apiClient = api.ApiClient(
     basePath: backendUrl,
     authentication: cookieAuth,
@@ -79,12 +79,14 @@ Future<void> updateFlight(model.Flight flight, CookieAuth cookieAuth) async {
   );
   final flightsApi = api.FlightsApi(apiClient);
 
-  // Create FlightUpdate object
+  // Create FlightUpdate object with all required fields
   final flightUpdate = api.FlightUpdate(
-    dateTime: flight.dateTime,
-    takeOff: flight.takeOff,
+    dateTime: DateTime.parse(flight.dateTime),
+    launchSpotId: flight.launchSpotId,
+    landingSpotId: flight.landingSpotId,
     duration: flight.duration,
     description: flight.description,
+    gliderId: flight.gliderId,
   );
 
   try {

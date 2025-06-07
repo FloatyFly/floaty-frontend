@@ -108,7 +108,7 @@ class UsersApi {
   /// Find all users.
   ///
   /// Returns a list of users.
-  Future<User?> getUsers() async {
+  Future<List<User>?> getUsers() async {
     final response = await getUsersWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -117,8 +117,11 @@ class UsersApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'User',) as User;
-    
+      final responseBody = await _decodeBodyBytes(response);
+      return (await apiClient.deserializeAsync(responseBody, 'List<User>') as List)
+        .cast<User>()
+        .toList(growable: false);
+
     }
     return null;
   }

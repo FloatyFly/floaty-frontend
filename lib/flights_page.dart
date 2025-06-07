@@ -73,7 +73,9 @@ class _FlightsPageState extends State<FlightsPage> {
       rows.add([
         'Flight',
         'Date',
-        'Takeoff Location',
+        'Launch Spot',
+        'Landing Spot',
+        'Glider',
         'Duration (minutes)',
         'Description',
       ]); // Header row
@@ -87,7 +89,9 @@ class _FlightsPageState extends State<FlightsPage> {
         rows.add([
           (i + 1), // Flight Number (starts from 1)
           formattedDate, // Date
-          flight.takeOff, // Takeoff Location
+          flight.launchSpotId, // Launch Spot
+          flight.landingSpotId, // Landing Spot
+          flight.gliderId, // Glider
           flight.duration, // Duration
           flight.description, // Description
         ]);
@@ -438,20 +442,72 @@ class FlightListView extends StatelessWidget {
 
                         SizedBox(width: 16),
 
-                        // Takeoff location (title) and description
+                        // Flight details
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                flight.takeOff,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(
-                                    0xFF0078D7,
-                                  ), // Link-like blue color
-                                ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.flight_takeoff,
+                                    size: 16,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      flight.launchSpotId,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0078D7),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.flight_land,
+                                    size: 16,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      flight.landingSpotId,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0078D7),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.airplanemode_active,
+                                    size: 16,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      flight.gliderId,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0078D7),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               SizedBox(height: 4),
                               Text(
@@ -460,7 +516,7 @@ class FlightListView extends StatelessWidget {
                                   fontSize: 14,
                                   color: Colors.black87,
                                 ),
-                                maxLines: 3,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 softWrap: true,
                               ),
@@ -497,7 +553,7 @@ class FlightListView extends StatelessWidget {
                   ),
                 );
               } else {
-                // Desktop view (existing layout)
+                // Desktop view
                 return GestureDetector(
                   onTap: () => _navigateToEditFlight(context, flight),
                   child: Padding(
@@ -537,22 +593,92 @@ class FlightListView extends StatelessWidget {
                           ),
                         ),
 
-                        // Takeoff location (title) and description - styled as link
+                        // Flight details
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.only(left: 24.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  flight.takeOff,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(
-                                      0xFF0078D7,
-                                    ), // Link-like blue color
-                                  ),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.flight_takeoff,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "Launch:",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      flight.launchSpotId,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF0078D7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.flight_land,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "Landing:",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      flight.landingSpotId,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF0078D7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.airplanemode_active,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "Glider:",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      flight.gliderId,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF0078D7),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 SizedBox(height: 4),
                                 Text(

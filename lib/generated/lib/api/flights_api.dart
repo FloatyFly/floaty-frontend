@@ -16,16 +16,16 @@ class FlightsApi {
 
   final ApiClient apiClient;
 
-  /// Create a flight for a given user.
+  /// Create a flight.
   ///
-  /// Register a new flight
+  /// Register a new flight for the authenticated user.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
   /// Parameters:
   ///
   /// * [Flight] flight (required):
-  ///   Optional description in *Markdown*
+  ///   Flight details including required glider and spots references
   Future<Response> createFlightWithHttpInfo(Flight flight,) async {
     // ignore: prefer_const_declarations
     final path = r'/flights';
@@ -51,14 +51,14 @@ class FlightsApi {
     );
   }
 
-  /// Create a flight for a given user.
+  /// Create a flight.
   ///
-  /// Register a new flight
+  /// Register a new flight for the authenticated user.
   ///
   /// Parameters:
   ///
   /// * [Flight] flight (required):
-  ///   Optional description in *Markdown*
+  ///   Flight details including required glider and spots references
   Future<Flight?> createFlight(Flight flight,) async {
     final response = await createFlightWithHttpInfo(flight,);
     if (response.statusCode >= HttpStatus.badRequest) {
@@ -82,12 +82,12 @@ class FlightsApi {
   ///
   /// Parameters:
   ///
-  /// * [String] flightId (required):
+  /// * [int] flightId (required):
   ///   ID of the flight to delete
-  Future<Response> deleteFlightByIdWithHttpInfo(String flightId,) async {
+  Future<Response> deleteFlightByIdWithHttpInfo(int flightId,) async {
     // ignore: prefer_const_declarations
     final path = r'/flights/{flightId}'
-      .replaceAll('{flightId}', flightId);
+      .replaceAll('{flightId}', flightId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -116,21 +116,80 @@ class FlightsApi {
   ///
   /// Parameters:
   ///
-  /// * [String] flightId (required):
+  /// * [int] flightId (required):
   ///   ID of the flight to delete
-  Future<void> deleteFlightById(String flightId,) async {
+  Future<void> deleteFlightById(int flightId,) async {
     final response = await deleteFlightByIdWithHttpInfo(flightId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
   }
 
-  /// Find all flights.
+  /// Get a Flight by ID.
   ///
-  /// Returns a list of all Flights for all users.
+  /// Returns a single flight by its ID.
   ///
   /// Note: This method returns the HTTP [Response].
-  Future<Response> findAllFlightsWithHttpInfo() async {
+  ///
+  /// Parameters:
+  ///
+  /// * [int] flightId (required):
+  ///   ID of the flight to retrieve
+  Future<Response> getFlightByIdWithHttpInfo(int flightId,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/flights/{flightId}'
+      .replaceAll('{flightId}', flightId.toString());
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'GET',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Get a Flight by ID.
+  ///
+  /// Returns a single flight by its ID.
+  ///
+  /// Parameters:
+  ///
+  /// * [int] flightId (required):
+  ///   ID of the flight to retrieve
+  Future<Flight?> getFlightById(int flightId,) async {
+    final response = await getFlightByIdWithHttpInfo(flightId,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Flight',) as Flight;
+    
+    }
+    return null;
+  }
+
+  /// Find all flights.
+  ///
+  /// Returns a list of all flights for the authenticated user.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  Future<Response> getFlightsWithHttpInfo() async {
     // ignore: prefer_const_declarations
     final path = r'/flights';
 
@@ -157,71 +216,9 @@ class FlightsApi {
 
   /// Find all flights.
   ///
-  /// Returns a list of all Flights for all users.
-  Future<List<Flight>?> findAllFlights() async {
-    final response = await findAllFlightsWithHttpInfo();
-    if (response.statusCode >= HttpStatus.badRequest) {
-      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
-    }
-    // When a remote server returns no body with a status of 204, we shall not decode it.
-    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
-    // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      final responseBody = await _decodeBodyBytes(response);
-      return (await apiClient.deserializeAsync(responseBody, 'List<Flight>') as List)
-        .cast<Flight>()
-        .toList(growable: false);
-
-    }
-    return null;
-  }
-
-  /// Find all flights for a given User.
-  ///
-  /// Returns a list of Flights for a User.
-  ///
-  /// Note: This method returns the HTTP [Response].
-  ///
-  /// Parameters:
-  ///
-  /// * [int] userId (required):
-  ///   ID of user
-  Future<Response> getFlightsWithHttpInfo(int userId,) async {
-    // ignore: prefer_const_declarations
-    final path = r'/flights/{userId}'
-      .replaceAll('{userId}', userId.toString());
-
-    // ignore: prefer_final_locals
-    Object? postBody;
-
-    final queryParams = <QueryParam>[];
-    final headerParams = <String, String>{};
-    final formParams = <String, String>{};
-
-    const contentTypes = <String>[];
-
-
-    return apiClient.invokeAPI(
-      path,
-      'GET',
-      queryParams,
-      postBody,
-      headerParams,
-      formParams,
-      contentTypes.isEmpty ? null : contentTypes.first,
-    );
-  }
-
-  /// Find all flights for a given User.
-  ///
-  /// Returns a list of Flights for a User.
-  ///
-  /// Parameters:
-  ///
-  /// * [int] userId (required):
-  ///   ID of user
-  Future<List<Flight>?> getFlights(int userId,) async {
-    final response = await getFlightsWithHttpInfo(userId,);
+  /// Returns a list of all flights for the authenticated user.
+  Future<List<Flight>?> getFlights() async {
+    final response = await getFlightsWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -246,15 +243,15 @@ class FlightsApi {
   ///
   /// Parameters:
   ///
-  /// * [String] flightId (required):
+  /// * [int] flightId (required):
   ///   ID of the flight to update
   ///
   /// * [FlightUpdate] flightUpdate (required):
   ///   Updated flight information
-  Future<Response> updateFlightByIdWithHttpInfo(String flightId, FlightUpdate flightUpdate,) async {
+  Future<Response> updateFlightByIdWithHttpInfo(int flightId, FlightUpdate flightUpdate,) async {
     // ignore: prefer_const_declarations
     final path = r'/flights/{flightId}'
-      .replaceAll('{flightId}', flightId);
+      .replaceAll('{flightId}', flightId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody = flightUpdate;
@@ -283,12 +280,12 @@ class FlightsApi {
   ///
   /// Parameters:
   ///
-  /// * [String] flightId (required):
+  /// * [int] flightId (required):
   ///   ID of the flight to update
   ///
   /// * [FlightUpdate] flightUpdate (required):
   ///   Updated flight information
-  Future<Flight?> updateFlightById(String flightId, FlightUpdate flightUpdate,) async {
+  Future<Flight?> updateFlightById(int flightId, FlightUpdate flightUpdate,) async {
     final response = await updateFlightByIdWithHttpInfo(flightId, flightUpdate,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
