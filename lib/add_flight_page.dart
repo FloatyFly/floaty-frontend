@@ -1,11 +1,15 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/flight_service.dart';
+import 'package:floaty/gliders_service.dart';
+import 'package:floaty/spots_service.dart';
 import 'package:floaty/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'CookieAuth.dart';
 import 'model.dart';
+import 'package:floaty_client/api.dart' as api;
+import 'constants.dart';
 
 class AddFlightPage extends StatefulWidget {
   const AddFlightPage({Key? key}) : super(key: key);
@@ -17,14 +21,8 @@ class AddFlightPage extends StatefulWidget {
 class _AddFlightPageState extends State<AddFlightPage> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
-  final _launchSpotController = TextEditingController();
-  final _landingSpotController = TextEditingController();
-  final _gliderController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _focusDate = FocusNode();
-  final _focusLaunchSpot = FocusNode();
-  final _focusLandingSpot = FocusNode();
-  final _focusGlider = FocusNode();
   final _focusDescription = FocusNode();
 
   bool isProcessing = false;
@@ -33,6 +31,12 @@ class _AddFlightPageState extends State<AddFlightPage> {
 
   int? selectedHours;
   int? selectedMinutes;
+  int? selectedLaunchSpotId;
+  int? selectedLandingSpotId;
+  int? selectedGliderId;
+
+  late Future<List<api.Spot>> futureSpots;
+  late Future<List<api.Glider>> futureGliders;
 
   final DateFormat formatter = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
@@ -41,21 +45,19 @@ class _AddFlightPageState extends State<AddFlightPage> {
     super.initState();
     _dateController.text = DateFormat("dd.MM.yyyy").format(DateTime.now());
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_focusLaunchSpot);
+      FocusScope.of(context).requestFocus(_focusDate);
     });
+
+    // Initialize futures for spots and gliders
+    futureSpots = fetchAllSpots(_getCookieAuth());
+    futureGliders = fetchGliders(_getCookieAuth());
   }
 
   @override
   void dispose() {
     _dateController.dispose();
-    _launchSpotController.dispose();
-    _landingSpotController.dispose();
-    _gliderController.dispose();
     _descriptionController.dispose();
     _focusDate.dispose();
-    _focusLaunchSpot.dispose();
-    _focusLandingSpot.dispose();
-    _focusGlider.dispose();
     _focusDescription.dispose();
     super.dispose();
   }
@@ -92,23 +94,29 @@ class _AddFlightPageState extends State<AddFlightPage> {
       final duration = (selectedHours ?? 0) * 60 + (selectedMinutes ?? 0);
 
       Flight flight = Flight(
-        flightId: "",
+        flightId: 0,
         dateTime: formattedDate,
-        launchSpotId: _launchSpotController.text,
-        landingSpotId: _landingSpotController.text,
-        gliderId: _gliderController.text,
+        launchSpotId: selectedLaunchSpotId!,
+        landingSpotId: selectedLandingSpotId!,
+        gliderId: selectedGliderId!,
         duration: duration,
         description: _descriptionController.text,
       );
 
-      await addFlight(flight, _getCookieAuth());
-
-      if (mounted) {
-        Navigator.pop(context, true);
+      final result = await addFlight(flight, _getCookieAuth());
+      if (result != null) {
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
+      } else {
+        setState(() {
+          errorMessage = "Failed to save flight. Please try again.";
+          isProcessing = false;
+        });
       }
     } catch (e) {
       setState(() {
-        errorMessage = "Failed to save flight. Please try again.";
+        errorMessage = "Failed to save flight: ${e.toString()}";
         isProcessing = false;
       });
     }
@@ -182,85 +190,162 @@ class _AddFlightPageState extends State<AddFlightPage> {
                         },
                         textInputAction: TextInputAction.next,
                         onFieldSubmitted:
-                            (_) => FocusScope.of(
-                              context,
-                            ).requestFocus(_focusLaunchSpot),
+                            (_) => FocusScope.of(context).unfocus(),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Launch Spot Field
-                  TextFormField(
-                    controller: _launchSpotController,
-                    focusNode: _focusLaunchSpot,
-                    decoration: InputDecoration(
-                      hintText: "Launch Spot ID",
-                      prefixIcon: Icon(
-                        Icons.flight_takeoff,
-                        color: Colors.orange,
-                      ),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Enter a launch spot ID.";
+                  // Launch Spot Dropdown
+                  FutureBuilder<List<api.Spot>>(
+                    future: futureSpots,
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(child: CircularProgressIndicator());
                       }
-                      return null;
+
+                      final spots = snapshot.data!;
+                      final launchSpots =
+                          spots
+                              .where(
+                                (spot) =>
+                                    spot.type == api.SpotTypeEnum.LAUNCH_SITE ||
+                                    spot.type ==
+                                        api
+                                            .SpotTypeEnum
+                                            .LAUNCH_AND_LANDING_SITE,
+                              )
+                              .toList();
+
+                      return DropdownButtonFormField<int>(
+                        value: selectedLaunchSpotId,
+                        decoration: InputDecoration(
+                          hintText: "Launch Site",
+                          prefixIcon: Icon(
+                            Icons.flight_takeoff,
+                            color: Colors.orange,
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Please select a launch site';
+                          }
+                          return null;
+                        },
+                        items:
+                            launchSpots.map((spot) {
+                              return DropdownMenuItem<int>(
+                                value: spot.spotId,
+                                child: Text(spot.name),
+                              );
+                            }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedLaunchSpotId = value;
+                          });
+                        },
+                      );
                     },
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted:
-                        (_) => FocusScope.of(
-                          context,
-                        ).requestFocus(_focusLandingSpot),
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Landing Spot Field
-                  TextFormField(
-                    controller: _landingSpotController,
-                    focusNode: _focusLandingSpot,
-                    decoration: InputDecoration(
-                      hintText: "Landing Spot ID",
-                      prefixIcon: Icon(Icons.flight_land, color: Colors.orange),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Enter a landing spot ID.";
+                  // Landing Spot Dropdown
+                  FutureBuilder<List<api.Spot>>(
+                    future: futureSpots,
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(child: CircularProgressIndicator());
                       }
-                      return null;
+
+                      final spots = snapshot.data!;
+                      final landingSpots =
+                          spots
+                              .where(
+                                (spot) =>
+                                    spot.type ==
+                                        api.SpotTypeEnum.LANDING_SITE ||
+                                    spot.type ==
+                                        api
+                                            .SpotTypeEnum
+                                            .LAUNCH_AND_LANDING_SITE,
+                              )
+                              .toList();
+
+                      return DropdownButtonFormField<int>(
+                        value: selectedLandingSpotId,
+                        decoration: InputDecoration(
+                          hintText: "Landing Site",
+                          prefixIcon: Icon(
+                            Icons.flight_land,
+                            color: Colors.orange,
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Please select a landing site';
+                          }
+                          return null;
+                        },
+                        items:
+                            landingSpots.map((spot) {
+                              return DropdownMenuItem<int>(
+                                value: spot.spotId,
+                                child: Text(spot.name),
+                              );
+                            }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedLandingSpotId = value;
+                          });
+                        },
+                      );
                     },
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted:
-                        (_) =>
-                            FocusScope.of(context).requestFocus(_focusGlider),
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Glider Field
-                  TextFormField(
-                    controller: _gliderController,
-                    focusNode: _focusGlider,
-                    decoration: InputDecoration(
-                      hintText: "Glider ID",
-                      prefixIcon: Icon(
-                        Icons.airplanemode_active,
-                        color: Colors.orange,
-                      ),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Enter a glider ID.";
+                  // Glider Dropdown
+                  FutureBuilder<List<api.Glider>>(
+                    future: futureGliders,
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(child: CircularProgressIndicator());
                       }
-                      return null;
+
+                      final gliders = snapshot.data!;
+                      return DropdownButtonFormField<int>(
+                        value: selectedGliderId,
+                        decoration: InputDecoration(
+                          hintText: "Glider",
+                          prefixIcon: Icon(
+                            Icons.airplanemode_active,
+                            color: Colors.orange,
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Please select a glider';
+                          }
+                          return null;
+                        },
+                        items:
+                            gliders.map((glider) {
+                              return DropdownMenuItem<int>(
+                                value: glider.id,
+                                child: Text(
+                                  "${glider.manufacturer} ${glider.model}",
+                                ),
+                              );
+                            }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedGliderId = value;
+                          });
+                        },
+                      );
                     },
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted:
-                        (_) => FocusScope.of(
-                          context,
-                        ).requestFocus(_focusDescription),
                   ),
                   const SizedBox(height: 14.0),
 

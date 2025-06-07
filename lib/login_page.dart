@@ -339,7 +339,7 @@ Future<User?> loginAndExtractSessionCookie(
     throw ApiException(response.statusCode, await _decodeBodyBytes(response));
   }
 
-  final setCookieHeader = response.headers['set-cookie'];
+  final setCookieHeader = response.headers['Set-Cookie'];
   if (setCookieHeader != null) {
     final uri = Uri.parse(backendUrl);
     cookieJar.saveFromResponse(uri, [

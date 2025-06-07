@@ -242,10 +242,10 @@ class _StatsPageState extends State<StatsPage> {
 
             String getSpotName(String spotId) {
               final spot = spots.firstWhere(
-                (spot) => spot.id == spotId,
+                (spot) => spot.spotId == spotId,
                 orElse:
                     () => api.Spot(
-                      id: spotId,
+                      spotId: int.parse(spotId),
                       name: 'Unknown Spot',
                       type: api.SpotTypeEnum.LAUNCH_SITE,
                       latitude: 0,
@@ -261,7 +261,7 @@ class _StatsPageState extends State<StatsPage> {
                 (glider) => glider.id == gliderId,
                 orElse:
                     () => api.Glider(
-                      id: gliderId,
+                      id: int.parse(gliderId),
                       manufacturer: 'Unknown',
                       model: 'Unknown',
                     ),
@@ -313,7 +313,7 @@ class _StatsPageState extends State<StatsPage> {
                                   ),
                                   SizedBox(width: 8),
                                   Text(
-                                    getSpotName(flight.launchSpotId),
+                                    getSpotName(flight.launchSpotId.toString()),
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Color(0xFF0078D7),
@@ -340,7 +340,9 @@ class _StatsPageState extends State<StatsPage> {
                                   ),
                                   SizedBox(width: 8),
                                   Text(
-                                    getSpotName(flight.landingSpotId),
+                                    getSpotName(
+                                      flight.landingSpotId.toString(),
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Color(0xFF0078D7),
@@ -367,7 +369,7 @@ class _StatsPageState extends State<StatsPage> {
                                   ),
                                   SizedBox(width: 8),
                                   Text(
-                                    getGliderName(flight.gliderId),
+                                    getGliderName(flight.gliderId.toString()),
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Color(0xFF0078D7),

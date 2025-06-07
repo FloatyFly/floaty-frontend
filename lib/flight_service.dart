@@ -52,7 +52,12 @@ Future<api.Flight?> addFlight(
   }
 
   try {
-    return flightsApi.createFlight(flightDto);
+    final response = await flightsApi.createFlightWithHttpInfo(flightDto);
+    if (response.statusCode == 201) {
+      return await flightsApi.createFlight(flightDto);
+    } else {
+      throw Exception('Failed to add flight: ${response.statusCode}');
+    }
   } catch (e) {
     throw Exception('Failed to add flight: $e');
   }

@@ -180,17 +180,26 @@ class Header extends StatelessWidget {
                     appState.selectedIndex,
                   ),
                   const SizedBox(width: 16.0),
+                  _buildNavButton(context, "Spots", 2, appState.selectedIndex),
+                  const SizedBox(width: 16.0),
+                  _buildNavButton(
+                    context,
+                    "Gliders",
+                    3,
+                    appState.selectedIndex,
+                  ),
+                  const SizedBox(width: 16.0),
                   _buildNavButton(
                     context,
                     "Statistics",
-                    2,
+                    4,
                     appState.selectedIndex,
                   ),
                   const SizedBox(width: 16.0),
                   _buildNavButton(
                     context,
                     "Profile",
-                    3,
+                    5,
                     appState.selectedIndex,
                   ),
                 ] else ...[
@@ -246,8 +255,12 @@ class Header extends StatelessWidget {
         } else if (index == 1) {
           Navigator.pushNamed(context, FLIGHTS_ROUTE);
         } else if (index == 2) {
-          Navigator.pushNamed(context, STATS_ROUTE);
+          Navigator.pushNamed(context, SPOTS_ROUTE);
         } else if (index == 3) {
+          Navigator.pushNamed(context, GLIDERS_ROUTE);
+        } else if (index == 4) {
+          Navigator.pushNamed(context, STATS_ROUTE);
+        } else if (index == 5) {
           Navigator.pushNamed(context, PROFILE_ROUTE);
         }
       },
@@ -338,6 +351,34 @@ class Header extends StatelessWidget {
                                 onTap: () {
                                   Navigator.pop(context);
                                   Navigator.pushNamed(context, FLIGHTS_ROUTE);
+                                },
+                              ),
+                              ListTile(
+                                leading: Icon(
+                                  Icons.location_on,
+                                  color: Color(0xFF0078D7),
+                                ),
+                                title: Text(
+                                  "Spots",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, SPOTS_ROUTE);
+                                },
+                              ),
+                              ListTile(
+                                leading: Icon(
+                                  Icons.airplanemode_active,
+                                  color: Color(0xFF0078D7),
+                                ),
+                                title: Text(
+                                  "Gliders",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, GLIDERS_ROUTE);
                                 },
                               ),
                               ListTile(

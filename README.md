@@ -15,3 +15,20 @@ openapi-generator generate \
 --additional-properties=pubName=floaty_client
 '''
 This will generate the openapi models and api code in lib/generated.
+
+
+Note the ugly work-around
+  ApiClient(
+      {this.basePath = 'http://localhost',
+      this.authentication,
+      Client? client}) {
+    _client = client ?? Client();
+
+    // This is needed to enable cookie management with a BrowserClient.
+    // TODO: Look into it how to make this happen without overwriting generated code.
+    if (_client is BrowserClient) {
+      (_client as BrowserClient).withCredentials = true;
+    }
+  }
+
+  in api-client.dart (generated code).

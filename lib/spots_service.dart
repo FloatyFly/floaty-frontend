@@ -14,7 +14,7 @@ Future<List<api.Spot>> fetchSpots(int userId, CookieAuth cookieAuth) async {
   final spotsApi = api.SpotsApi(apiClient);
 
   try {
-    final List<api.Spot>? response = await spotsApi.getSpotsByUserId(userId);
+    final List<api.Spot>? response = await spotsApi.getSpots();
 
     if (response != null && response.isNotEmpty) {
       return response;
@@ -35,7 +35,7 @@ Future<List<api.Spot>> fetchAllSpots(CookieAuth cookieAuth) async {
   final spotsApi = api.SpotsApi(apiClient);
 
   try {
-    final List<api.Spot>? response = await spotsApi.getAllSpots();
+    final List<api.Spot>? response = await spotsApi.getSpots();
 
     if (response != null && response.isNotEmpty) {
       return response;

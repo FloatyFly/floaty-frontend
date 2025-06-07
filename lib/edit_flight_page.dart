@@ -48,12 +48,14 @@ class _EditFlightPageState extends State<EditFlightPage> {
       text: DateFormat("dd.MM.yyyy").format(date),
     );
     _launchSpotController = TextEditingController(
-      text: widget.flight.launchSpotId,
+      text: widget.flight.launchSpotId.toString(),
     );
     _landingSpotController = TextEditingController(
-      text: widget.flight.landingSpotId,
+      text: widget.flight.landingSpotId.toString(),
     );
-    _gliderController = TextEditingController(text: widget.flight.gliderId);
+    _gliderController = TextEditingController(
+      text: widget.flight.gliderId.toString(),
+    );
     _descriptionController = TextEditingController(
       text: widget.flight.description,
     );
@@ -121,9 +123,9 @@ class _EditFlightPageState extends State<EditFlightPage> {
       Flight updatedFlight = Flight(
         flightId: widget.flight.flightId,
         dateTime: formattedDate,
-        launchSpotId: _launchSpotController.text,
-        landingSpotId: _landingSpotController.text,
-        gliderId: _gliderController.text,
+        launchSpotId: int.parse(_launchSpotController.text),
+        landingSpotId: int.parse(_landingSpotController.text),
+        gliderId: int.parse(_gliderController.text),
         duration: duration,
         description: _descriptionController.text,
       );
