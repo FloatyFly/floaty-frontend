@@ -5,7 +5,10 @@ import 'package:floaty/CookieAuth.dart';
 import 'package:floaty/ui_components.dart';
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'add_spot_page.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class EditSpotPage extends StatefulWidget {
   final api.Spot spot;
@@ -20,9 +23,14 @@ class _EditSpotPageState extends State<EditSpotPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
+  final _altitudeController = TextEditingController();
   late api.SpotUpdateTypeEnum _selectedType;
   bool _isLoading = false;
   bool _isDeleting = false;
+  LatLng? _selectedLocation;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -32,12 +40,20 @@ class _EditSpotPageState extends State<EditSpotPage> {
     _selectedType = api.SpotUpdateTypeEnum.values.firstWhere(
       (e) => e.toString() == widget.spot.type.toString(),
     );
+    _selectedLocation = LatLng(widget.spot.latitude, widget.spot.longitude);
+    _latitudeController.text = widget.spot.latitude.toStringAsFixed(3);
+    _longitudeController.text = widget.spot.longitude.toStringAsFixed(3);
+    _altitudeController.text = widget.spot.altitude.toString();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
+    _altitudeController.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -113,9 +129,9 @@ class _EditSpotPageState extends State<EditSpotPage> {
       final spotUpdate = api.SpotUpdate(
         name: _nameController.text,
         type: _selectedType,
-        latitude: widget.spot.latitude,
-        longitude: widget.spot.longitude,
-        altitude: widget.spot.altitude,
+        latitude: double.parse(_latitudeController.text),
+        longitude: double.parse(_longitudeController.text),
+        altitude: int.parse(_altitudeController.text),
         description:
             _descriptionController.text.isEmpty
                 ? null
@@ -157,50 +173,29 @@ class _EditSpotPageState extends State<EditSpotPage> {
     bool isLast,
   ) {
     final isSelected = _selectedType == type;
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _selectedType = type;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isSelected ? const Color(0xFF0078D7) : Colors.grey[200],
-        foregroundColor: isSelected ? Colors.white : Colors.black87,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        minimumSize: Size(0, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.horizontal(
-            left: Radius.circular(isFirst ? 4 : 0),
-            right: Radius.circular(isLast ? 4 : 0),
+    return Expanded(
+      flex: label == 'Launch & Landing' ? 2 : 1,
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            _selectedType = type;
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              isSelected ? const Color(0xFF0078D7) : Colors.grey[200],
+          foregroundColor: isSelected ? Colors.white : Colors.black87,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          minimumSize: Size(0, 40),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.horizontal(
+              left: Radius.circular(isFirst ? 4 : 0),
+              right: Radius.circular(isLast ? 4 : 0),
+            ),
           ),
+          side: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
         ),
-        side: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Widget _buildLockedField(String label, String value) {
-    return Container(
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-        ],
+        child: Text(label, style: TextStyle(fontSize: 14)),
       ),
     );
   }
@@ -256,13 +251,12 @@ class _EditSpotPageState extends State<EditSpotPage> {
                         SizedBox(height: 20),
                         TextFormField(
                           controller: _nameController,
-                          autofocus: true,
                           decoration: InputDecoration(
                             labelText: 'Spot Name',
                             border: OutlineInputBorder(),
                             contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 16,
+                              vertical: 12,
                             ),
                           ),
                           validator: (value) {
@@ -275,108 +269,151 @@ class _EditSpotPageState extends State<EditSpotPage> {
                         SizedBox(height: 16),
                         Row(
                           children: [
-                            Expanded(
-                              child: _buildTypeButton(
-                                api.SpotUpdateTypeEnum.LAUNCH_SITE,
-                                'Launch',
-                                true,
-                                false,
-                              ),
+                            _buildTypeButton(
+                              api.SpotUpdateTypeEnum.LAUNCH_SITE,
+                              'Launch',
+                              true,
+                              false,
                             ),
-                            Expanded(
-                              child: _buildTypeButton(
-                                api.SpotUpdateTypeEnum.LANDING_SITE,
-                                'Landing',
-                                false,
-                                true,
-                              ),
+                            _buildTypeButton(
+                              api.SpotUpdateTypeEnum.LANDING_SITE,
+                              'Landing',
+                              false,
+                              false,
+                            ),
+                            _buildTypeButton(
+                              api.SpotUpdateTypeEnum.LAUNCH_AND_LANDING_SITE,
+                              'Launch & Landing',
+                              false,
+                              true,
                             ),
                           ],
+                        ),
+                        SizedBox(height: 16),
+                        Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.grey.withOpacity(0.3),
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: FlutterMap(
+                              mapController: _mapController,
+                              options: MapOptions(
+                                initialCenter: _selectedLocation!,
+                                initialZoom: 13,
+                                onTap: (tapPosition, point) {
+                                  setState(() {
+                                    _selectedLocation = point;
+                                    _latitudeController.text = point.latitude
+                                        .toStringAsFixed(3);
+                                    _longitudeController.text = point.longitude
+                                        .toStringAsFixed(3);
+                                  });
+                                },
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate:
+                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.example.app',
+                                ),
+                                MarkerLayer(
+                                  markers: [
+                                    if (_selectedLocation != null)
+                                      Marker(
+                                        point: _selectedLocation!,
+                                        width: 40,
+                                        height: 40,
+                                        child: Icon(
+                                          Icons.location_on,
+                                          color: Color(0xFF0078D7),
+                                          size: 40,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         SizedBox(height: 16),
                         Container(
                           padding: EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Latitude',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          widget.spot.latitude.toStringAsFixed(
-                                            6,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Latitude',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Longitude',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          widget.spot.longitude.toStringAsFixed(
-                                            6,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
+                                    SizedBox(height: 4),
+                                    Text(
+                                      _latitudeController.text,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                              SizedBox(height: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Altitude',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Longitude',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '${widget.spot.altitude.toStringAsFixed(1)}m',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
+                                    SizedBox(height: 4),
+                                    Text(
+                                      _longitudeController.text,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Altitude',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      '${_altitudeController.text} m',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
