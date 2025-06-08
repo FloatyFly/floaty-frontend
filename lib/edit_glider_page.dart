@@ -1,51 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:floaty/ui_components.dart';
-import 'package:floaty/constants.dart';
 import 'package:floaty_client/api.dart' as api;
+import 'package:floaty/constants.dart';
+import 'package:floaty/add_glider_page.dart';
+import 'package:floaty/ui_components.dart';
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'CookieAuth.dart';
 
-class AddGliderPage extends StatefulWidget {
+class EditGliderPage extends AddGliderPage {
+  final api.Glider glider;
+
+  EditGliderPage({required this.glider});
+
   @override
-  AddGliderPageState createState() => AddGliderPageState();
+  EditGliderPageState createState() => EditGliderPageState();
 }
 
-class AddGliderPageState extends State<AddGliderPage> {
+class EditGliderPageState extends AddGliderPageState {
   final _formKey = GlobalKey<FormState>();
   final _manufacturerController = TextEditingController();
   final _modelController = TextEditingController();
   bool _isLoading = false;
+  late api.Glider glider;
+  bool _isDeleting = false;
 
-  @protected
-  GlobalKey<FormState> get formKey => _formKey;
+  @override
+  void initState() {
+    super.initState();
+    glider = (widget as EditGliderPage).glider;
+    _manufacturerController.text = glider.manufacturer;
+    _modelController.text = glider.model;
+  }
 
-  @protected
-  TextEditingController get manufacturerController => _manufacturerController;
+  @override
+  void dispose() {
+    _manufacturerController.dispose();
+    _modelController.dispose();
+    super.dispose();
+  }
 
-  @protected
-  TextEditingController get modelController => _modelController;
-
-  @protected
-  bool get isLoading => _isLoading;
-
-  @protected
-  set isLoading(bool value) => _isLoading = value;
-
-  @protected
   CookieAuth _getCookieAuth() {
     CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
     return CookieAuth(cookieJar);
   }
 
+  Future<void> _deleteGlider() async {
+    setState(() {
+      _isDeleting = true;
+    });
+
+    try {
+      final apiClient = api.ApiClient(
+        basePath: backendUrl,
+        authentication: _getCookieAuth(),
+      );
+      final glidersApi = api.GlidersApi(apiClient);
+      await glidersApi.deleteGliderById(glider.id);
+
+      if (mounted) {
+        Navigator.pop(context, true); // Return true to indicate success
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting glider: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
+    }
+  }
+
+  @override
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       try {
-        final gliderCreate = api.GliderCreate(
+        final gliderUpdate = api.GliderUpdate(
           manufacturer: _manufacturerController.text,
           model: _modelController.text,
         );
@@ -56,7 +94,7 @@ class AddGliderPageState extends State<AddGliderPage> {
         );
         apiClient.addDefaultHeader('Accept', 'application/json');
         final glidersApi = api.GlidersApi(apiClient);
-        await glidersApi.createGlider(gliderCreate);
+        await glidersApi.updateGliderById(glider.id, gliderUpdate);
 
         if (mounted) {
           Navigator.pop(context, true); // Return true to indicate success
@@ -65,7 +103,7 @@ class AddGliderPageState extends State<AddGliderPage> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error creating glider: $e')));
+          ).showSnackBar(SnackBar(content: Text('Error updating glider: $e')));
         }
       } finally {
         if (mounted) {
@@ -119,7 +157,7 @@ class AddGliderPageState extends State<AddGliderPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Add New Glider',
+                          'Edit Glider',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -171,6 +209,14 @@ class AddGliderPageState extends State<AddGliderPage> {
                                       ? null
                                       : () => Navigator.pop(context),
                               child: Text('Cancel'),
+                            ),
+                            SizedBox(width: 16),
+                            TextButton(
+                              onPressed: _isLoading ? null : _deleteGlider,
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                              child: Text('Delete'),
                             ),
                             SizedBox(width: 16),
                             ElevatedButton(

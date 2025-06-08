@@ -14,6 +14,7 @@ import 'add_glider_page.dart';
 import 'forgot_password_page.dart';
 import 'gliders_page.dart';
 import 'spots_page.dart';
+import 'router.dart' as app_router;
 
 import 'flights_page.dart';
 import 'landing_page.dart';
@@ -39,6 +40,7 @@ class FloatyApp extends StatelessWidget {
         title: 'Floaty',
         theme: buildThemeData(),
         initialRoute: HOME_ROUTE,
+        onGenerateRoute: app_router.Router.generateRoute,
         routes: {
           HOME_ROUTE: (context) => HomePage(),
           LOGIN_ROUTE: (context) => LoginPage(),

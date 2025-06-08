@@ -5,20 +5,34 @@ import 'package:floaty/CookieAuth.dart';
 import 'package:floaty/ui_components.dart';
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
+import 'add_spot_page.dart';
 
-class AddSpotPage extends StatefulWidget {
-  const AddSpotPage({super.key});
+class EditSpotPage extends StatefulWidget {
+  final api.Spot spot;
+
+  const EditSpotPage({required this.spot, super.key});
 
   @override
-  State<AddSpotPage> createState() => _AddSpotPageState();
+  State<EditSpotPage> createState() => _EditSpotPageState();
 }
 
-class _AddSpotPageState extends State<AddSpotPage> {
+class _EditSpotPageState extends State<EditSpotPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  api.SpotCreateTypeEnum _selectedType = api.SpotCreateTypeEnum.LAUNCH_SITE;
+  late api.SpotUpdateTypeEnum _selectedType;
   bool _isLoading = false;
+  bool _isDeleting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.spot.name;
+    _descriptionController.text = widget.spot.description ?? '';
+    _selectedType = api.SpotUpdateTypeEnum.values.firstWhere(
+      (e) => e.toString() == widget.spot.type.toString(),
+    );
+  }
 
   @override
   void dispose() {
@@ -32,7 +46,63 @@ class _AddSpotPageState extends State<AddSpotPage> {
     return CookieAuth(cookieJar);
   }
 
-  Future<void> _saveNewSpot() async {
+  Future<void> _deleteSpot() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Delete Spot'),
+            content: Text('Are you sure you want to delete this spot?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('Delete'),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _isDeleting = true;
+    });
+
+    try {
+      final apiClient = api.ApiClient(
+        basePath: backendUrl,
+        authentication: _getCookieAuth(),
+      );
+      final spotsApi = api.SpotsApi(apiClient);
+      await spotsApi.deleteSpotById(widget.spot.spotId!);
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete spot. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _saveSpot() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -40,12 +110,12 @@ class _AddSpotPageState extends State<AddSpotPage> {
     });
 
     try {
-      final spot = api.SpotCreate(
+      final spotUpdate = api.SpotUpdate(
         name: _nameController.text,
         type: _selectedType,
-        latitude: 0.0, // Will be set by map widget
-        longitude: 0.0, // Will be set by map widget
-        altitude: 0, // Will be set by map widget
+        latitude: widget.spot.latitude,
+        longitude: widget.spot.longitude,
+        altitude: widget.spot.altitude,
         description:
             _descriptionController.text.isEmpty
                 ? null
@@ -57,7 +127,7 @@ class _AddSpotPageState extends State<AddSpotPage> {
         authentication: _getCookieAuth(),
       );
       final spotsApi = api.SpotsApi(apiClient);
-      await spotsApi.createSpot(spot);
+      await spotsApi.updateSpotById(widget.spot.spotId!, spotUpdate);
 
       if (mounted) {
         Navigator.pop(context, true);
@@ -66,7 +136,7 @@ class _AddSpotPageState extends State<AddSpotPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save spot. Please try again.'),
+            content: Text('Failed to update spot. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -78,6 +148,61 @@ class _AddSpotPageState extends State<AddSpotPage> {
         });
       }
     }
+  }
+
+  Widget _buildTypeButton(
+    api.SpotUpdateTypeEnum type,
+    String label,
+    bool isFirst,
+    bool isLast,
+  ) {
+    final isSelected = _selectedType == type;
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _selectedType = type;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            isSelected ? const Color(0xFF0078D7) : Colors.grey[200],
+        foregroundColor: isSelected ? Colors.white : Colors.black87,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        minimumSize: Size(0, 40),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(
+            left: Radius.circular(isFirst ? 4 : 0),
+            right: Radius.circular(isLast ? 4 : 0),
+          ),
+        ),
+        side: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildLockedField(String label, String value) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        ],
+      ),
+    );
   }
 
   @override
@@ -122,7 +247,7 @@ class _AddSpotPageState extends State<AddSpotPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Add New Spot',
+                          'Edit Spot',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -152,7 +277,7 @@ class _AddSpotPageState extends State<AddSpotPage> {
                           children: [
                             Expanded(
                               child: _buildTypeButton(
-                                api.SpotCreateTypeEnum.LAUNCH_SITE,
+                                api.SpotUpdateTypeEnum.LAUNCH_SITE,
                                 'Launch',
                                 true,
                                 false,
@@ -160,16 +285,8 @@ class _AddSpotPageState extends State<AddSpotPage> {
                             ),
                             Expanded(
                               child: _buildTypeButton(
-                                api.SpotCreateTypeEnum.LANDING_SITE,
+                                api.SpotUpdateTypeEnum.LANDING_SITE,
                                 'Landing',
-                                false,
-                                false,
-                              ),
-                            ),
-                            Expanded(
-                              child: _buildTypeButton(
-                                api.SpotCreateTypeEnum.LAUNCH_AND_LANDING_SITE,
-                                'Launch & Landing',
                                 false,
                                 true,
                               ),
@@ -202,7 +319,9 @@ class _AddSpotPageState extends State<AddSpotPage> {
                                         ),
                                         SizedBox(height: 4),
                                         Text(
-                                          '0.0',
+                                          widget.spot.latitude.toStringAsFixed(
+                                            6,
+                                          ),
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
@@ -225,7 +344,9 @@ class _AddSpotPageState extends State<AddSpotPage> {
                                         ),
                                         SizedBox(height: 4),
                                         Text(
-                                          '0.0',
+                                          widget.spot.longitude.toStringAsFixed(
+                                            6,
+                                          ),
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
@@ -249,7 +370,7 @@ class _AddSpotPageState extends State<AddSpotPage> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    '0 m',
+                                    '${widget.spot.altitude.toStringAsFixed(1)}m',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
@@ -282,8 +403,16 @@ class _AddSpotPageState extends State<AddSpotPage> {
                               child: Text('Cancel'),
                             ),
                             SizedBox(width: 16),
+                            TextButton(
+                              onPressed: _isLoading ? null : _deleteSpot,
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                              child: Text('Delete'),
+                            ),
+                            SizedBox(width: 16),
                             ElevatedButton(
-                              onPressed: _isLoading ? null : _saveNewSpot,
+                              onPressed: _isLoading ? null : _saveSpot,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFF0078D7),
                                 foregroundColor: Colors.white,
@@ -318,37 +447,6 @@ class _AddSpotPageState extends State<AddSpotPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTypeButton(
-    api.SpotCreateTypeEnum type,
-    String label,
-    bool isFirst,
-    bool isLast,
-  ) {
-    final isSelected = _selectedType == type;
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _selectedType = type;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isSelected ? const Color(0xFF0078D7) : Colors.grey[200],
-        foregroundColor: isSelected ? Colors.white : Colors.black87,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        minimumSize: Size(0, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.horizontal(
-            left: isFirst ? const Radius.circular(4) : Radius.zero,
-            right: isLast ? const Radius.circular(4) : Radius.zero,
-          ),
-        ),
-        elevation: 0,
-      ),
-      child: Text(label),
     );
   }
 }

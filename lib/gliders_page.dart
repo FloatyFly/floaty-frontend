@@ -19,6 +19,7 @@ class GlidersPage extends StatefulWidget {
 
 class _GlidersPageState extends State<GlidersPage> {
   late Future<List<api.Glider>> futureGliders;
+  int? _hoveredGliderId;
 
   @override
   void initState() {
@@ -96,32 +97,30 @@ class _GlidersPageState extends State<GlidersPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    ADD_GLIDER_ROUTE,
-                                  ).then((_) {
-                                    setState(() {
-                                      futureGliders = _fetchGliders();
-                                    });
-                                  });
-                                },
-                                icon: Icon(Icons.add),
-                                label: Text('Add Glider'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF0078D7),
-                                  foregroundColor: Colors.white,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  ADD_GLIDER_ROUTE,
+                                ).then((_) => setState(() {}));
+                              },
+                              icon: Icon(Icons.add),
+                              label: Text('Add Glider'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF0078D7),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
+                        SizedBox(height: 16),
                         Expanded(
                           child: FutureBuilder<List<api.Glider>>(
                             future: futureGliders,
@@ -205,40 +204,79 @@ class _GlidersPageState extends State<GlidersPage> {
                                       },
                                       itemBuilder: (context, index) {
                                         final glider = gliders[index];
-                                        return InkWell(
-                                          onTap: () {
-                                            // TODO: Navigate to edit glider page
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0,
-                                              vertical: 12.0,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    glider.model,
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Color(0xFF0078D7),
+                                        return MouseRegion(
+                                          onEnter:
+                                              (_) => setState(
+                                                () =>
+                                                    _hoveredGliderId =
+                                                        glider.id,
+                                              ),
+                                          onExit:
+                                              (_) => setState(
+                                                () => _hoveredGliderId = null,
+                                              ),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.pushNamed(
+                                                context,
+                                                EDIT_GLIDER_ROUTE,
+                                                arguments: glider,
+                                              ).then((_) {
+                                                setState(() {
+                                                  futureGliders =
+                                                      _fetchGliders();
+                                                });
+                                              });
+                                            },
+                                            child: Container(
+                                              width: double.infinity,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16.0,
+                                                      vertical: 12.0,
                                                     ),
-                                                  ),
-                                                ),
-                                                SizedBox(width: 24),
-                                                Expanded(
-                                                  child: Text(
-                                                    glider.manufacturer,
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        glider.model,
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              _hoveredGliderId ==
+                                                                      glider.id
+                                                                  ? Color(
+                                                                    0xFF0056b3,
+                                                                  )
+                                                                  : Color(
+                                                                    0xFF0078D7,
+                                                                  ),
+                                                          decoration:
+                                                              _hoveredGliderId ==
+                                                                      glider.id
+                                                                  ? TextDecoration
+                                                                      .underline
+                                                                  : TextDecoration
+                                                                      .none,
+                                                        ),
+                                                      ),
                                                     ),
-                                                  ),
+                                                    SizedBox(width: 24),
+                                                    Expanded(
+                                                      child: Text(
+                                                        glider.manufacturer,
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          color: Colors.black87,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
+                                              ),
                                             ),
                                           ),
                                         );

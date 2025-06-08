@@ -19,6 +19,7 @@ class SpotsPage extends StatefulWidget {
 
 class _SpotsPageState extends State<SpotsPage> {
   late Future<List<api.Spot>> futureSpots;
+  int? _hoveredSpotId;
 
   @override
   void initState() {
@@ -246,17 +247,6 @@ class _SpotsPageState extends State<SpotsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-        ),
         if (spots.isEmpty)
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -269,7 +259,7 @@ class _SpotsPageState extends State<SpotsPage> {
           ListView.separated(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
-            itemCount: spots.length,
+            itemCount: spots.length + 1,
             separatorBuilder: (context, index) {
               return Divider(
                 color: Colors.grey.withOpacity(0.3),
@@ -278,12 +268,9 @@ class _SpotsPageState extends State<SpotsPage> {
               );
             },
             itemBuilder: (context, index) {
-              final spot = spots[index];
-              return InkWell(
-                onTap: () {
-                  // TODO: Navigate to edit spot page
-                },
-                child: Padding(
+              if (index == 0) {
+                // Header row
+                return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 12.0,
@@ -292,36 +279,88 @@ class _SpotsPageState extends State<SpotsPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          spot.name,
+                          title,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0078D7),
+                            color: Colors.black87,
                           ),
                         ),
                       ),
                       SizedBox(width: 24),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Altitude',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            '${spot.altitude}m',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Altitude',
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
                       ),
                     ],
                   ),
+                );
+              }
+
+              final spot = spots[index - 1];
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: StatefulBuilder(
+                          builder: (context, setState) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  EDIT_SPOT_ROUTE,
+                                  arguments: spot,
+                                );
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                child: MouseRegion(
+                                  onEnter: (_) {
+                                    setState(() {
+                                      _hoveredSpotId = spot.spotId;
+                                    });
+                                  },
+                                  onExit: (_) {
+                                    setState(() {
+                                      _hoveredSpotId = null;
+                                    });
+                                  },
+                                  child: Text(
+                                    spot.name,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          _hoveredSpotId == spot.spotId
+                                              ? Color(
+                                                0xFF0056B3,
+                                              ) // Darker blue on hover
+                                              : Color(0xFF0078D7),
+                                      decoration:
+                                          _hoveredSpotId == spot.spotId
+                                              ? TextDecoration.underline
+                                              : TextDecoration.none,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 24),
+                    Text(
+                      '${spot.altitude}m',
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                  ],
                 ),
               );
             },
