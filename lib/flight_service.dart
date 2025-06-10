@@ -36,28 +36,29 @@ Future<List<model.Flight>> fetchFlights(
   }
 }
 
-Future<api.Flight?> addFlight(
-  model.Flight flight,
-  CookieAuth cookieAuth,
-) async {
+Future<api.Flight> addFlight(model.Flight flight, CookieAuth cookieAuth) async {
   final apiClient = api.ApiClient(
     basePath: backendUrl,
     authentication: cookieAuth,
   );
   final flightsApi = api.FlightsApi(apiClient);
 
-  api.Flight? flightDto = api.Flight.fromJson(flight.toJson());
-  if (flightDto == null) {
-    throw Exception('Failed to convert flight to DTO.');
-  }
+  // Create FlightCreate object with all required fields
+  final flightCreate = api.FlightCreate(
+    dateTime: DateTime.parse(flight.dateTime).toUtc(),
+    launchSpotId: flight.launchSpotId,
+    landingSpotId: flight.landingSpotId,
+    duration: flight.duration,
+    description: flight.description,
+    gliderId: flight.gliderId,
+  );
 
   try {
-    final response = await flightsApi.createFlightWithHttpInfo(flightDto);
-    if (response.statusCode == 201) {
-      return await flightsApi.createFlight(flightDto);
-    } else {
-      throw Exception('Failed to add flight: ${response.statusCode}');
+    final response = await flightsApi.createFlight(flightCreate);
+    if (response == null) {
+      throw Exception('Failed to create flight: No response from server');
     }
+    return response;
   } catch (e) {
     throw Exception('Failed to add flight: $e');
   }
@@ -86,7 +87,7 @@ Future<void> updateFlight(model.Flight flight, CookieAuth cookieAuth) async {
 
   // Create FlightUpdate object with all required fields
   final flightUpdate = api.FlightUpdate(
-    dateTime: DateTime.parse(flight.dateTime),
+    dateTime: DateTime.parse(flight.dateTime).toUtc(),
     launchSpotId: flight.launchSpotId,
     landingSpotId: flight.landingSpotId,
     duration: flight.duration,

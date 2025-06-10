@@ -24,14 +24,14 @@ class FlightsApi {
   ///
   /// Parameters:
   ///
-  /// * [Flight] flight (required):
+  /// * [FlightCreate] flightCreate (required):
   ///   Flight details including required glider and spots references
-  Future<Response> createFlightWithHttpInfo(Flight flight,) async {
+  Future<Response> createFlightWithHttpInfo(FlightCreate flightCreate,) async {
     // ignore: prefer_const_declarations
     final path = r'/flights';
 
     // ignore: prefer_final_locals
-    Object? postBody = flight;
+    Object? postBody = flightCreate;
 
     final queryParams = <QueryParam>[];
     final headerParams = <String, String>{};
@@ -57,10 +57,10 @@ class FlightsApi {
   ///
   /// Parameters:
   ///
-  /// * [Flight] flight (required):
+  /// * [FlightCreate] flightCreate (required):
   ///   Flight details including required glider and spots references
-  Future<Flight?> createFlight(Flight flight,) async {
-    final response = await createFlightWithHttpInfo(flight,);
+  Future<Flight?> createFlight(FlightCreate flightCreate,) async {
+    final response = await createFlightWithHttpInfo(flightCreate,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

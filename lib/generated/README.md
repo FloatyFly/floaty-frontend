@@ -94,6 +94,7 @@ Class | Method | HTTP request | Description
  - [DeleteGliderById409Response](doc//DeleteGliderById409Response.md)
  - [DeleteSpotById409Response](doc//DeleteSpotById409Response.md)
  - [Flight](doc//Flight.md)
+ - [FlightCreate](doc//FlightCreate.md)
  - [FlightUpdate](doc//FlightUpdate.md)
  - [GetGliderById404Response](doc//GetGliderById404Response.md)
  - [GetSpotById404Response](doc//GetSpotById404Response.md)

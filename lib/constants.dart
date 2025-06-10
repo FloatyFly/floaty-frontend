@@ -1,4 +1,5 @@
 import 'config.dart';
+import 'package:flutter_map/flutter_map.dart';
 
 var backendUrl = Config.backendUrl;
 
@@ -17,3 +18,14 @@ const EMAIL_VERIFICATION_ROUTE = '/verify-email';
 const STATS_ROUTE = '/stats';
 const SPOTS_ROUTE = '/spots';
 const GLIDERS_ROUTE = '/gliders';
+
+// Map tile URL - using OpenTopoMap which shows terrain and is CORS-friendly
+const mapTileUrl = 'https://tile.opentopomap.org/{z}/{x}/{y}.png';
+
+// Map tile layer options for better performance
+final mapTileOptions = TileLayer(
+  maxZoom: 17,
+  minZoom: 0,
+  tileSize: 256,
+  keepBuffer: 2,
+);

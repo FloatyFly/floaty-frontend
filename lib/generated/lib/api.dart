@@ -15,8 +15,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
+import 'package:http/browser_client.dart';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
@@ -42,6 +42,7 @@ part 'model/create_flight404_response.dart';
 part 'model/delete_glider_by_id409_response.dart';
 part 'model/delete_spot_by_id409_response.dart';
 part 'model/flight.dart';
+part 'model/flight_create.dart';
 part 'model/flight_update.dart';
 part 'model/get_glider_by_id404_response.dart';
 part 'model/get_spot_by_id404_response.dart';

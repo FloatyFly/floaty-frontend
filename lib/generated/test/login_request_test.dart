@@ -17,8 +17,8 @@ void main() {
 
   group('test LoginRequest', () {
     // The username of the user.
-    // String name
-    test('to test the property `name`', () async {
+    // String username
+    test('to test the property `username`', () async {
       // TODO
     });
 

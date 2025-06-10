@@ -11,6 +11,7 @@ doc/CreateFlight404Response.md
 doc/DeleteGliderById409Response.md
 doc/DeleteSpotById409Response.md
 doc/Flight.md
+doc/FlightCreate.md
 doc/FlightUpdate.md
 doc/FlightsApi.md
 doc/GetGliderById404Response.md
@@ -52,6 +53,7 @@ lib/model/create_flight404_response.dart
 lib/model/delete_glider_by_id409_response.dart
 lib/model/delete_spot_by_id409_response.dart
 lib/model/flight.dart
+lib/model/flight_create.dart
 lib/model/flight_update.dart
 lib/model/get_glider_by_id404_response.dart
 lib/model/get_spot_by_id404_response.dart
@@ -75,6 +77,7 @@ test/create_flight400_response_test.dart
 test/create_flight404_response_test.dart
 test/delete_glider_by_id409_response_test.dart
 test/delete_spot_by_id409_response_test.dart
+test/flight_create_test.dart
 test/flight_test.dart
 test/flight_update_test.dart
 test/flights_api_test.dart

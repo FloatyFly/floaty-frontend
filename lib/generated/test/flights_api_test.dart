@@ -21,7 +21,7 @@ void main() {
     //
     // Register a new flight for the authenticated user.
     //
-    //Future<Flight> createFlight(Flight flight) async
+    //Future<Flight> createFlight(FlightCreate flightCreate) async
     test('test createFlight', () async {
       // TODO
     });

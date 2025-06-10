@@ -5,11 +5,11 @@ import 'package:floaty/CookieAuth.dart';
 import 'package:floaty/ui_components.dart';
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:floaty/model.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
 class AddSpotPage extends StatefulWidget {
   const AddSpotPage({super.key});
@@ -29,6 +29,7 @@ class _AddSpotPageState extends State<AddSpotPage> {
   bool _isLoading = false;
   LatLng? _selectedLocation;
   final MapController _mapController = MapController();
+  bool _useCancellableProvider = true;
 
   @override
   void dispose() {
@@ -265,7 +266,7 @@ class _AddSpotPageState extends State<AddSpotPage> {
                         SizedBox(height: 16),
                         // Map Widget
                         Container(
-                          height: 200,
+                          height: 400,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.shade300),
                             borderRadius: BorderRadius.circular(8),
@@ -278,12 +279,25 @@ class _AddSpotPageState extends State<AddSpotPage> {
                                 initialCenter: LatLng(46.8182, 8.2275),
                                 initialZoom: 8,
                                 onTap: _onMapTap,
+                                interactionOptions: const InteractionOptions(
+                                  enableScrollWheel: true,
+                                  enableMultiFingerGestureRace: false,
+                                  flags:
+                                      InteractiveFlag.all &
+                                      ~InteractiveFlag.rotate,
+                                ),
                               ),
                               children: [
                                 TileLayer(
-                                  urlTemplate:
-                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName: 'com.floaty.app',
+                                  urlTemplate: mapTileUrl,
+                                  maxZoom: mapTileOptions.maxZoom,
+                                  minZoom: mapTileOptions.minZoom,
+                                  tileSize: mapTileOptions.tileSize,
+                                  keepBuffer: mapTileOptions.keepBuffer,
+                                  tileProvider:
+                                      _useCancellableProvider
+                                          ? CancellableNetworkTileProvider()
+                                          : null,
                                 ),
                                 if (_selectedLocation != null)
                                   MarkerLayer(

@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 
 # **createFlight**
-> Flight createFlight(flight)
+> Flight createFlight(flightCreate)
 
 Create a flight.
 
@@ -28,10 +28,10 @@ Register a new flight for the authenticated user.
 import 'package:floaty_client/api.dart';
 
 final api_instance = FlightsApi();
-final flight = Flight(); // Flight | Flight details including required glider and spots references
+final flightCreate = FlightCreate(); // FlightCreate | Flight details including required glider and spots references
 
 try {
-    final result = api_instance.createFlight(flight);
+    final result = api_instance.createFlight(flightCreate);
     print(result);
 } catch (e) {
     print('Exception when calling FlightsApi->createFlight: $e\n');
@@ -42,7 +42,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **flight** | [**Flight**](Flight.md)| Flight details including required glider and spots references | 
+ **flightCreate** | [**FlightCreate**](FlightCreate.md)| Flight details including required glider and spots references | 
 
 ### Return type
 

@@ -6,7 +6,7 @@ import 'constants.dart';
 import 'main.dart';
 
 class FloatyBackgroundWidget extends StatelessWidget {
-  const FloatyBackgroundWidget({Key? key}) : super(key: key);
+  const FloatyBackgroundWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -69,11 +69,11 @@ class AuthContainer extends StatelessWidget {
   final bool isFlightPage; // New parameter to identify flight pages
 
   const AuthContainer({
-    Key? key,
+    super.key,
     required this.headerText,
     required this.child,
     this.isFlightPage = false, // Default to false for backward compatibility
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +82,7 @@ class AuthContainer extends StatelessWidget {
         screenWidth > 400.0
             ? 400.0
             : screenWidth - 32.0; // 16px margin on each side
-    final containerHeight = 550.0;
+    const containerHeight = 550.0;
 
     return Center(
       child: Container(
@@ -140,7 +140,7 @@ class AuthContainer extends StatelessWidget {
 }
 
 class Header extends StatelessWidget {
-  const Header({Key? key}) : super(key: key);
+  const Header({super.key});
 
   @override
   Widget build(BuildContext context) {

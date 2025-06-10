@@ -13,43 +13,33 @@ part of openapi.api;
 class LoginRequest {
   /// Returns a new [LoginRequest] instance.
   LoginRequest({
-    this.name,
+    required this.username,
     required this.password,
   });
 
   /// The username of the user.
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
-  String? name;
+  String username;
 
   /// The password for the account.
   String password;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is LoginRequest &&
-    other.name == name &&
+    other.username == username &&
     other.password == password;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
-    (name == null ? 0 : name!.hashCode) +
+    (username.hashCode) +
     (password.hashCode);
 
   @override
-  String toString() => 'LoginRequest[name=$name, password=$password]';
+  String toString() => 'LoginRequest[username=$username, password=$password]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    if (this.name != null) {
-      json[r'name'] = this.name;
-    } else {
-      json[r'name'] = null;
-    }
+      json[r'username'] = this.username;
       json[r'password'] = this.password;
     return json;
   }
@@ -73,7 +63,7 @@ class LoginRequest {
       }());
 
       return LoginRequest(
-        name: mapValueOfType<String>(json, r'name'),
+        username: mapValueOfType<String>(json, r'username')!,
         password: mapValueOfType<String>(json, r'password')!,
       );
     }
@@ -122,6 +112,7 @@ class LoginRequest {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
+    'username',
     'password',
   };
 }

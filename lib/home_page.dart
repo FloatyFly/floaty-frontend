@@ -236,7 +236,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       )
                     else
-                      Container(
+                      SizedBox(
                         height: 500,
                         width: double.infinity,
                         child: Center(
@@ -482,7 +482,7 @@ class _HomePageState extends State<HomePage> {
 
                                 return Row(
                                   children: [
-                                    Container(
+                                    SizedBox(
                                       width: constraints.maxWidth * 0.5,
                                       child: Center(
                                         child: Container(
@@ -493,7 +493,7 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ),
                                     ),
-                                    Container(
+                                    SizedBox(
                                       width: constraints.maxWidth * 0.5,
                                       child: Center(child: buttonWidget),
                                     ),

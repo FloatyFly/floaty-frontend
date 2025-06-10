@@ -3,6 +3,7 @@ import 'package:floaty/ui_components.dart';
 import 'package:floaty/model.dart';
 import 'package:floaty/constants.dart';
 import 'package:floaty/spots_service.dart';
+import 'package:floaty/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
@@ -19,12 +20,14 @@ class SpotsPage extends StatefulWidget {
 
 class _SpotsPageState extends State<SpotsPage> {
   late Future<List<api.Spot>> futureSpots;
+  late Future<List<Flight>> futureFlights;
   int? _hoveredSpotId;
 
   @override
   void initState() {
     super.initState();
     futureSpots = _fetchSpots();
+    futureFlights = _fetchFlights();
   }
 
   CookieAuth _getCookieAuth() {
@@ -34,6 +37,10 @@ class _SpotsPageState extends State<SpotsPage> {
 
   Future<List<api.Spot>> _fetchSpots() {
     return fetchSpots(widget.user!.id, _getCookieAuth());
+  }
+
+  Future<List<Flight>> _fetchFlights() {
+    return fetchFlights(widget.user!.id, _getCookieAuth());
   }
 
   Future<void> _deleteSpot(int spotId) async {
@@ -200,27 +207,30 @@ class _SpotsPageState extends State<SpotsPage> {
                                   ),
                                 );
                               } else {
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: _buildSpotSection(
-                                        context,
-                                        'Launch Sites',
-                                        launchSpots,
-                                        true,
+                                return SingleChildScrollView(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: _buildSpotSection(
+                                          context,
+                                          'Launch Sites',
+                                          launchSpots,
+                                          true,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(width: 24),
-                                    Expanded(
-                                      child: _buildSpotSection(
-                                        context,
-                                        'Landing Sites',
-                                        landingSpots,
-                                        false,
+                                      SizedBox(width: 24),
+                                      Expanded(
+                                        child: _buildSpotSection(
+                                          context,
+                                          'Landing Sites',
+                                          landingSpots,
+                                          false,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 );
                               }
                             },
@@ -256,112 +266,198 @@ class _SpotsPageState extends State<SpotsPage> {
             ),
           )
         else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: spots.length + 1,
-            separatorBuilder: (context, index) {
-              return Divider(
-                color: Colors.grey.withOpacity(0.3),
-                height: 1,
-                thickness: 1,
-              );
-            },
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                // Header row
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 12.0,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 24),
-                      Text(
-                        'Altitude',
-                        style: TextStyle(fontSize: 14, color: Colors.black87),
-                      ),
-                    ],
-                  ),
-                );
+          FutureBuilder<List<Flight>>(
+            future: futureFlights,
+            builder: (context, flightsSnapshot) {
+              if (!flightsSnapshot.hasData) {
+                return Center(child: CircularProgressIndicator());
               }
 
-              final spot = spots[index - 1];
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 12.0,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: StatefulBuilder(
-                          builder: (context, setState) {
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  EDIT_SPOT_ROUTE,
-                                  arguments: spot,
-                                );
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                child: MouseRegion(
-                                  onEnter: (_) {
-                                    setState(() {
-                                      _hoveredSpotId = spot.spotId;
-                                    });
-                                  },
-                                  onExit: (_) {
-                                    setState(() {
-                                      _hoveredSpotId = null;
-                                    });
-                                  },
-                                  child: Text(
-                                    spot.name,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color:
-                                          _hoveredSpotId == spot.spotId
-                                              ? Color(
-                                                0xFF0056B3,
-                                              ) // Darker blue on hover
-                                              : Color(0xFF0078D7),
-                                      decoration:
-                                          _hoveredSpotId == spot.spotId
-                                              ? TextDecoration.underline
-                                              : TextDecoration.none,
-                                    ),
+              final flights = flightsSnapshot.data!;
+              final spotUsage = <int, int>{};
+
+              // Calculate usage for each spot
+              for (final flight in flights) {
+                if (isLaunch) {
+                  spotUsage[flight.launchSpotId] =
+                      (spotUsage[flight.launchSpotId] ?? 0) + 1;
+                } else {
+                  spotUsage[flight.landingSpotId] =
+                      (spotUsage[flight.landingSpotId] ?? 0) + 1;
+                }
+              }
+
+              // Sort spots by usage count
+              spots.sort((a, b) {
+                final aUsage = spotUsage[a.spotId] ?? 0;
+                final bUsage = spotUsage[b.spotId] ?? 0;
+                return bUsage.compareTo(aUsage); // Descending order
+              });
+
+              return Column(
+                children: [
+                  // Header row
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          flex: 1,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  isLaunch ? 'Launches' : 'Landings',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
                                   ),
                                 ),
                               ),
-                            );
-                          },
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  'Altitude',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    SizedBox(width: 24),
-                    Text(
-                      '${spot.altitude}m',
-                      style: TextStyle(fontSize: 14, color: Colors.black87),
-                    ),
-                  ],
-                ),
+                  ),
+                  // Header separator
+                  Divider(
+                    color: Colors.grey.withOpacity(0.3),
+                    height: 1,
+                    thickness: 1,
+                  ),
+                  // Spots list
+                  ...spots.map((spot) {
+                    final usage = spotUsage[spot.spotId] ?? 0;
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 12.0,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: StatefulBuilder(
+                                    builder: (context, setState) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            EDIT_SPOT_ROUTE,
+                                            arguments: spot,
+                                          ).then((_) {
+                                            setState(() {
+                                              futureSpots = _fetchSpots();
+                                            });
+                                          });
+                                        },
+                                        child: SizedBox(
+                                          width: double.infinity,
+                                          child: MouseRegion(
+                                            onEnter: (_) {
+                                              setState(() {
+                                                _hoveredSpotId = spot.spotId;
+                                              });
+                                            },
+                                            onExit: (_) {
+                                              setState(() {
+                                                _hoveredSpotId = null;
+                                              });
+                                            },
+                                            child: Text(
+                                              spot.name,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color:
+                                                    _hoveredSpotId ==
+                                                            spot.spotId
+                                                        ? Color(0xFF0056B3)
+                                                        : Color(0xFF0078D7),
+                                                decoration:
+                                                    _hoveredSpotId ==
+                                                            spot.spotId
+                                                        ? TextDecoration
+                                                            .underline
+                                                        : TextDecoration.none,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                flex: 1,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        usage.toString(),
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        '${spot.altitude}m',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          color: Colors.grey.withOpacity(0.3),
+                          height: 1,
+                          thickness: 1,
+                        ),
+                      ],
+                    );
+                  }),
+                ],
               );
             },
           ),

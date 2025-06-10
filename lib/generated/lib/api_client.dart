@@ -253,6 +253,8 @@ class ApiClient {
           return DeleteSpotById409Response.fromJson(value);
         case 'Flight':
           return Flight.fromJson(value);
+        case 'FlightCreate':
+          return FlightCreate.fromJson(value);
         case 'FlightUpdate':
           return FlightUpdate.fromJson(value);
         case 'GetGliderById404Response':

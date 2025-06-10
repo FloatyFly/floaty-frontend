@@ -17,7 +17,6 @@ import 'spots_page.dart';
 import 'router.dart' as app_router;
 
 import 'flights_page.dart';
-import 'landing_page.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 

@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'package:floaty_client/api.dart' as api;
-import 'package:http/http.dart' as http;
 
 import 'CookieAuth.dart';
 import 'constants.dart';
-import 'model.dart' as model;
 
 Future<List<api.Glider>> fetchGliders(CookieAuth cookieAuth) async {
   final apiClient = api.ApiClient(

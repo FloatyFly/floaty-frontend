@@ -3,6 +3,7 @@ import 'package:floaty/ui_components.dart';
 import 'package:floaty/model.dart';
 import 'package:floaty/constants.dart';
 import 'package:floaty/gliders_service.dart';
+import 'package:floaty/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
@@ -19,12 +20,14 @@ class GlidersPage extends StatefulWidget {
 
 class _GlidersPageState extends State<GlidersPage> {
   late Future<List<api.Glider>> futureGliders;
+  late Future<List<Flight>> futureFlights;
   int? _hoveredGliderId;
 
   @override
   void initState() {
     super.initState();
     futureGliders = _fetchGliders();
+    futureFlights = _fetchFlights();
   }
 
   CookieAuth _getCookieAuth() {
@@ -34,6 +37,19 @@ class _GlidersPageState extends State<GlidersPage> {
 
   Future<List<api.Glider>> _fetchGliders() {
     return fetchGliders(_getCookieAuth());
+  }
+
+  Future<List<Flight>> _fetchFlights() {
+    return fetchFlights(widget.user!.id, _getCookieAuth());
+  }
+
+  String _formatDuration(int minutes) {
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    if (hours > 0) {
+      return '$hours:${remainingMinutes.toString().padLeft(2, '0')}';
+    }
+    return '$remainingMinutes min';
   }
 
   Future<void> _deleteGlider(int gliderId) async {
@@ -177,7 +193,16 @@ class _GlidersPageState extends State<GlidersPage> {
                                             'Manufacturer',
                                             style: TextStyle(
                                               fontSize: 14,
-                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 24),
+                                        Expanded(
+                                          child: Text(
+                                            'Air Time',
+                                            style: TextStyle(
+                                              fontSize: 14,
                                               color: Colors.black87,
                                             ),
                                           ),
@@ -193,92 +218,160 @@ class _GlidersPageState extends State<GlidersPage> {
                                   ),
                                   // Gliders list
                                   Expanded(
-                                    child: ListView.separated(
-                                      itemCount: gliders.length,
-                                      separatorBuilder: (context, index) {
-                                        return Divider(
-                                          color: Colors.grey.withOpacity(0.3),
-                                          height: 1,
-                                          thickness: 1,
-                                        );
-                                      },
-                                      itemBuilder: (context, index) {
-                                        final glider = gliders[index];
-                                        return MouseRegion(
-                                          onEnter:
-                                              (_) => setState(
-                                                () =>
-                                                    _hoveredGliderId =
-                                                        glider.id,
+                                    child: FutureBuilder<List<Flight>>(
+                                      future: futureFlights,
+                                      builder: (context, flightsSnapshot) {
+                                        if (!flightsSnapshot.hasData) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        }
+
+                                        final flights = flightsSnapshot.data!;
+                                        final gliderAirTime = <int, int>{};
+
+                                        // Calculate air time for each glider
+                                        for (final flight in flights) {
+                                          gliderAirTime[flight.gliderId] =
+                                              (gliderAirTime[flight.gliderId] ??
+                                                  0) +
+                                              flight.duration;
+                                        }
+
+                                        return ListView.separated(
+                                          itemCount: gliders.length,
+                                          separatorBuilder: (context, index) {
+                                            return Divider(
+                                              color: Colors.grey.withOpacity(
+                                                0.3,
                                               ),
-                                          onExit:
-                                              (_) => setState(
-                                                () => _hoveredGliderId = null,
-                                              ),
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              Navigator.pushNamed(
-                                                context,
-                                                EDIT_GLIDER_ROUTE,
-                                                arguments: glider,
-                                              ).then((_) {
-                                                setState(() {
-                                                  futureGliders =
-                                                      _fetchGliders();
-                                                });
-                                              });
-                                            },
-                                            child: Container(
-                                              width: double.infinity,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 16.0,
-                                                      vertical: 12.0,
-                                                    ),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Text(
-                                                        glider.model,
-                                                        style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              _hoveredGliderId ==
-                                                                      glider.id
-                                                                  ? Color(
-                                                                    0xFF0056b3,
-                                                                  )
-                                                                  : Color(
-                                                                    0xFF0078D7,
-                                                                  ),
-                                                          decoration:
-                                                              _hoveredGliderId ==
-                                                                      glider.id
-                                                                  ? TextDecoration
-                                                                      .underline
-                                                                  : TextDecoration
-                                                                      .none,
+                                              height: 1,
+                                              thickness: 1,
+                                            );
+                                          },
+                                          itemBuilder: (context, index) {
+                                            final glider = gliders[index];
+                                            final airTime =
+                                                gliderAirTime[glider.id] ?? 0;
+
+                                            return MouseRegion(
+                                              onEnter:
+                                                  (_) => setState(
+                                                    () =>
+                                                        _hoveredGliderId =
+                                                            glider.id,
+                                                  ),
+                                              onExit:
+                                                  (_) => setState(
+                                                    () =>
+                                                        _hoveredGliderId = null,
+                                                  ),
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  Navigator.pushNamed(
+                                                    context,
+                                                    EDIT_GLIDER_ROUTE,
+                                                    arguments: glider,
+                                                  ).then((_) {
+                                                    setState(() {
+                                                      futureGliders =
+                                                          _fetchGliders();
+                                                    });
+                                                  });
+                                                },
+                                                child: SizedBox(
+                                                  width: double.infinity,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 16.0,
+                                                          vertical: 12.0,
                                                         ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 24),
-                                                    Expanded(
-                                                      child: Text(
-                                                        glider.manufacturer,
-                                                        style: TextStyle(
-                                                          fontSize: 14,
-                                                          color: Colors.black87,
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            glider.model,
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  _hoveredGliderId ==
+                                                                          glider
+                                                                              .id
+                                                                      ? Color(
+                                                                        0xFF0056b3,
+                                                                      )
+                                                                      : Color(
+                                                                        0xFF0078D7,
+                                                                      ),
+                                                              decoration:
+                                                                  _hoveredGliderId ==
+                                                                          glider
+                                                                              .id
+                                                                      ? TextDecoration
+                                                                          .underline
+                                                                      : TextDecoration
+                                                                          .none,
+                                                            ),
+                                                          ),
                                                         ),
-                                                      ),
+                                                        SizedBox(width: 24),
+                                                        Expanded(
+                                                          child: Text(
+                                                            glider.manufacturer,
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color:
+                                                                  Colors
+                                                                      .black87,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 24),
+                                                        Expanded(
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .access_time,
+                                                                size: 15,
+                                                                color:
+                                                                    Colors
+                                                                        .black54,
+                                                              ),
+                                                              SizedBox(
+                                                                width: 4,
+                                                              ),
+                                                              Text(
+                                                                _formatDuration(
+                                                                  airTime,
+                                                                ),
+                                                                style: TextStyle(
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color:
+                                                                      Colors
+                                                                          .black87,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ),
+                                            );
+                                          },
                                         );
                                       },
                                     ),

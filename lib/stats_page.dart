@@ -6,13 +6,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'dart:math' show pi;
 import 'package:intl/intl.dart';
 import 'package:floaty_client/api.dart' as api;
-
-import 'CookieAuth.dart';
 import 'flight_service.dart';
 import 'spots_service.dart';
 import 'gliders_service.dart';
+import 'edit_flight_page.dart';
+import 'CookieAuth.dart';
 import 'main.dart';
 import 'model.dart';
+import 'constants.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
 class StatsPage extends StatefulWidget {
   final FloatyUser? user;
@@ -27,15 +31,23 @@ class _StatsPageState extends State<StatsPage> {
   late Future<List<api.Spot>> futureSpots;
   late Future<List<api.Glider>> futureGliders;
   late FloatyUser _currentUser;
+  late MapController _mapController;
+  bool _useCancellableProvider = true;
 
   @override
   void initState() {
     super.initState();
-
+    _mapController = MapController();
     _currentUser = Provider.of<AppState>(context, listen: false).currentUser!;
     futureFlights = _fetchFlights();
     futureSpots = _fetchSpots();
     futureGliders = _fetchGliders();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
   }
 
   CookieAuth _getCookieAuth() {
@@ -198,7 +210,179 @@ class _StatsPageState extends State<StatsPage> {
                   _buildMonthlyAirtimeChart(flights, containerWidth),
                   SizedBox(height: 20),
                   _buildYearlySummaryBox(flights, containerWidth, isMobile),
-                  SizedBox(height: 20),
+                  SizedBox(height: 24),
+                  // Map Widget
+                  Container(
+                    height: 400, // Double the height of the add spots map
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: FutureBuilder<List<api.Spot>>(
+                        future: futureSpots,
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+
+                          final spots = snapshot.data!;
+
+                          // Calculate spot usage statistics
+                          Map<int, int> spotUsage = {};
+                          for (final flight in flights) {
+                            spotUsage[flight.launchSpotId] =
+                                (spotUsage[flight.launchSpotId] ?? 0) + 1;
+                            spotUsage[flight.landingSpotId] =
+                                (spotUsage[flight.landingSpotId] ?? 0) + 1;
+                          }
+
+                          // Find max usage across all spots
+                          final maxUsage = spotUsage.values.fold(
+                            0,
+                            (max, usage) => usage > max ? usage : max,
+                          );
+                          const minUsage =
+                              1; // Minimum size for spots with one usage
+
+                          final launchSpots =
+                              spots
+                                  .where(
+                                    (spot) =>
+                                        spot.type ==
+                                            api.SpotTypeEnum.LAUNCH_SITE ||
+                                        spot.type ==
+                                            api
+                                                .SpotTypeEnum
+                                                .LAUNCH_AND_LANDING_SITE,
+                                  )
+                                  .toList();
+                          final landingSpots =
+                              spots
+                                  .where(
+                                    (spot) =>
+                                        spot.type ==
+                                            api.SpotTypeEnum.LANDING_SITE ||
+                                        spot.type ==
+                                            api
+                                                .SpotTypeEnum
+                                                .LAUNCH_AND_LANDING_SITE,
+                                  )
+                                  .toList();
+
+                          // Calculate bounds to fit all spots
+                          LatLngBounds? bounds;
+                          if (spots.isNotEmpty) {
+                            bounds = LatLngBounds.fromPoints(
+                              spots
+                                  .map(
+                                    (spot) =>
+                                        LatLng(spot.latitude, spot.longitude),
+                                  )
+                                  .toList(),
+                            );
+                          }
+
+                          return FlutterMap(
+                            mapController: _mapController,
+                            options: MapOptions(
+                              initialCenter: LatLng(
+                                46.8182,
+                                8.2275,
+                              ), // Switzerland center
+                              initialZoom: 8,
+                              onMapReady: () {
+                                if (bounds != null) {
+                                  _mapController.fitBounds(
+                                    bounds,
+                                    options: const FitBoundsOptions(
+                                      padding: EdgeInsets.all(50),
+                                    ),
+                                  );
+                                }
+                              },
+                              interactionOptions: const InteractionOptions(
+                                enableScrollWheel: true,
+                                enableMultiFingerGestureRace: false,
+                                flags:
+                                    InteractiveFlag.all &
+                                    ~InteractiveFlag.rotate,
+                              ),
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate: mapTileUrl,
+                                maxZoom: mapTileOptions.maxZoom,
+                                minZoom: mapTileOptions.minZoom,
+                                tileSize: mapTileOptions.tileSize,
+                                keepBuffer: mapTileOptions.keepBuffer,
+                                tileProvider:
+                                    _useCancellableProvider
+                                        ? CancellableNetworkTileProvider()
+                                        : null,
+                              ),
+                              MarkerLayer(
+                                markers: [
+                                  ...launchSpots.map((spot) {
+                                    final usage = spotUsage[spot.spotId] ?? 0;
+                                    final size =
+                                        20 +
+                                        (usage - minUsage) *
+                                            (40.0 / (maxUsage - minUsage));
+                                    return Marker(
+                                      point: LatLng(
+                                        spot.latitude,
+                                        spot.longitude,
+                                      ),
+                                      width: size,
+                                      height: size,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.green.withOpacity(0.3),
+                                          border: Border.all(
+                                            color: Colors.green,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                  ...landingSpots.map((spot) {
+                                    final usage = spotUsage[spot.spotId] ?? 0;
+                                    final size =
+                                        20 +
+                                        (usage - minUsage) *
+                                            (40.0 / (maxUsage - minUsage));
+                                    return Marker(
+                                      point: LatLng(
+                                        spot.latitude,
+                                        spot.longitude,
+                                      ),
+                                      width: size,
+                                      height: size,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.red.withOpacity(0.3),
+                                          border: Border.all(
+                                            color: Colors.red,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24),
                   _buildTopFlightsList(topFlights, containerWidth, isMobile),
                   SizedBox(height: 20),
                 ],
@@ -240,12 +424,12 @@ class _StatsPageState extends State<StatsPage> {
             final spots = spotsSnapshot.data!;
             final gliders = glidersSnapshot.data!;
 
-            String getSpotName(String spotId) {
+            String getSpotName(int spotId) {
               final spot = spots.firstWhere(
                 (spot) => spot.spotId == spotId,
                 orElse:
                     () => api.Spot(
-                      spotId: int.parse(spotId),
+                      spotId: spotId,
                       name: 'Unknown Spot',
                       type: api.SpotTypeEnum.LAUNCH_SITE,
                       latitude: 0,
@@ -256,12 +440,12 @@ class _StatsPageState extends State<StatsPage> {
               return spot.name;
             }
 
-            String getGliderName(String gliderId) {
+            String getGliderName(int gliderId) {
               final glider = gliders.firstWhere(
                 (glider) => glider.id == gliderId,
                 orElse:
                     () => api.Glider(
-                      id: int.parse(gliderId),
+                      id: gliderId,
                       manufacturer: 'Unknown',
                       model: 'Unknown',
                     ),
@@ -285,150 +469,133 @@ class _StatsPageState extends State<StatsPage> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
-                  ...flights
-                      .map(
-                        (flight) => Padding(
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: flights.length,
+                    separatorBuilder: (context, index) {
+                      return Divider(
+                        color: Colors.grey.withOpacity(0.3),
+                        height: 1,
+                        thickness: 1,
+                      );
+                    },
+                    itemBuilder: (context, index) {
+                      final flight = flights[index];
+                      final flightNumber = "${index + 1}";
+
+                      return GestureDetector(
+                        onTap: () => _navigateToEditFlight(context, flight),
+                        child: Padding(
                           padding: EdgeInsets.symmetric(
                             vertical: 8,
-                            horizontal: isMobile ? 8 : 40,
+                            horizontal: isMobile ? 8 : 16,
                           ),
-                          child: Column(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.flight_takeoff,
-                                    size: 16,
-                                    color: Colors.orange,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Launch:",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    getSpotName(flight.launchSpotId.toString()),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF0078D7),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.flight_land,
-                                    size: 16,
-                                    color: Colors.orange,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Landing:",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    getSpotName(
-                                      flight.landingSpotId.toString(),
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF0078D7),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.airplanemode_active,
-                                    size: 16,
-                                    color: Colors.orange,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Glider:",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    getGliderName(flight.gliderId.toString()),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF0078D7),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 4),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    DateFormat(
-                                      'dd.MM.yyyy',
-                                    ).format(DateTime.parse(flight.dateTime)),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.access_time,
-                                        size: 15,
-                                        color: Colors.black54,
+                              // Flight number + date
+                              SizedBox(
+                                width: 90,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      flightNumber,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
                                       ),
-                                      SizedBox(width: 4),
+                                    ),
+                                    Text(
+                                      DateFormat(
+                                        'dd.MM.yyyy',
+                                      ).format(DateTime.parse(flight.dateTime)),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black54,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Title and description
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 24.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
                                       Text(
-                                        "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
+                                        "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
                                         style: TextStyle(
-                                          fontSize: 14,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0078D7),
                                         ),
                                       ),
+                                      if (flight.description.isNotEmpty) ...[
+                                        SizedBox(height: 4),
+                                        Text(
+                                          flight.description,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black87,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ],
                                   ),
-                                ],
-                              ),
-                              if (flight.description.isNotEmpty) ...[
-                                SizedBox(height: 4),
-                                Text(
-                                  flight.description,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ],
+                              ),
+                              // Glider name and duration
+                              SizedBox(
+                                width: 120,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      getGliderName(flight.gliderId),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                    SizedBox(height: 4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.access_time,
+                                          size: 15,
+                                          color: Colors.black54,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      )
-                      .toList(),
+                      );
+                    },
+                  ),
                 ],
               ),
             );
@@ -436,6 +603,19 @@ class _StatsPageState extends State<StatsPage> {
         );
       },
     );
+  }
+
+  void _navigateToEditFlight(BuildContext context, Flight flight) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditFlightPage(flight: flight)),
+    );
+
+    if (result == true) {
+      setState(() {
+        futureFlights = _fetchFlights();
+      });
+    }
   }
 }
 
@@ -1532,7 +1712,7 @@ Widget _buildYearlySummaryBox(
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     ),
   );

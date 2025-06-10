@@ -16,11 +16,11 @@ class LoginForm extends StatefulWidget {
   final bool isProcessing;
 
   const LoginForm({
-    Key? key,
+    super.key,
     required this.onSubmit,
     this.errorMessage,
     this.isProcessing = false,
-  }) : super(key: key);
+  });
 
   @override
   _LoginFormState createState() => _LoginFormState();
@@ -324,7 +324,7 @@ Future<User?> loginAndExtractSessionCookie(
   final apiClient = ApiClient(basePath: backendUrl);
   final authApi = AuthApi(apiClient);
 
-  final loginRequest = LoginRequest(name: username, password: password);
+  final loginRequest = LoginRequest(username: username, password: password);
   final response = await authApi.loginUserWithHttpInfo(loginRequest);
 
   if (response.statusCode == 401) {

@@ -9,6 +9,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
 class EditSpotPage extends StatefulWidget {
   final api.Spot spot;
@@ -31,6 +32,7 @@ class _EditSpotPageState extends State<EditSpotPage> {
   bool _isDeleting = false;
   LatLng? _selectedLocation;
   final MapController _mapController = MapController();
+  bool _useCancellableProvider = true;
 
   @override
   void initState() {
@@ -62,6 +64,67 @@ class _EditSpotPageState extends State<EditSpotPage> {
     return CookieAuth(cookieJar);
   }
 
+  Future<double> _getElevation(LatLng location) async {
+    try {
+      print(
+        'Fetching elevation for: ${location.latitude}, ${location.longitude}',
+      );
+      final response = await http.get(
+        Uri.parse(
+          'https://api.open-meteo.com/v1/elevation?latitude=${location.latitude}&longitude=${location.longitude}&timezone=auto',
+        ),
+      );
+
+      print('Elevation API response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('Parsed elevation data: $data');
+        if (data['elevation'] != null &&
+            data['elevation'] is List &&
+            data['elevation'].isNotEmpty) {
+          final elevation = (data['elevation'][0] as num).toDouble();
+          print('Got elevation: $elevation');
+          return elevation;
+        }
+      }
+      print('Error getting elevation: ${response.body}');
+      return 0.0;
+    } catch (e) {
+      print('Error getting elevation: $e');
+      return 0.0;
+    }
+  }
+
+  void _onMapTap(TapPosition tapPosition, LatLng location) async {
+    print('Map tapped at: ${location.latitude}, ${location.longitude}');
+
+    // First update the location and coordinates
+    setState(() {
+      _selectedLocation = location;
+      _latitudeController.text = location.latitude.toStringAsFixed(3);
+      _longitudeController.text = location.longitude.toStringAsFixed(3);
+    });
+
+    // Then get and update the elevation
+    try {
+      final elevation = await _getElevation(location);
+      print('Setting elevation to: $elevation');
+      if (mounted) {
+        setState(() {
+          _altitudeController.text = elevation.round().toString();
+        });
+      }
+    } catch (e) {
+      print('Error updating elevation: $e');
+      if (mounted) {
+        setState(() {
+          _altitudeController.text = '0';
+        });
+      }
+    }
+  }
+
   Future<void> _deleteSpot() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -76,8 +139,8 @@ class _EditSpotPageState extends State<EditSpotPage> {
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text('Delete'),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text('Delete'),
               ),
             ],
           ),
@@ -95,7 +158,7 @@ class _EditSpotPageState extends State<EditSpotPage> {
         authentication: _getCookieAuth(),
       );
       final spotsApi = api.SpotsApi(apiClient);
-      await spotsApi.deleteSpotById(widget.spot.spotId!);
+      await spotsApi.deleteSpotById(widget.spot.spotId);
 
       if (mounted) {
         Navigator.pop(context, true);
@@ -143,7 +206,7 @@ class _EditSpotPageState extends State<EditSpotPage> {
         authentication: _getCookieAuth(),
       );
       final spotsApi = api.SpotsApi(apiClient);
-      await spotsApi.updateSpotById(widget.spot.spotId!, spotUpdate);
+      await spotsApi.updateSpotById(widget.spot.spotId, spotUpdate);
 
       if (mounted) {
         Navigator.pop(context, true);
@@ -291,7 +354,7 @@ class _EditSpotPageState extends State<EditSpotPage> {
                         ),
                         SizedBox(height: 16),
                         Container(
-                          height: 200,
+                          height: 400,
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: Colors.grey.withOpacity(0.3),
@@ -305,21 +368,26 @@ class _EditSpotPageState extends State<EditSpotPage> {
                               options: MapOptions(
                                 initialCenter: _selectedLocation!,
                                 initialZoom: 13,
-                                onTap: (tapPosition, point) {
-                                  setState(() {
-                                    _selectedLocation = point;
-                                    _latitudeController.text = point.latitude
-                                        .toStringAsFixed(3);
-                                    _longitudeController.text = point.longitude
-                                        .toStringAsFixed(3);
-                                  });
-                                },
+                                onTap: _onMapTap,
+                                interactionOptions: const InteractionOptions(
+                                  enableScrollWheel: true,
+                                  enableMultiFingerGestureRace: false,
+                                  flags:
+                                      InteractiveFlag.all &
+                                      ~InteractiveFlag.rotate,
+                                ),
                               ),
                               children: [
                                 TileLayer(
-                                  urlTemplate:
-                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName: 'com.example.app',
+                                  urlTemplate: mapTileUrl,
+                                  maxZoom: mapTileOptions.maxZoom,
+                                  minZoom: mapTileOptions.minZoom,
+                                  tileSize: mapTileOptions.tileSize,
+                                  keepBuffer: mapTileOptions.keepBuffer,
+                                  tileProvider:
+                                      _useCancellableProvider
+                                          ? CancellableNetworkTileProvider()
+                                          : null,
                                 ),
                                 MarkerLayer(
                                   markers: [

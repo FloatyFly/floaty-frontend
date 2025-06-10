@@ -1,16 +1,19 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/flight_service.dart';
+import 'package:floaty/gliders_service.dart';
+import 'package:floaty/spots_service.dart';
 import 'package:floaty/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'CookieAuth.dart';
 import 'model.dart';
+import 'package:floaty_client/api.dart' as api;
 
 class EditFlightPage extends StatefulWidget {
   final Flight flight;
 
-  const EditFlightPage({Key? key, required this.flight}) : super(key: key);
+  const EditFlightPage({super.key, required this.flight});
 
   @override
   _EditFlightPageState createState() => _EditFlightPageState();
@@ -19,22 +22,22 @@ class EditFlightPage extends StatefulWidget {
 class _EditFlightPageState extends State<EditFlightPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _dateController;
-  late TextEditingController _launchSpotController;
-  late TextEditingController _landingSpotController;
-  late TextEditingController _gliderController;
   late TextEditingController _descriptionController;
   final _focusDate = FocusNode();
-  final _focusLaunchSpot = FocusNode();
-  final _focusLandingSpot = FocusNode();
-  final _focusGlider = FocusNode();
   final _focusDescription = FocusNode();
 
-  bool isProcessing = false;
+  bool _isLoading = false;
   String? errorMessage;
   String? flightTimeErrorMessage;
 
   int? selectedHours;
   int? selectedMinutes;
+  int? selectedLaunchSpotId;
+  int? selectedLandingSpotId;
+  int? selectedGliderId;
+
+  late Future<List<api.Spot>> futureSpots;
+  late Future<List<api.Glider>> futureGliders;
 
   final DateFormat formatter = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
@@ -47,18 +50,14 @@ class _EditFlightPageState extends State<EditFlightPage> {
     _dateController = TextEditingController(
       text: DateFormat("dd.MM.yyyy").format(date),
     );
-    _launchSpotController = TextEditingController(
-      text: widget.flight.launchSpotId.toString(),
-    );
-    _landingSpotController = TextEditingController(
-      text: widget.flight.landingSpotId.toString(),
-    );
-    _gliderController = TextEditingController(
-      text: widget.flight.gliderId.toString(),
-    );
     _descriptionController = TextEditingController(
       text: widget.flight.description,
     );
+
+    // Set initial values for dropdowns
+    selectedLaunchSpotId = widget.flight.launchSpotId;
+    selectedLandingSpotId = widget.flight.landingSpotId;
+    selectedGliderId = widget.flight.gliderId;
 
     // Set initial duration values
     selectedHours = widget.flight.duration ~/ 60;
@@ -72,19 +71,17 @@ class _EditFlightPageState extends State<EditFlightPage> {
         selectedHours = (selectedHours ?? 0) + 1;
       }
     }
+
+    // Initialize futures for spots and gliders
+    futureSpots = fetchAllSpots(_getCookieAuth());
+    futureGliders = fetchGliders(_getCookieAuth());
   }
 
   @override
   void dispose() {
     _dateController.dispose();
-    _launchSpotController.dispose();
-    _landingSpotController.dispose();
-    _gliderController.dispose();
     _descriptionController.dispose();
     _focusDate.dispose();
-    _focusLaunchSpot.dispose();
-    _focusLandingSpot.dispose();
-    _focusGlider.dispose();
     _focusDescription.dispose();
     super.dispose();
   }
@@ -106,7 +103,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
     }
 
     setState(() {
-      isProcessing = true;
+      _isLoading = true;
       errorMessage = null;
       flightTimeErrorMessage = null;
     });
@@ -123,9 +120,9 @@ class _EditFlightPageState extends State<EditFlightPage> {
       Flight updatedFlight = Flight(
         flightId: widget.flight.flightId,
         dateTime: formattedDate,
-        launchSpotId: int.parse(_launchSpotController.text),
-        landingSpotId: int.parse(_landingSpotController.text),
-        gliderId: int.parse(_gliderController.text),
+        launchSpotId: selectedLaunchSpotId!,
+        landingSpotId: selectedLandingSpotId!,
+        gliderId: selectedGliderId!,
         duration: duration,
         description: _descriptionController.text,
       );
@@ -138,7 +135,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
     } catch (e) {
       setState(() {
         errorMessage = "Failed to update flight. Please try again.";
-        isProcessing = false;
+        _isLoading = false;
       });
     }
   }
@@ -167,7 +164,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
 
     if (shouldDelete == true) {
       setState(() {
-        isProcessing = true;
+        _isLoading = true;
         errorMessage = null;
       });
 
@@ -180,7 +177,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
       } catch (e) {
         setState(() {
           errorMessage = "Failed to delete flight. Please try again.";
-          isProcessing = false;
+          _isLoading = false;
         });
       }
     }
@@ -203,301 +200,377 @@ class _EditFlightPageState extends State<EditFlightPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
+    final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+
     return Scaffold(
       body: Stack(
         children: [
-          const FloatyBackgroundWidget(),
-          Header(),
-          AuthContainer(
-            headerText: "Edit Flight",
-            isFlightPage: true,
-            child: Form(
-              key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Date Picker Field with Button
-                  GestureDetector(
-                    onTap: () => _selectDate(context),
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        controller: _dateController,
-                        focusNode: _focusDate,
-                        decoration: InputDecoration(
-                          hintText: "dd.MM.yyyy",
-                          prefixIcon: IconButton(
-                            icon: Icon(
-                              Icons.calendar_today,
-                              color: Colors.orange,
+          if (!isMobile) const FloatyBackgroundWidget(),
+          if (isMobile) Container(color: Colors.white),
+          Column(
+            children: [
+              Header(),
+              SizedBox(height: 20),
+              Container(
+                width: containerWidth,
+                padding: EdgeInsets.all(isMobile ? 8 : 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      isMobile ? BorderRadius.zero : BorderRadius.circular(6),
+                  boxShadow:
+                      isMobile
+                          ? []
+                          : [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
                             ),
-                            onPressed: () => _selectDate(context),
-                            padding: EdgeInsets.only(left: 7),
+                          ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Edit Flight',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
-                          prefixIconConstraints: BoxConstraints(maxWidth: 32),
-                          contentPadding: EdgeInsets.only(left: 60),
-                          isDense: false,
-                          border: OutlineInputBorder(),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Enter a valid date.";
-                          }
-
-                          try {
-                            DateFormat dateFormat = DateFormat('dd.MM.yyyy');
-                            dateFormat.parseStrict(value);
+                        SizedBox(height: 20),
+                        // Date Field
+                        TextFormField(
+                          controller: _dateController,
+                          decoration: InputDecoration(
+                            labelText: 'Date',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.calendar_today),
+                              onPressed: () => _selectDate(context),
+                            ),
+                          ),
+                          readOnly: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select a date';
+                            }
                             return null;
-                          } catch (e) {
-                            return "Enter a valid date.";
-                          }
-                        },
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted:
-                            (_) => FocusScope.of(
-                              context,
-                            ).requestFocus(_focusLaunchSpot),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Launch Spot Field
-                  TextFormField(
-                    controller: _launchSpotController,
-                    focusNode: _focusLaunchSpot,
-                    decoration: InputDecoration(
-                      hintText: "Launch Spot ID",
-                      prefixIcon: Icon(
-                        Icons.flight_takeoff,
-                        color: Colors.orange,
-                      ),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Enter a launch spot ID.";
-                      }
-                      return null;
-                    },
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted:
-                        (_) => FocusScope.of(
-                          context,
-                        ).requestFocus(_focusLandingSpot),
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Landing Spot Field
-                  TextFormField(
-                    controller: _landingSpotController,
-                    focusNode: _focusLandingSpot,
-                    decoration: InputDecoration(
-                      hintText: "Landing Spot ID",
-                      prefixIcon: Icon(Icons.flight_land, color: Colors.orange),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Enter a landing spot ID.";
-                      }
-                      return null;
-                    },
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted:
-                        (_) =>
-                            FocusScope.of(context).requestFocus(_focusGlider),
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Glider Field
-                  TextFormField(
-                    controller: _gliderController,
-                    focusNode: _focusGlider,
-                    decoration: InputDecoration(
-                      hintText: "Glider ID",
-                      prefixIcon: Icon(
-                        Icons.airplanemode_active,
-                        color: Colors.orange,
-                      ),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Enter a glider ID.";
-                      }
-                      return null;
-                    },
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted:
-                        (_) => FocusScope.of(
-                          context,
-                        ).requestFocus(_focusDescription),
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Duration (Hours and Minutes)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Hours Dropdown
-                      Expanded(
-                        child: DropdownButtonFormField<int>(
-                          value: selectedHours,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedHours = value;
-                            });
                           },
-                          decoration: InputDecoration(
-                            hintText: "Hours",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: [
-                            DropdownMenuItem<int>(
-                              value: 0,
-                              child: Text("0 Hours"),
-                            ),
-                            ...List.generate(12, (index) {
-                              return DropdownMenuItem<int>(
-                                value: index + 1,
-                                child: Text("${index + 1} Hours"),
-                              );
-                            }),
-                          ],
                         ),
-                      ),
-                      const SizedBox(width: 10),
+                        SizedBox(height: 16),
+                        // Launch Spot Dropdown
+                        FutureBuilder<List<api.Spot>>(
+                          future: futureSpots,
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return Center(child: CircularProgressIndicator());
+                            }
 
-                      // Minutes Dropdown
-                      Expanded(
-                        child: DropdownButtonFormField<int>(
-                          value: selectedMinutes,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedMinutes = value;
-                            });
+                            final spots = snapshot.data!;
+                            final launchSpots =
+                                spots
+                                    .where(
+                                      (spot) =>
+                                          spot.type ==
+                                              api.SpotTypeEnum.LAUNCH_SITE ||
+                                          spot.type ==
+                                              api
+                                                  .SpotTypeEnum
+                                                  .LAUNCH_AND_LANDING_SITE,
+                                    )
+                                    .toList();
+
+                            return DropdownButtonFormField<int>(
+                              value: selectedLaunchSpotId,
+                              decoration: InputDecoration(
+                                labelText: 'Launch Site',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Please select a launch site';
+                                }
+                                return null;
+                              },
+                              items:
+                                  launchSpots.map((spot) {
+                                    return DropdownMenuItem<int>(
+                                      value: spot.spotId,
+                                      child: Text(spot.name),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedLaunchSpotId = value;
+                                });
+                              },
+                            );
                           },
-                          decoration: InputDecoration(
-                            hintText: "Minutes",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: [
-                            DropdownMenuItem<int>(
-                              value: 0,
-                              child: Text("0 Minutes"),
-                            ),
-                            ...List.generate(12, (index) {
-                              return DropdownMenuItem<int>(
-                                value: (index + 1) * 5,
-                                child: Text("${(index + 1) * 5} Minutes"),
-                              );
-                            }),
-                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14.0),
+                        SizedBox(height: 16),
+                        // Landing Spot Dropdown
+                        FutureBuilder<List<api.Spot>>(
+                          future: futureSpots,
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return Center(child: CircularProgressIndicator());
+                            }
 
-                  // Show flight time error message if both hours and minutes are zero
-                  if (flightTimeErrorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 0.0),
-                      child: Text(
-                        flightTimeErrorMessage!,
-                        style: const TextStyle(color: Colors.red, fontSize: 14),
-                      ),
-                    ),
+                            final spots = snapshot.data!;
+                            final landingSpots =
+                                spots
+                                    .where(
+                                      (spot) =>
+                                          spot.type ==
+                                              api.SpotTypeEnum.LANDING_SITE ||
+                                          spot.type ==
+                                              api
+                                                  .SpotTypeEnum
+                                                  .LAUNCH_AND_LANDING_SITE,
+                                    )
+                                    .toList();
 
-                  const SizedBox(height: 14.0),
+                            return DropdownButtonFormField<int>(
+                              value: selectedLandingSpotId,
+                              decoration: InputDecoration(
+                                labelText: 'Landing Site',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Please select a landing site';
+                                }
+                                return null;
+                              },
+                              items:
+                                  landingSpots.map((spot) {
+                                    return DropdownMenuItem<int>(
+                                      value: spot.spotId,
+                                      child: Text(spot.name),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedLandingSpotId = value;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        // Glider Dropdown
+                        FutureBuilder<List<api.Glider>>(
+                          future: futureGliders,
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return Center(child: CircularProgressIndicator());
+                            }
 
-                  // Description Field
-                  TextField(
-                    controller: _descriptionController,
-                    focusNode: _focusDescription,
-                    maxLines: null,
-                    minLines: 3,
-                    decoration: InputDecoration(
-                      hintText: "Description",
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 16.0,
-                        horizontal: 10.0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-
-                  // Error Message
-                  if (errorMessage != null)
-                    Text(
-                      errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 14),
-                    ),
-                  const SizedBox(height: 32.0),
-
-                  // Buttons (Save, Cancel, and Delete)
-                  isProcessing
-                      ? const CircularProgressIndicator()
-                      : SizedBox(
-                        width: double.infinity,
-                        child: Row(
+                            final gliders = snapshot.data!;
+                            return DropdownButtonFormField<int>(
+                              value: selectedGliderId,
+                              decoration: InputDecoration(
+                                labelText: 'Glider',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Please select a glider';
+                                }
+                                return null;
+                              },
+                              items:
+                                  gliders.map((glider) {
+                                    return DropdownMenuItem<int>(
+                                      value: glider.id,
+                                      child: Text(
+                                        '${glider.manufacturer} ${glider.model}',
+                                      ),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedGliderId = value;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        // Duration Fields
+                        Row(
                           children: [
-                            // Save Button
                             Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    FocusScope.of(context).unfocus();
-                                    _updateFlight();
-                                  }
+                              child: DropdownButtonFormField<int>(
+                                value: selectedHours,
+                                decoration: InputDecoration(
+                                  labelText: 'Hours',
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: [
+                                  DropdownMenuItem<int>(
+                                    value: 0,
+                                    child: Text('0 Hours'),
+                                  ),
+                                  ...List.generate(12, (index) {
+                                    return DropdownMenuItem<int>(
+                                      value: index + 1,
+                                      child: Text('${index + 1} Hours'),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedHours = value;
+                                  });
                                 },
-                                child: const Text(
-                                  'Save',
-                                  style: TextStyle(color: Colors.black),
-                                ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-
-                            // Cancel Button
+                            SizedBox(width: 16),
                             Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey.shade300,
+                              child: DropdownButtonFormField<int>(
+                                value: selectedMinutes,
+                                decoration: InputDecoration(
+                                  labelText: 'Minutes',
+                                  border: OutlineInputBorder(),
                                 ),
-                                child: const Text(
-                                  'Cancel',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-
-                            // Delete Button
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: _deleteFlight,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                ),
-                                child: const Text(
-                                  'Delete',
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                                items: [
+                                  DropdownMenuItem<int>(
+                                    value: 0,
+                                    child: Text('0 Minutes'),
+                                  ),
+                                  ...List.generate(12, (index) {
+                                    return DropdownMenuItem<int>(
+                                      value: (index + 1) * 5,
+                                      child: Text('${(index + 1) * 5} Minutes'),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedMinutes = value;
+                                  });
+                                },
                               ),
                             ),
                           ],
                         ),
-                      ),
-                ],
+                        if (flightTimeErrorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              flightTimeErrorMessage!,
+                              style: TextStyle(color: Colors.red, fontSize: 14),
+                            ),
+                          ),
+                        SizedBox(height: 16),
+                        // Description Field
+                        TextFormField(
+                          controller: _descriptionController,
+                          decoration: InputDecoration(
+                            labelText: 'Description',
+                            border: OutlineInputBorder(),
+                            alignLabelWithHint: true,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                          maxLines: 3,
+                        ),
+                        if (errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              errorMessage!,
+                              style: TextStyle(color: Colors.red, fontSize: 14),
+                            ),
+                          ),
+                        SizedBox(height: 24),
+                        // Buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed:
+                                  _isLoading
+                                      ? null
+                                      : () => Navigator.pop(context),
+                              child: Text('Cancel'),
+                            ),
+                            SizedBox(width: 16),
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _updateFlight,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF0078D7),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child:
+                                  _isLoading
+                                      ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                      : Text('Save'),
+                            ),
+                            SizedBox(width: 16),
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _deleteFlight,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),

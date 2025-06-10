@@ -18,11 +18,11 @@ class RegisterForm extends StatefulWidget {
   final bool isProcessing;
 
   const RegisterForm({
-    Key? key,
+    super.key,
     required this.onSubmit,
     this.errorMessage,
     this.isProcessing = false,
-  }) : super(key: key);
+  });
 
   @override
   _RegisterFormState createState() => _RegisterFormState();

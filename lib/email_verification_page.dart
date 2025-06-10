@@ -4,7 +4,7 @@ import 'constants.dart';
 import 'ui_components.dart';
 
 class EmailVerificationPage extends StatefulWidget {
-  const EmailVerificationPage({Key? key}) : super(key: key);
+  const EmailVerificationPage({super.key});
 
   @override
   _EmailVerificationPageState createState() => _EmailVerificationPageState();
