@@ -28,26 +28,27 @@ class Glider {
   String model;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Glider &&
-    other.id == id &&
-    other.manufacturer == manufacturer &&
-    other.model == model;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Glider &&
+          other.id == id &&
+          other.manufacturer == manufacturer &&
+          other.model == model;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id.hashCode) +
-    (manufacturer.hashCode) +
-    (model.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id.hashCode) + (manufacturer.hashCode) + (model.hashCode);
 
   @override
-  String toString() => 'Glider[id=$id, manufacturer=$manufacturer, model=$model]';
+  String toString() =>
+      'Glider[id=$id, manufacturer=$manufacturer, model=$model]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'id'] = this.id;
-      json[r'manufacturer'] = this.manufacturer;
-      json[r'model'] = this.model;
+    json[r'id'] = this.id;
+    json[r'manufacturer'] = this.manufacturer;
+    json[r'model'] = this.model;
     return json;
   }
 
@@ -63,8 +64,10 @@ class Glider {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Glider[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Glider[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Glider[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Glider[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -78,7 +81,10 @@ class Glider {
     return null;
   }
 
-  static List<Glider> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Glider> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Glider>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -106,13 +112,19 @@ class Glider {
   }
 
   // maps a json object with a list of Glider-objects as value to a dart map
-  static Map<String, List<Glider>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Glider>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Glider>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Glider.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Glider.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -125,4 +137,3 @@ class Glider {
     'model',
   };
 }
-

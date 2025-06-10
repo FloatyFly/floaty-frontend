@@ -3,7 +3,6 @@ import 'package:floaty/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math' show pi;
 import 'package:intl/intl.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'flight_service.dart';

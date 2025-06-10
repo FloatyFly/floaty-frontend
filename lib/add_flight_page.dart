@@ -1,5 +1,4 @@
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:floaty/flight_service.dart';
 import 'package:floaty/gliders_service.dart';
 import 'package:floaty/spots_service.dart';
 import 'package:floaty/ui_components.dart';
@@ -9,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'CookieAuth.dart';
 import 'model.dart';
 import 'package:floaty_client/api.dart' as api;
-import 'constants.dart';
 
 class AddFlightPage extends StatefulWidget {
   const AddFlightPage({super.key});
@@ -105,7 +103,6 @@ class _AddFlightPageState extends State<AddFlightPage> {
         description: _descriptionController.text,
       );
 
-      final result = await addFlight(flight, _getCookieAuth());
       if (mounted) {
         Navigator.pop(context, true);
       }
@@ -159,6 +156,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
                           ? []
                           : [
                             BoxShadow(
+                              // ignore: deprecated_member_use
                               color: Colors.grey.withOpacity(0.5),
                               spreadRadius: 2,
                               blurRadius: 5,

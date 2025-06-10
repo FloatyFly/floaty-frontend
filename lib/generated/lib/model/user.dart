@@ -32,29 +32,32 @@ class User {
   bool emailVerified;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is User &&
-    other.id == id &&
-    other.name == name &&
-    other.email == email &&
-    other.emailVerified == emailVerified;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is User &&
+          other.id == id &&
+          other.name == name &&
+          other.email == email &&
+          other.emailVerified == emailVerified;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id.hashCode) +
-    (name.hashCode) +
-    (email.hashCode) +
-    (emailVerified.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id.hashCode) +
+      (name.hashCode) +
+      (email.hashCode) +
+      (emailVerified.hashCode);
 
   @override
-  String toString() => 'User[id=$id, name=$name, email=$email, emailVerified=$emailVerified]';
+  String toString() =>
+      'User[id=$id, name=$name, email=$email, emailVerified=$emailVerified]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'id'] = this.id;
-      json[r'name'] = this.name;
-      json[r'email'] = this.email;
-      json[r'emailVerified'] = this.emailVerified;
+    json[r'id'] = this.id;
+    json[r'name'] = this.name;
+    json[r'email'] = this.email;
+    json[r'emailVerified'] = this.emailVerified;
     return json;
   }
 
@@ -70,8 +73,10 @@ class User {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "User[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "User[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "User[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "User[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -86,7 +91,10 @@ class User {
     return null;
   }
 
-  static List<User> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<User> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <User>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -114,13 +122,19 @@ class User {
   }
 
   // maps a json object with a list of User-objects as value to a dart map
-  static Map<String, List<User>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<User>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<User>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = User.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = User.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -134,4 +148,3 @@ class User {
     'emailVerified',
   };
 }
-

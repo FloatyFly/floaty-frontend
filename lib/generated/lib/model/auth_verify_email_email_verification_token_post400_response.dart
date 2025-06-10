@@ -25,16 +25,19 @@ class AuthVerifyEmailEmailVerificationTokenPost400Response {
   String? error;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AuthVerifyEmailEmailVerificationTokenPost400Response &&
-    other.error == error;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthVerifyEmailEmailVerificationTokenPost400Response &&
+          other.error == error;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (error == null ? 0 : error!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (error == null ? 0 : error!.hashCode);
 
   @override
-  String toString() => 'AuthVerifyEmailEmailVerificationTokenPost400Response[error=$error]';
+  String toString() =>
+      'AuthVerifyEmailEmailVerificationTokenPost400Response[error=$error]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -49,7 +52,8 @@ class AuthVerifyEmailEmailVerificationTokenPost400Response {
   /// Returns a new [AuthVerifyEmailEmailVerificationTokenPost400Response] instance and imports its values from
   /// [value] if it's a [Map], null otherwise.
   // ignore: prefer_constructors_over_static_methods
-  static AuthVerifyEmailEmailVerificationTokenPost400Response? fromJson(dynamic value) {
+  static AuthVerifyEmailEmailVerificationTokenPost400Response? fromJson(
+      dynamic value) {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
@@ -58,8 +62,10 @@ class AuthVerifyEmailEmailVerificationTokenPost400Response {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "AuthVerifyEmailEmailVerificationTokenPost400Response[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "AuthVerifyEmailEmailVerificationTokenPost400Response[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "AuthVerifyEmailEmailVerificationTokenPost400Response[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "AuthVerifyEmailEmailVerificationTokenPost400Response[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -71,11 +77,16 @@ class AuthVerifyEmailEmailVerificationTokenPost400Response {
     return null;
   }
 
-  static List<AuthVerifyEmailEmailVerificationTokenPost400Response> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AuthVerifyEmailEmailVerificationTokenPost400Response>
+      listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AuthVerifyEmailEmailVerificationTokenPost400Response>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
-        final value = AuthVerifyEmailEmailVerificationTokenPost400Response.fromJson(row);
+        final value =
+            AuthVerifyEmailEmailVerificationTokenPost400Response.fromJson(row);
         if (value != null) {
           result.add(value);
         }
@@ -84,12 +95,16 @@ class AuthVerifyEmailEmailVerificationTokenPost400Response {
     return result.toList(growable: growable);
   }
 
-  static Map<String, AuthVerifyEmailEmailVerificationTokenPost400Response> mapFromJson(dynamic json) {
-    final map = <String, AuthVerifyEmailEmailVerificationTokenPost400Response>{};
+  static Map<String, AuthVerifyEmailEmailVerificationTokenPost400Response>
+      mapFromJson(dynamic json) {
+    final map =
+        <String, AuthVerifyEmailEmailVerificationTokenPost400Response>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
       for (final entry in json.entries) {
-        final value = AuthVerifyEmailEmailVerificationTokenPost400Response.fromJson(entry.value);
+        final value =
+            AuthVerifyEmailEmailVerificationTokenPost400Response.fromJson(
+                entry.value);
         if (value != null) {
           map[entry.key] = value;
         }
@@ -99,20 +114,27 @@ class AuthVerifyEmailEmailVerificationTokenPost400Response {
   }
 
   // maps a json object with a list of AuthVerifyEmailEmailVerificationTokenPost400Response-objects as value to a dart map
-  static Map<String, List<AuthVerifyEmailEmailVerificationTokenPost400Response>> mapListFromJson(dynamic json, {bool growable = false,}) {
-    final map = <String, List<AuthVerifyEmailEmailVerificationTokenPost400Response>>{};
+  static Map<String, List<AuthVerifyEmailEmailVerificationTokenPost400Response>>
+      mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
+    final map =
+        <String, List<AuthVerifyEmailEmailVerificationTokenPost400Response>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = AuthVerifyEmailEmailVerificationTokenPost400Response.listFromJson(entry.value, growable: growable,);
+        map[entry.key] =
+            AuthVerifyEmailEmailVerificationTokenPost400Response.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

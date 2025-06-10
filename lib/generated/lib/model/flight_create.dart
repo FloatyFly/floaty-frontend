@@ -52,32 +52,35 @@ class FlightCreate {
   int gliderId;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is FlightCreate &&
-    other.dateTime == dateTime &&
-    other.launchSpotId == launchSpotId &&
-    other.landingSpotId == landingSpotId &&
-    other.duration == duration &&
-    other.description == description &&
-    other.gliderId == gliderId;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FlightCreate &&
+          other.dateTime == dateTime &&
+          other.launchSpotId == launchSpotId &&
+          other.landingSpotId == landingSpotId &&
+          other.duration == duration &&
+          other.description == description &&
+          other.gliderId == gliderId;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (dateTime.hashCode) +
-    (launchSpotId.hashCode) +
-    (landingSpotId.hashCode) +
-    (duration == null ? 0 : duration!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (gliderId.hashCode);
+      // ignore: unnecessary_parenthesis
+      (dateTime.hashCode) +
+      (launchSpotId.hashCode) +
+      (landingSpotId.hashCode) +
+      (duration == null ? 0 : duration!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (gliderId.hashCode);
 
   @override
-  String toString() => 'FlightCreate[dateTime=$dateTime, launchSpotId=$launchSpotId, landingSpotId=$landingSpotId, duration=$duration, description=$description, gliderId=$gliderId]';
+  String toString() =>
+      'FlightCreate[dateTime=$dateTime, launchSpotId=$launchSpotId, landingSpotId=$landingSpotId, duration=$duration, description=$description, gliderId=$gliderId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'dateTime'] = this.dateTime.toUtc().toIso8601String();
-      json[r'launchSpotId'] = this.launchSpotId;
-      json[r'landingSpotId'] = this.landingSpotId;
+    json[r'dateTime'] = this.dateTime.toUtc().toIso8601String();
+    json[r'launchSpotId'] = this.launchSpotId;
+    json[r'landingSpotId'] = this.landingSpotId;
     if (this.duration != null) {
       json[r'duration'] = this.duration;
     } else {
@@ -88,7 +91,7 @@ class FlightCreate {
     } else {
       json[r'description'] = null;
     }
-      json[r'gliderId'] = this.gliderId;
+    json[r'gliderId'] = this.gliderId;
     return json;
   }
 
@@ -104,8 +107,10 @@ class FlightCreate {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "FlightCreate[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "FlightCreate[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "FlightCreate[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "FlightCreate[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -122,7 +127,10 @@ class FlightCreate {
     return null;
   }
 
-  static List<FlightCreate> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<FlightCreate> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <FlightCreate>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -150,13 +158,19 @@ class FlightCreate {
   }
 
   // maps a json object with a list of FlightCreate-objects as value to a dart map
-  static Map<String, List<FlightCreate>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<FlightCreate>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<FlightCreate>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = FlightCreate.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = FlightCreate.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -170,4 +184,3 @@ class FlightCreate {
     'gliderId',
   };
 }
-

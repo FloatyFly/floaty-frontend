@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:floaty_client/api.dart';
-import 'package:floaty_client/api.dart' show UserDto;
 import 'constants.dart';
 import 'validator.dart';
 import 'ui_components.dart';
-import 'package:provider/provider.dart';
-import 'package:floaty/main.dart';
-import 'package:floaty/CookieAuth.dart';
-import 'package:floaty/user_service.dart';
-import 'package:floaty/model.dart';
-import 'package:cookie_jar/cookie_jar.dart';
 
 /// Register Form Widget
 class RegisterForm extends StatefulWidget {

@@ -6,7 +6,7 @@ class Config {
     const String env = String.fromEnvironment('ENV', defaultValue: 'dev');
     switch (env) {
       case 'prod':
-        return 'https://test.floatyfly.com';  // TODO: Switch to prod once staging is there.
+        return 'https://test.floatyfly.com'; // TODO: Switch to prod once staging is there.
       case 'dev':
       default:
         return 'http://localhost:8080'; // Local development URL

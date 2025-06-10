@@ -25,13 +25,14 @@ class GetGliderById404Response {
   String? error;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is GetGliderById404Response &&
-    other.error == error;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GetGliderById404Response && other.error == error;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (error == null ? 0 : error!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (error == null ? 0 : error!.hashCode);
 
   @override
   String toString() => 'GetGliderById404Response[error=$error]';
@@ -58,8 +59,10 @@ class GetGliderById404Response {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "GetGliderById404Response[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "GetGliderById404Response[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "GetGliderById404Response[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "GetGliderById404Response[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -71,7 +74,10 @@ class GetGliderById404Response {
     return null;
   }
 
-  static List<GetGliderById404Response> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GetGliderById404Response> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GetGliderById404Response>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -99,20 +105,24 @@ class GetGliderById404Response {
   }
 
   // maps a json object with a list of GetGliderById404Response-objects as value to a dart map
-  static Map<String, List<GetGliderById404Response>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<GetGliderById404Response>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<GetGliderById404Response>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = GetGliderById404Response.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = GetGliderById404Response.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

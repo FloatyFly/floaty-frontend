@@ -9,7 +9,7 @@ ThemeData buildThemeData() {
           borderRadius: BorderRadius.circular(20.0),
         ),
         textStyle: TextStyle(
-          fontSize: 18,  // Set the text size to 18
+          fontSize: 18, // Set the text size to 18
           color: Colors.black, // Optional: Set the text color
         ),
       ),

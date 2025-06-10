@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:floaty/main.dart';
 import 'package:floaty/ui_components.dart';
-import 'package:floaty/flights_page.dart';
 import 'package:floaty/login_page.dart';
-import 'package:floaty/register_page.dart';
 import 'package:floaty/constants.dart';
 import 'package:floaty/model.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:floaty/CookieAuth.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class HomePage extends StatefulWidget {
   @override

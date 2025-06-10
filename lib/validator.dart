@@ -15,7 +15,8 @@ class Validator {
       return 'Emial can';
     }
     RegExp emailRegExp = RegExp(
-        r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$");
+      r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$",
+    );
 
     if (email.isEmpty) {
       return 'Email can\'t be empty';
@@ -26,7 +27,7 @@ class Validator {
     return null;
   }
 
-  static String? validatePassword({ String? password}) {
+  static String? validatePassword({String? password}) {
     if (password == null) {
       return null;
     }

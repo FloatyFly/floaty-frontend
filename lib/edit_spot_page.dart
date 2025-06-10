@@ -274,281 +274,293 @@ class _EditSpotPageState extends State<EditSpotPage> {
         children: [
           if (!isMobile) const FloatyBackgroundWidget(),
           if (isMobile) Container(color: Colors.white),
-          Column(
-            children: [
-              Header(),
-              SizedBox(height: 20),
-              Container(
-                width: containerWidth,
-                padding: EdgeInsets.all(isMobile ? 8 : 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      isMobile ? BorderRadius.zero : BorderRadius.circular(6),
-                  boxShadow:
-                      isMobile
-                          ? []
-                          : [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Edit Spot',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: 'Spot Name',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a name';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          children: [
-                            _buildTypeButton(
-                              api.SpotUpdateTypeEnum.LAUNCH_SITE,
-                              'Launch',
-                              true,
-                              false,
-                            ),
-                            _buildTypeButton(
-                              api.SpotUpdateTypeEnum.LANDING_SITE,
-                              'Landing',
-                              false,
-                              false,
-                            ),
-                            _buildTypeButton(
-                              api.SpotUpdateTypeEnum.LAUNCH_AND_LANDING_SITE,
-                              'Launch & Landing',
-                              false,
-                              true,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        Container(
-                          height: 400,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.grey.withOpacity(0.3),
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: FlutterMap(
-                              mapController: _mapController,
-                              options: MapOptions(
-                                initialCenter: _selectedLocation!,
-                                initialZoom: 13,
-                                onTap: _onMapTap,
-                                interactionOptions: const InteractionOptions(
-                                  enableScrollWheel: true,
-                                  enableMultiFingerGestureRace: false,
-                                  flags:
-                                      InteractiveFlag.all &
-                                      ~InteractiveFlag.rotate,
-                                ),
-                              ),
-                              children: [
-                                TileLayer(
-                                  urlTemplate: mapTileUrl,
-                                  maxZoom: mapTileOptions.maxZoom,
-                                  minZoom: mapTileOptions.minZoom,
-                                  tileSize: mapTileOptions.tileSize,
-                                  keepBuffer: mapTileOptions.keepBuffer,
-                                  tileProvider:
-                                      _useCancellableProvider
-                                          ? CancellableNetworkTileProvider()
-                                          : null,
-                                ),
-                                MarkerLayer(
-                                  markers: [
-                                    if (_selectedLocation != null)
-                                      Marker(
-                                        point: _selectedLocation!,
-                                        width: 40,
-                                        height: 40,
-                                        child: Icon(
-                                          Icons.location_on,
-                                          color: Color(0xFF0078D7),
-                                          size: 40,
-                                        ),
-                                      ),
-                                  ],
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Header(),
+                  SizedBox(height: 20),
+                  Container(
+                    width: containerWidth,
+                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius:
+                          isMobile
+                              ? BorderRadius.zero
+                              : BorderRadius.circular(6),
+                      boxShadow:
+                          isMobile
+                              ? []
+                              : [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
                                 ),
                               ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Container(
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Latitude',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      _latitudeController.text,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Longitude',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      _longitudeController.text,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Altitude',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      '${_altitudeController.text} m',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 24),
-                        TextFormField(
-                          controller: _descriptionController,
-                          decoration: InputDecoration(
-                            labelText: 'Description',
-                            border: OutlineInputBorder(),
-                            alignLabelWithHint: true,
-                          ),
-                          maxLines: 3,
-                        ),
-                        SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TextButton(
-                              onPressed:
-                                  _isLoading
-                                      ? null
-                                      : () => Navigator.pop(context),
-                              child: Text('Cancel'),
-                            ),
-                            SizedBox(width: 16),
-                            TextButton(
-                              onPressed: _isLoading ? null : _deleteSpot,
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
+                            Text(
+                              'Edit Spot',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
-                              child: Text('Delete'),
                             ),
-                            SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _saveSpot,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF0078D7),
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 24,
+                            SizedBox(height: 20),
+                            TextFormField(
+                              controller: _nameController,
+                              decoration: InputDecoration(
+                                labelText: 'Spot Name',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
                                   vertical: 12,
                                 ),
                               ),
-                              child:
-                                  _isLoading
-                                      ? SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a name';
+                                }
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 16),
+                            Row(
+                              children: [
+                                _buildTypeButton(
+                                  api.SpotUpdateTypeEnum.LAUNCH_SITE,
+                                  'Launch',
+                                  true,
+                                  false,
+                                ),
+                                _buildTypeButton(
+                                  api.SpotUpdateTypeEnum.LANDING_SITE,
+                                  'Landing',
+                                  false,
+                                  false,
+                                ),
+                                _buildTypeButton(
+                                  api
+                                      .SpotUpdateTypeEnum
+                                      .LAUNCH_AND_LANDING_SITE,
+                                  'Launch & Landing',
+                                  false,
+                                  true,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                            Container(
+                              height: 400,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.grey.withOpacity(0.3),
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: FlutterMap(
+                                  mapController: _mapController,
+                                  options: MapOptions(
+                                    initialCenter: _selectedLocation!,
+                                    initialZoom: 13,
+                                    onTap: _onMapTap,
+                                    interactionOptions:
+                                        const InteractionOptions(
+                                          enableScrollWheel: true,
+                                          enableMultiFingerGestureRace: false,
+                                          flags:
+                                              InteractiveFlag.all &
+                                              ~InteractiveFlag.rotate,
                                         ),
-                                      )
-                                      : Text('Save'),
+                                  ),
+                                  children: [
+                                    TileLayer(
+                                      urlTemplate: mapTileUrl,
+                                      maxZoom: mapTileOptions.maxZoom,
+                                      minZoom: mapTileOptions.minZoom,
+                                      tileSize: mapTileOptions.tileSize,
+                                      keepBuffer: mapTileOptions.keepBuffer,
+                                      tileProvider:
+                                          _useCancellableProvider
+                                              ? CancellableNetworkTileProvider()
+                                              : null,
+                                    ),
+                                    MarkerLayer(
+                                      markers: [
+                                        if (_selectedLocation != null)
+                                          Marker(
+                                            point: _selectedLocation!,
+                                            width: 40,
+                                            height: 40,
+                                            child: Icon(
+                                              Icons.location_on,
+                                              color: Color(0xFF0078D7),
+                                              size: 40,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Latitude',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          _latitudeController.text,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Longitude',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          _longitudeController.text,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Altitude',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          '${_altitudeController.text} m',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 24),
+                            TextFormField(
+                              controller: _descriptionController,
+                              decoration: InputDecoration(
+                                labelText: 'Description',
+                                border: OutlineInputBorder(),
+                                alignLabelWithHint: true,
+                              ),
+                              maxLines: 3,
+                            ),
+                            SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed:
+                                      _isLoading
+                                          ? null
+                                          : () => Navigator.pop(context),
+                                  child: Text('Cancel'),
+                                ),
+                                SizedBox(width: 16),
+                                TextButton(
+                                  onPressed: _isLoading ? null : _deleteSpot,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                  child: Text('Delete'),
+                                ),
+                                SizedBox(width: 16),
+                                ElevatedButton(
+                                  onPressed: _isLoading ? null : _saveSpot,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF0078D7),
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child:
+                                      _isLoading
+                                          ? SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    Colors.white,
+                                                  ),
+                                            ),
+                                          )
+                                          : Text('Save'),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),

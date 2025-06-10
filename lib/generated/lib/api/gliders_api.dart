@@ -10,9 +10,9 @@
 
 part of openapi.api;
 
-
 class GlidersApi {
-  GlidersApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  GlidersApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -26,7 +26,9 @@ class GlidersApi {
   ///
   /// * [GliderCreate] gliderCreate (required):
   ///   Glider details
-  Future<Response> createGliderWithHttpInfo(GliderCreate gliderCreate,) async {
+  Future<Response> createGliderWithHttpInfo(
+    GliderCreate gliderCreate,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/gliders';
 
@@ -38,7 +40,6 @@ class GlidersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -59,17 +60,24 @@ class GlidersApi {
   ///
   /// * [GliderCreate] gliderCreate (required):
   ///   Glider details
-  Future<Glider?> createGlider(GliderCreate gliderCreate,) async {
-    final response = await createGliderWithHttpInfo(gliderCreate,);
+  Future<Glider?> createGlider(
+    GliderCreate gliderCreate,
+  ) async {
+    final response = await createGliderWithHttpInfo(
+      gliderCreate,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Glider',) as Glider;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Glider',
+      ) as Glider;
     }
     return null;
   }
@@ -84,10 +92,12 @@ class GlidersApi {
   ///
   /// * [int] gliderId (required):
   ///   ID of the glider to delete
-  Future<Response> deleteGliderByIdWithHttpInfo(int gliderId,) async {
+  Future<Response> deleteGliderByIdWithHttpInfo(
+    int gliderId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/gliders/{gliderId}'
-      .replaceAll('{gliderId}', gliderId.toString());
+    final path =
+        r'/gliders/{gliderId}'.replaceAll('{gliderId}', gliderId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -97,7 +107,6 @@ class GlidersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -118,8 +127,12 @@ class GlidersApi {
   ///
   /// * [int] gliderId (required):
   ///   ID of the glider to delete
-  Future<void> deleteGliderById(int gliderId,) async {
-    final response = await deleteGliderByIdWithHttpInfo(gliderId,);
+  Future<void> deleteGliderById(
+    int gliderId,
+  ) async {
+    final response = await deleteGliderByIdWithHttpInfo(
+      gliderId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -143,7 +156,6 @@ class GlidersApi {
 
     const contentTypes = <String>[];
 
-
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -166,12 +178,13 @@ class GlidersApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
       final responseBody = await _decodeBodyBytes(response);
-      return (await apiClient.deserializeAsync(responseBody, 'List<Glider>') as List)
-        .cast<Glider>()
-        .toList(growable: false);
-
+      return (await apiClient.deserializeAsync(responseBody, 'List<Glider>')
+              as List)
+          .cast<Glider>()
+          .toList(growable: false);
     }
     return null;
   }
@@ -186,10 +199,12 @@ class GlidersApi {
   ///
   /// * [int] gliderId (required):
   ///   ID of the glider to retrieve
-  Future<Response> getGliderByIdWithHttpInfo(int gliderId,) async {
+  Future<Response> getGliderByIdWithHttpInfo(
+    int gliderId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/gliders/{gliderId}'
-      .replaceAll('{gliderId}', gliderId.toString());
+    final path =
+        r'/gliders/{gliderId}'.replaceAll('{gliderId}', gliderId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -199,7 +214,6 @@ class GlidersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -220,17 +234,24 @@ class GlidersApi {
   ///
   /// * [int] gliderId (required):
   ///   ID of the glider to retrieve
-  Future<Glider?> getGliderById(int gliderId,) async {
-    final response = await getGliderByIdWithHttpInfo(gliderId,);
+  Future<Glider?> getGliderById(
+    int gliderId,
+  ) async {
+    final response = await getGliderByIdWithHttpInfo(
+      gliderId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Glider',) as Glider;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Glider',
+      ) as Glider;
     }
     return null;
   }
@@ -248,10 +269,13 @@ class GlidersApi {
   ///
   /// * [GliderUpdate] gliderUpdate (required):
   ///   Updated glider information
-  Future<Response> updateGliderByIdWithHttpInfo(int gliderId, GliderUpdate gliderUpdate,) async {
+  Future<Response> updateGliderByIdWithHttpInfo(
+    int gliderId,
+    GliderUpdate gliderUpdate,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/gliders/{gliderId}'
-      .replaceAll('{gliderId}', gliderId.toString());
+    final path =
+        r'/gliders/{gliderId}'.replaceAll('{gliderId}', gliderId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody = gliderUpdate;
@@ -261,7 +285,6 @@ class GlidersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -285,17 +308,26 @@ class GlidersApi {
   ///
   /// * [GliderUpdate] gliderUpdate (required):
   ///   Updated glider information
-  Future<Glider?> updateGliderById(int gliderId, GliderUpdate gliderUpdate,) async {
-    final response = await updateGliderByIdWithHttpInfo(gliderId, gliderUpdate,);
+  Future<Glider?> updateGliderById(
+    int gliderId,
+    GliderUpdate gliderUpdate,
+  ) async {
+    final response = await updateGliderByIdWithHttpInfo(
+      gliderId,
+      gliderUpdate,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Glider',) as Glider;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Glider',
+      ) as Glider;
     }
     return null;
   }

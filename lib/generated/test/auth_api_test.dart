@@ -11,7 +11,6 @@
 import 'package:floaty_client/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for AuthApi
 void main() {
   // final instance = AuthApi();
@@ -70,6 +69,5 @@ void main() {
     test('test resetPassword', () async {
       // TODO
     });
-
   });
 }
