@@ -84,7 +84,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Flight'
+              $ref: '#/components/schemas/FlightCreate'
       responses:
         '201':
           description: Flight created successfully
@@ -689,7 +689,7 @@ components:
           type: string
           description: 'A unique id for this user. Property must not be given when creating a new user.'
           maxLength: 14
-          example: '1'
+          example: "1"
         name:
           type: string
           example: 'Free Willy'
@@ -697,7 +697,7 @@ components:
         email:
           type: string
           example: "floater@gmail.com"
-          description: 'The email adress of the user.'
+          description: "The email adress of the user."
         emailVerified:
           type: boolean
           example: false
@@ -754,6 +754,7 @@ components:
     Flight:
       type: object
       required:
+        - flightId
         - dateTime
         - launchSpotId
         - landingSpotId
@@ -773,12 +774,12 @@ components:
           type: integer
           format: int64
           description: 'Reference to the launch spot used for this flight.'
-          example: '123'
+          example: 123
         landingSpotId:
           type: integer
           format: int64
           description: 'Reference to the landing spot used for this flight.'
-          example: '123'
+          example: 456
         duration:
           type: integer
           format: int64
@@ -792,8 +793,44 @@ components:
           type: integer
           format: int64
           description: 'Reference to the glider used for this flight.'
-          example: '123'
-
+          example: 789
+    FlightCreate:
+      type: object
+      required:
+        - dateTime
+        - launchSpotId
+        - landingSpotId
+        - gliderId
+      properties:
+        dateTime:
+          type: string
+          format: date-time
+          example: '2024-05-12T08:59:10Z'
+          description: 'Datetime of the flight in UTC (ISO-8601 format with Z suffix)'
+        launchSpotId:
+          type: integer
+          format: int64
+          description: 'Reference to the launch spot used for this flight.'
+          example: 123
+        landingSpotId:
+          type: integer
+          format: int64
+          description: 'Reference to the landing spot used for this flight.'
+          example: 456
+        duration:
+          type: integer
+          format: int64
+          example: 60
+          description: 'Duration in minutes'
+        description:
+          type: string
+          example: "This flight was epic."
+          description: "Some textual description of the flight experience."
+        gliderId:
+          type: integer
+          format: int64
+          description: 'Reference to the glider used for this flight.'
+          example: 789
     FlightUpdate:
       type: object
       properties:
@@ -806,12 +843,12 @@ components:
           type: integer
           format: int64
           description: 'Reference to the launch spot used for this flight.'
-          example: '123'
+          example: 123
         landingSpotId:
           type: integer
           format: int64
           description: 'Reference to the landing spot used for this flight.'
-          example: '123'
+          example: 456
         duration:
           type: integer
           format: int64
@@ -825,12 +862,11 @@ components:
           type: integer
           format: int64
           description: 'Reference to the glider used for this flight.'
-          example: '123'
-
+          example: 789
     Spot:
       type: object
       required:
-        - id
+        - spotId
         - name
         - type
         - latitude
@@ -935,8 +971,8 @@ components:
           example: 1200
         description:
           type: string
-          description: 'Detailed description of the spot including conditions, access instructions, etc.'
           example: 'North-facing launch site with good thermals in the afternoon. Accessible via cable car.'
+          description: 'Detailed description of the spot including conditions, access instructions, etc.'
 
     RegisterRequest:
       type: object
@@ -965,7 +1001,7 @@ components:
         - username
         - password
       properties:
-        name:
+        username:
           type: string
           description: 'The username of the user.'
           example: 'Floater'
