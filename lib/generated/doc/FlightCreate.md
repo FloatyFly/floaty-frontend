@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **duration** | **int** | Duration in minutes | [optional] 
 **description** | **String** | Some textual description of the flight experience. | [optional] 
 **gliderId** | **int** | Reference to the glider used for this flight. | 
+**igcDataCreate** | [**IgcDataCreate**](IgcDataCreate.md) | Full metadata with data, null if no IGC file exists | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

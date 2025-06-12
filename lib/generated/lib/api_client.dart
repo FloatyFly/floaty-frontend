@@ -243,6 +243,12 @@ class ApiClient {
         case 'AuthVerifyEmailEmailVerificationTokenPost404Response':
           return AuthVerifyEmailEmailVerificationTokenPost404Response.fromJson(
               value);
+        case 'BoundingBox':
+          return BoundingBox.fromJson(value);
+        case 'BoundingBoxNorthEast':
+          return BoundingBoxNorthEast.fromJson(value);
+        case 'BoundingBoxSouthWest':
+          return BoundingBoxSouthWest.fromJson(value);
         case 'CreateFlight400Response':
           return CreateFlight400Response.fromJson(value);
         case 'CreateFlight404Response':
@@ -255,8 +261,14 @@ class ApiClient {
           return Flight.fromJson(value);
         case 'FlightCreate':
           return FlightCreate.fromJson(value);
+        case 'FlightTrack':
+          return FlightTrack.fromJson(value);
         case 'FlightUpdate':
           return FlightUpdate.fromJson(value);
+        case 'GetFlightIgc404Response':
+          return GetFlightIgc404Response.fromJson(value);
+        case 'GetFlightTrack404Response':
+          return GetFlightTrack404Response.fromJson(value);
         case 'GetGliderById404Response':
           return GetGliderById404Response.fromJson(value);
         case 'GetSpotById404Response':
@@ -267,6 +279,12 @@ class ApiClient {
           return GliderCreate.fromJson(value);
         case 'GliderUpdate':
           return GliderUpdate.fromJson(value);
+        case 'IgcData':
+          return IgcData.fromJson(value);
+        case 'IgcDataCreate':
+          return IgcDataCreate.fromJson(value);
+        case 'IgcMetadata':
+          return IgcMetadata.fromJson(value);
         case 'LoginRequest':
           return LoginRequest.fromJson(value);
         case 'RegisterRequest':
@@ -279,6 +297,10 @@ class ApiClient {
           return SpotCreate.fromJson(value);
         case 'SpotUpdate':
           return SpotUpdate.fromJson(value);
+        case 'TrackPoint':
+          return TrackPoint.fromJson(value);
+        case 'TrackStatistics':
+          return TrackStatistics.fromJson(value);
         case 'UpdateFlightById400Response':
           return UpdateFlightById400Response.fromJson(value);
         case 'UpdateFlightById404Response':

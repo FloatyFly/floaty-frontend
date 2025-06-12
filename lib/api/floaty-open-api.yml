@@ -203,6 +203,73 @@ paths:
                   error:
                     type: string
                     example: "Flight not found"
+  /flights/{flightId}/igc:
+    get:
+      tags:
+        - flights
+      summary: Get IGC file data for a flight
+      description: Returns the complete IGC file data including metadata and binary content for a specific flight. Returns 404 if the flight exists but has no IGC file.
+      operationId: getFlightIgc
+      parameters:
+        - name: flightId
+          in: path
+          description: ID of the flight to retrieve IGC data for
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: IGC file data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IgcData'
+        '404':
+          description: Flight not found or flight has no IGC file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Flight not found or no IGC file exists for this flight"
+  /flights/{flightId}/track:
+    get:
+      tags:
+        - flights
+      summary: Get the processed track data for a flight
+      description: |
+        Returns processed track data including timestamped coordinates, altitude, speed, 
+        and vertical rates calculated from the IGC file. Optimized for map display and 
+        compatible with flutter_map package. Returns 404 if flight exists but has no IGC data.
+      operationId: getFlightTrack
+      parameters:
+        - name: flightId
+          in: path
+          description: ID of the flight to retrieve track data for
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Track data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightTrack'
+        '404':
+          description: Flight not found or flight has no IGC file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Flight not found or no track data available"
   /gliders:
     get:
       tags:
@@ -794,6 +861,11 @@ components:
           format: int64
           description: 'Reference to the glider used for this flight.'
           example: 789
+        igcMetadata:
+          allOf:
+            - $ref: '#/components/schemas/IgcMetadata'
+          nullable: true
+          description: 'Metadata without data, null if no IGC file exists'
     FlightCreate:
       type: object
       required:
@@ -831,6 +903,11 @@ components:
           format: int64
           description: 'Reference to the glider used for this flight.'
           example: 789
+        igcDataCreate:
+          allOf:
+            - $ref: '#/components/schemas/IgcDataCreate'
+          nullable: true
+          description: 'Full metadata with data, null if no IGC file exists'
     FlightUpdate:
       type: object
       properties:
@@ -863,6 +940,215 @@ components:
           format: int64
           description: 'Reference to the glider used for this flight.'
           example: 789
+        igcDataCreate:
+          allOf:
+            - $ref: '#/components/schemas/IgcDataCreate'
+          nullable: true
+          description: 'Full metadata with data, null if no IGC file exists'   
+    IgcMetadata:
+      type: object
+      required:
+        - uploadedAt
+        - fileSize
+      properties:
+        uploadedAt:
+          type: string
+          format: date-time
+          example: '2024-05-12T09:15:00Z'
+          description: 'When the IGC file was uploaded (UTC)'
+        fileSize:
+          type: integer
+          format: int64
+          example: 245760
+          description: 'Size of the IGC file in bytes'
+        fileName:
+          type: string
+          example: "2024-05-12_flight.igc"
+          description: 'Original filename of the uploaded IGC file'
+        checksum:
+          type: string
+          example: "a1b2c3d4e5f6"
+          description: 'File checksum for integrity verification'
+    IgcDataCreate:
+      type: object
+      required:
+        - fileName
+        - file
+      properties:
+        fileName:
+          type: string
+          example: "2024-05-12_flight.igc"
+          description: 'Original filename'
+        file:
+          type: string
+          format: byte
+          description: 'The IGC file data'
+    IgcData:
+      allOf:
+        - $ref: '#/components/schemas/IgcMetadata'
+        - type: object
+          required:
+            - file
+          properties:
+            file:
+              type: string
+              format: byte
+              description: 'Full metadata with data, null if no IGC file exists.'
+    TrackPoint:
+      type: object
+      required:
+        - timestamp
+        - latitude
+        - longitude
+        - altitude
+        - speed
+        - verticalRate
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-05-12T09:15:30Z'
+          description: 'UTC timestamp of the track point'
+        latitude:
+          type: number
+          format: double
+          example: 46.123456
+          description: 'Latitude in decimal degrees (WGS84)'
+        longitude:
+          type: number
+          format: double
+          example: 8.654321
+          description: 'Longitude in decimal degrees (WGS84)'
+        altitude:
+          type: integer
+          example: 1250
+          description: 'Altitude in meters above sea level (GPS altitude)'
+        speed:
+          type: number
+          format: double
+          example: 85.5
+          description: 'Ground speed in km/h (calculated from GPS coordinates)'
+        verticalRate:
+          type: number
+          format: double
+          example: 2.5
+          description: 'Vertical rate in m/s (positive = climbing, negative = sinking)'
+    TrackStatistics:
+      type: object
+      required:
+        - totalPoints
+        - duration
+        - distance
+        - maxAltitude
+        - minAltitude
+        - maxSpeed
+        - maxClimbRate
+        - maxSinkRate
+      properties:
+        totalPoints:
+          type: integer
+          example: 1440
+          description: 'Total number of track points'
+        duration:
+          type: integer
+          example: 7200
+          description: 'Flight duration in seconds'
+        distance:
+          type: number
+          format: double
+          example: 125.8
+          description: 'Total distance covered in kilometers'
+        maxAltitude:
+          type: integer
+          example: 2150
+          description: 'Maximum altitude reached in meters'
+        minAltitude:
+          type: integer
+          example: 580
+          description: 'Minimum altitude in meters'
+        maxSpeed:
+          type: number
+          format: double
+          example: 142.3
+          description: 'Maximum ground speed in km/h'
+        maxClimbRate:
+          type: number
+          format: double
+          example: 8.2
+          description: 'Maximum climb rate in m/s'
+        maxSinkRate:
+          type: number
+          format: double
+          example: -12.5
+          description: 'Maximum sink rate in m/s (negative value)'
+        averageSpeed:
+          type: number
+          format: double
+          example: 67.4
+          description: 'Average ground speed in km/h'
+    BoundingBox:
+      type: object
+      required:
+        - northEast
+        - southWest
+      properties:
+        northEast:
+          type: object
+          required:
+            - latitude
+            - longitude
+          properties:
+            latitude:
+              type: number
+              format: double
+              example: 46.789
+            longitude:
+              type: number
+              format: double
+              example: 8.987
+        southWest:
+          type: object
+          required:
+            - latitude
+            - longitude
+          properties:
+            latitude:
+              type: number
+              format: double
+              example: 46.123
+            longitude:
+              type: number
+              format: double
+              example: 8.321
+    FlightTrack:
+      type: object
+      required:
+        - flightId
+        - points
+        - statistics
+        - boundingBox
+        - processedAt
+      properties:
+        flightId:
+          type: integer
+          format: int64
+          example: 12345
+          description: 'ID of the flight this track belongs to'
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackPoint'
+          description: 'Array of track points ordered chronologically'
+          example: []
+        statistics:
+          $ref: '#/components/schemas/TrackStatistics'
+        boundingBox:
+          $ref: '#/components/schemas/BoundingBox'
+        processedAt:
+          type: string
+          format: date-time
+          example: '2024-05-12T10:30:00Z'
+          description: 'When the track data was last processed/calculated (UTC)'
     Spot:
       type: object
       required:

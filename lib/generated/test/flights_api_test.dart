@@ -11,6 +11,7 @@
 import 'package:floaty_client/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for FlightsApi
 void main() {
   // final instance = FlightsApi();
@@ -43,6 +44,24 @@ void main() {
       // TODO
     });
 
+    // Get IGC file data for a flight
+    //
+    // Returns the complete IGC file data including metadata and binary content for a specific flight. Returns 404 if the flight exists but has no IGC file.
+    //
+    //Future<IgcData> getFlightIgc(int flightId) async
+    test('test getFlightIgc', () async {
+      // TODO
+    });
+
+    // Get the processed track data for a flight
+    //
+    // Returns processed track data including timestamped coordinates, altitude, speed,  and vertical rates calculated from the IGC file. Optimized for map display and  compatible with flutter_map package. Returns 404 if flight exists but has no IGC data. 
+    //
+    //Future<FlightTrack> getFlightTrack(int flightId) async
+    test('test getFlightTrack', () async {
+      // TODO
+    });
+
     // Find all flights.
     //
     // Returns a list of all flights for the authenticated user.
@@ -60,5 +79,6 @@ void main() {
     test('test updateFlightById', () async {
       // TODO
     });
+
   });
 }

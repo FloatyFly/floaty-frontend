@@ -205,6 +205,140 @@ class FlightsApi {
     return null;
   }
 
+  /// Get IGC file data for a flight
+  ///
+  /// Returns the complete IGC file data including metadata and binary content for a specific flight. Returns 404 if the flight exists but has no IGC file.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [int] flightId (required):
+  ///   ID of the flight to retrieve IGC data for
+  Future<Response> getFlightIgcWithHttpInfo(
+    int flightId,
+  ) async {
+    // ignore: prefer_const_declarations
+    final path = r'/flights/{flightId}/igc'
+        .replaceAll('{flightId}', flightId.toString());
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+    return apiClient.invokeAPI(
+      path,
+      'GET',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Get IGC file data for a flight
+  ///
+  /// Returns the complete IGC file data including metadata and binary content for a specific flight. Returns 404 if the flight exists but has no IGC file.
+  ///
+  /// Parameters:
+  ///
+  /// * [int] flightId (required):
+  ///   ID of the flight to retrieve IGC data for
+  Future<IgcData?> getFlightIgc(
+    int flightId,
+  ) async {
+    final response = await getFlightIgcWithHttpInfo(
+      flightId,
+    );
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'IgcData',
+      ) as IgcData;
+    }
+    return null;
+  }
+
+  /// Get the processed track data for a flight
+  ///
+  /// Returns processed track data including timestamped coordinates, altitude, speed,  and vertical rates calculated from the IGC file. Optimized for map display and  compatible with flutter_map package. Returns 404 if flight exists but has no IGC data.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [int] flightId (required):
+  ///   ID of the flight to retrieve track data for
+  Future<Response> getFlightTrackWithHttpInfo(
+    int flightId,
+  ) async {
+    // ignore: prefer_const_declarations
+    final path = r'/flights/{flightId}/track'
+        .replaceAll('{flightId}', flightId.toString());
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+    return apiClient.invokeAPI(
+      path,
+      'GET',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Get the processed track data for a flight
+  ///
+  /// Returns processed track data including timestamped coordinates, altitude, speed,  and vertical rates calculated from the IGC file. Optimized for map display and  compatible with flutter_map package. Returns 404 if flight exists but has no IGC data.
+  ///
+  /// Parameters:
+  ///
+  /// * [int] flightId (required):
+  ///   ID of the flight to retrieve track data for
+  Future<FlightTrack?> getFlightTrack(
+    int flightId,
+  ) async {
+    final response = await getFlightTrackWithHttpInfo(
+      flightId,
+    );
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'FlightTrack',
+      ) as FlightTrack;
+    }
+    return null;
+  }
+
   /// Find all flights.
   ///
   /// Returns a list of all flights for the authenticated user.
@@ -248,6 +382,8 @@ class FlightsApi {
     if (response.body.isNotEmpty &&
         response.statusCode != HttpStatus.noContent) {
       final responseBody = await _decodeBodyBytes(response);
+      // print the response body
+      print(responseBody);
       return (await apiClient.deserializeAsync(responseBody, 'List<Flight>')
               as List)
           .cast<Flight>()

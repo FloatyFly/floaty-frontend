@@ -17,20 +17,14 @@ Future<List<model.Flight>> fetchFlights(
   final flightsApi = api.FlightsApi(apiClient);
 
   try {
-    final List<api.Flight>? response = await flightsApi.getFlights();
-
-    if (response != null && response.isNotEmpty) {
-      // Map the fetched flights to your model and return
-      return response
-          .map((flight) => model.Flight.fromJson(flight.toJson()))
-          .toList();
+    final response = await flightsApi.getFlightsWithHttpInfo();
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      return jsonList.map((json) => model.Flight.fromJson(json)).toList();
     } else {
-      // Return an empty list when no flights are found
       return [];
     }
   } catch (e) {
-    // Handle any errors that occur during the fetch operation
-    // Log the error and return an empty list for consistency
     print('Error fetching flights: $e');
     return [];
   }
@@ -99,5 +93,22 @@ Future<void> updateFlight(model.Flight flight, CookieAuth cookieAuth) async {
     await flightsApi.updateFlightById(flight.flightId, flightUpdate);
   } catch (e) {
     throw Exception('Failed to update flight: $e');
+  }
+}
+
+Future<api.FlightTrack?> fetchFlightTrack(
+  int flightId,
+  CookieAuth cookieAuth,
+) async {
+  final apiClient = api.ApiClient(
+    basePath: backendUrl,
+    authentication: cookieAuth,
+  );
+  final flightsApi = api.FlightsApi(apiClient);
+  try {
+    return await flightsApi.getFlightTrack(flightId);
+  } catch (e) {
+    print('Error fetching flight track: $e');
+    return null;
   }
 }

@@ -69,6 +69,8 @@ Class | Method | HTTP request | Description
 *FlightsApi* | [**createFlight**](doc//FlightsApi.md#createflight) | **POST** /flights | Create a flight.
 *FlightsApi* | [**deleteFlightById**](doc//FlightsApi.md#deleteflightbyid) | **DELETE** /flights/{flightId} | Delete a Flight by ID.
 *FlightsApi* | [**getFlightById**](doc//FlightsApi.md#getflightbyid) | **GET** /flights/{flightId} | Get a Flight by ID.
+*FlightsApi* | [**getFlightIgc**](doc//FlightsApi.md#getflightigc) | **GET** /flights/{flightId}/igc | Get IGC file data for a flight
+*FlightsApi* | [**getFlightTrack**](doc//FlightsApi.md#getflighttrack) | **GET** /flights/{flightId}/track | Get the processed track data for a flight
 *FlightsApi* | [**getFlights**](doc//FlightsApi.md#getflights) | **GET** /flights | Find all flights.
 *FlightsApi* | [**updateFlightById**](doc//FlightsApi.md#updateflightbyid) | **PUT** /flights/{flightId} | Update a Flight by ID.
 *GlidersApi* | [**createGlider**](doc//GlidersApi.md#createglider) | **POST** /gliders | Create a new glider.
@@ -89,24 +91,35 @@ Class | Method | HTTP request | Description
 
  - [AuthVerifyEmailEmailVerificationTokenPost400Response](doc//AuthVerifyEmailEmailVerificationTokenPost400Response.md)
  - [AuthVerifyEmailEmailVerificationTokenPost404Response](doc//AuthVerifyEmailEmailVerificationTokenPost404Response.md)
+ - [BoundingBox](doc//BoundingBox.md)
+ - [BoundingBoxNorthEast](doc//BoundingBoxNorthEast.md)
+ - [BoundingBoxSouthWest](doc//BoundingBoxSouthWest.md)
  - [CreateFlight400Response](doc//CreateFlight400Response.md)
  - [CreateFlight404Response](doc//CreateFlight404Response.md)
  - [DeleteGliderById409Response](doc//DeleteGliderById409Response.md)
  - [DeleteSpotById409Response](doc//DeleteSpotById409Response.md)
  - [Flight](doc//Flight.md)
  - [FlightCreate](doc//FlightCreate.md)
+ - [FlightTrack](doc//FlightTrack.md)
  - [FlightUpdate](doc//FlightUpdate.md)
+ - [GetFlightIgc404Response](doc//GetFlightIgc404Response.md)
+ - [GetFlightTrack404Response](doc//GetFlightTrack404Response.md)
  - [GetGliderById404Response](doc//GetGliderById404Response.md)
  - [GetSpotById404Response](doc//GetSpotById404Response.md)
  - [Glider](doc//Glider.md)
  - [GliderCreate](doc//GliderCreate.md)
  - [GliderUpdate](doc//GliderUpdate.md)
+ - [IgcData](doc//IgcData.md)
+ - [IgcDataCreate](doc//IgcDataCreate.md)
+ - [IgcMetadata](doc//IgcMetadata.md)
  - [LoginRequest](doc//LoginRequest.md)
  - [RegisterRequest](doc//RegisterRequest.md)
  - [ResetPasswordRequest](doc//ResetPasswordRequest.md)
  - [Spot](doc//Spot.md)
  - [SpotCreate](doc//SpotCreate.md)
  - [SpotUpdate](doc//SpotUpdate.md)
+ - [TrackPoint](doc//TrackPoint.md)
+ - [TrackStatistics](doc//TrackStatistics.md)
  - [UpdateFlightById400Response](doc//UpdateFlightById400Response.md)
  - [UpdateFlightById404Response](doc//UpdateFlightById404Response.md)
  - [User](doc//User.md)

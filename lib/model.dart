@@ -8,6 +8,7 @@ class Flight {
   final int duration;
   final String description;
   final int gliderId;
+  final IgcMetadata? igcMetadata;
 
   Flight({
     required this.flightId,
@@ -16,7 +17,8 @@ class Flight {
     required this.landingSpotId,
     required this.duration,
     required this.gliderId,
-    this.description = '',
+    required this.description,
+    this.igcMetadata,
   });
 
   factory Flight.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,10 @@ class Flight {
       duration: json['duration'],
       gliderId: json['gliderId'],
       description: json['description'] ?? '',
+      igcMetadata:
+          json['igcMetadata'] != null
+              ? IgcMetadata.fromJson(json['igcMetadata'])
+              : null,
     );
   }
 
@@ -39,6 +45,7 @@ class Flight {
       landingSpotId: 0,
       duration: 0,
       gliderId: 0,
+      description: '',
     );
   }
 
@@ -50,6 +57,7 @@ class Flight {
     "duration": duration,
     "gliderId": gliderId,
     "description": description,
+    "igcMetadata": igcMetadata?.toJson(),
   };
 }
 

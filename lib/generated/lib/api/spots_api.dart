@@ -10,6 +10,7 @@
 
 part of openapi.api;
 
+
 class SpotsApi {
   SpotsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
@@ -25,9 +26,7 @@ class SpotsApi {
   ///
   /// * [SpotCreate] spotCreate (required):
   ///   Spot details
-  Future<Response> createSpotWithHttpInfo(
-    SpotCreate spotCreate,
-  ) async {
+  Future<Response> createSpotWithHttpInfo(SpotCreate spotCreate,) async {
     // ignore: prefer_const_declarations
     final path = r'/spots';
 
@@ -39,6 +38,7 @@ class SpotsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -59,24 +59,17 @@ class SpotsApi {
   ///
   /// * [SpotCreate] spotCreate (required):
   ///   Spot details
-  Future<Spot?> createSpot(
-    SpotCreate spotCreate,
-  ) async {
-    final response = await createSpotWithHttpInfo(
-      spotCreate,
-    );
+  Future<Spot?> createSpot(SpotCreate spotCreate,) async {
+    final response = await createSpotWithHttpInfo(spotCreate,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Spot',
-      ) as Spot;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Spot',) as Spot;
+    
     }
     return null;
   }
@@ -91,11 +84,10 @@ class SpotsApi {
   ///
   /// * [int] spotId (required):
   ///   ID of the spot to delete
-  Future<Response> deleteSpotByIdWithHttpInfo(
-    int spotId,
-  ) async {
+  Future<Response> deleteSpotByIdWithHttpInfo(int spotId,) async {
     // ignore: prefer_const_declarations
-    final path = r'/spots/{spotId}'.replaceAll('{spotId}', spotId.toString());
+    final path = r'/spots/{spotId}'
+      .replaceAll('{spotId}', spotId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -105,6 +97,7 @@ class SpotsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -125,12 +118,8 @@ class SpotsApi {
   ///
   /// * [int] spotId (required):
   ///   ID of the spot to delete
-  Future<void> deleteSpotById(
-    int spotId,
-  ) async {
-    final response = await deleteSpotByIdWithHttpInfo(
-      spotId,
-    );
+  Future<void> deleteSpotById(int spotId,) async {
+    final response = await deleteSpotByIdWithHttpInfo(spotId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -146,11 +135,10 @@ class SpotsApi {
   ///
   /// * [int] spotId (required):
   ///   ID of the spot to retrieve
-  Future<Response> getSpotByIdWithHttpInfo(
-    int spotId,
-  ) async {
+  Future<Response> getSpotByIdWithHttpInfo(int spotId,) async {
     // ignore: prefer_const_declarations
-    final path = r'/spots/{spotId}'.replaceAll('{spotId}', spotId.toString());
+    final path = r'/spots/{spotId}'
+      .replaceAll('{spotId}', spotId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -160,6 +148,7 @@ class SpotsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -180,24 +169,17 @@ class SpotsApi {
   ///
   /// * [int] spotId (required):
   ///   ID of the spot to retrieve
-  Future<Spot?> getSpotById(
-    int spotId,
-  ) async {
-    final response = await getSpotByIdWithHttpInfo(
-      spotId,
-    );
+  Future<Spot?> getSpotById(int spotId,) async {
+    final response = await getSpotByIdWithHttpInfo(spotId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Spot',
-      ) as Spot;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Spot',) as Spot;
+    
     }
     return null;
   }
@@ -219,6 +201,7 @@ class SpotsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -242,13 +225,12 @@ class SpotsApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       final responseBody = await _decodeBodyBytes(response);
-      return (await apiClient.deserializeAsync(responseBody, 'List<Spot>')
-              as List)
-          .cast<Spot>()
-          .toList(growable: false);
+      return (await apiClient.deserializeAsync(responseBody, 'List<Spot>') as List)
+        .cast<Spot>()
+        .toList(growable: false);
+
     }
     return null;
   }
@@ -266,12 +248,10 @@ class SpotsApi {
   ///
   /// * [SpotUpdate] spotUpdate (required):
   ///   Updated spot information
-  Future<Response> updateSpotByIdWithHttpInfo(
-    int spotId,
-    SpotUpdate spotUpdate,
-  ) async {
+  Future<Response> updateSpotByIdWithHttpInfo(int spotId, SpotUpdate spotUpdate,) async {
     // ignore: prefer_const_declarations
-    final path = r'/spots/{spotId}'.replaceAll('{spotId}', spotId.toString());
+    final path = r'/spots/{spotId}'
+      .replaceAll('{spotId}', spotId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody = spotUpdate;
@@ -281,6 +261,7 @@ class SpotsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -304,26 +285,17 @@ class SpotsApi {
   ///
   /// * [SpotUpdate] spotUpdate (required):
   ///   Updated spot information
-  Future<Spot?> updateSpotById(
-    int spotId,
-    SpotUpdate spotUpdate,
-  ) async {
-    final response = await updateSpotByIdWithHttpInfo(
-      spotId,
-      spotUpdate,
-    );
+  Future<Spot?> updateSpotById(int spotId, SpotUpdate spotUpdate,) async {
+    final response = await updateSpotByIdWithHttpInfo(spotId, spotUpdate,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Spot',
-      ) as Spot;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Spot',) as Spot;
+    
     }
     return null;
   }

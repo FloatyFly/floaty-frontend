@@ -70,29 +70,26 @@ class SpotUpdate {
   String? description;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SpotUpdate &&
-          other.name == name &&
-          other.type == type &&
-          other.latitude == latitude &&
-          other.longitude == longitude &&
-          other.altitude == altitude &&
-          other.description == description;
+  bool operator ==(Object other) => identical(this, other) || other is SpotUpdate &&
+    other.name == name &&
+    other.type == type &&
+    other.latitude == latitude &&
+    other.longitude == longitude &&
+    other.altitude == altitude &&
+    other.description == description;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (name == null ? 0 : name!.hashCode) +
-      (type == null ? 0 : type!.hashCode) +
-      (latitude == null ? 0 : latitude!.hashCode) +
-      (longitude == null ? 0 : longitude!.hashCode) +
-      (altitude == null ? 0 : altitude!.hashCode) +
-      (description == null ? 0 : description!.hashCode);
+    // ignore: unnecessary_parenthesis
+    (name == null ? 0 : name!.hashCode) +
+    (type == null ? 0 : type!.hashCode) +
+    (latitude == null ? 0 : latitude!.hashCode) +
+    (longitude == null ? 0 : longitude!.hashCode) +
+    (altitude == null ? 0 : altitude!.hashCode) +
+    (description == null ? 0 : description!.hashCode);
 
   @override
-  String toString() =>
-      'SpotUpdate[name=$name, type=$type, latitude=$latitude, longitude=$longitude, altitude=$altitude, description=$description]';
+  String toString() => 'SpotUpdate[name=$name, type=$type, latitude=$latitude, longitude=$longitude, altitude=$altitude, description=$description]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -141,10 +138,8 @@ class SpotUpdate {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "SpotUpdate[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "SpotUpdate[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "SpotUpdate[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "SpotUpdate[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -161,10 +156,7 @@ class SpotUpdate {
     return null;
   }
 
-  static List<SpotUpdate> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<SpotUpdate> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <SpotUpdate>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -192,26 +184,21 @@ class SpotUpdate {
   }
 
   // maps a json object with a list of SpotUpdate-objects as value to a dart map
-  static Map<String, List<SpotUpdate>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<SpotUpdate>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<SpotUpdate>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SpotUpdate.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = SpotUpdate.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{};
+  static const requiredKeys = <String>{
+  };
 }
 
 /// Type of the paragliding spot.
@@ -229,8 +216,7 @@ class SpotUpdateTypeEnum {
 
   static const LAUNCH_SITE = SpotUpdateTypeEnum._(r'LAUNCH_SITE');
   static const LANDING_SITE = SpotUpdateTypeEnum._(r'LANDING_SITE');
-  static const LAUNCH_AND_LANDING_SITE =
-      SpotUpdateTypeEnum._(r'LAUNCH_AND_LANDING_SITE');
+  static const LAUNCH_AND_LANDING_SITE = SpotUpdateTypeEnum._(r'LAUNCH_AND_LANDING_SITE');
 
   /// List of all possible values in this [enum][SpotUpdateTypeEnum].
   static const values = <SpotUpdateTypeEnum>[
@@ -239,13 +225,9 @@ class SpotUpdateTypeEnum {
     LAUNCH_AND_LANDING_SITE,
   ];
 
-  static SpotUpdateTypeEnum? fromJson(dynamic value) =>
-      SpotUpdateTypeEnumTypeTransformer().decode(value);
+  static SpotUpdateTypeEnum? fromJson(dynamic value) => SpotUpdateTypeEnumTypeTransformer().decode(value);
 
-  static List<SpotUpdateTypeEnum> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<SpotUpdateTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <SpotUpdateTypeEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -262,8 +244,7 @@ class SpotUpdateTypeEnum {
 /// Transformation class that can [encode] an instance of [SpotUpdateTypeEnum] to String,
 /// and [decode] dynamic data back to [SpotUpdateTypeEnum].
 class SpotUpdateTypeEnumTypeTransformer {
-  factory SpotUpdateTypeEnumTypeTransformer() =>
-      _instance ??= const SpotUpdateTypeEnumTypeTransformer._();
+  factory SpotUpdateTypeEnumTypeTransformer() => _instance ??= const SpotUpdateTypeEnumTypeTransformer._();
 
   const SpotUpdateTypeEnumTypeTransformer._();
 
@@ -280,12 +261,9 @@ class SpotUpdateTypeEnumTypeTransformer {
   SpotUpdateTypeEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'LAUNCH_SITE':
-          return SpotUpdateTypeEnum.LAUNCH_SITE;
-        case r'LANDING_SITE':
-          return SpotUpdateTypeEnum.LANDING_SITE;
-        case r'LAUNCH_AND_LANDING_SITE':
-          return SpotUpdateTypeEnum.LAUNCH_AND_LANDING_SITE;
+        case r'LAUNCH_SITE': return SpotUpdateTypeEnum.LAUNCH_SITE;
+        case r'LANDING_SITE': return SpotUpdateTypeEnum.LANDING_SITE;
+        case r'LAUNCH_AND_LANDING_SITE': return SpotUpdateTypeEnum.LAUNCH_AND_LANDING_SITE;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -298,3 +276,5 @@ class SpotUpdateTypeEnumTypeTransformer {
   /// Singleton [SpotUpdateTypeEnumTypeTransformer] instance.
   static SpotUpdateTypeEnumTypeTransformer? _instance;
 }
+
+

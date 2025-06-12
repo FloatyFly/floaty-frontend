@@ -24,25 +24,23 @@ class ResetPasswordRequest {
   String newPassword;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ResetPasswordRequest &&
-          other.passwordResetToken == passwordResetToken &&
-          other.newPassword == newPassword;
+  bool operator ==(Object other) => identical(this, other) || other is ResetPasswordRequest &&
+    other.passwordResetToken == passwordResetToken &&
+    other.newPassword == newPassword;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (passwordResetToken.hashCode) + (newPassword.hashCode);
+    // ignore: unnecessary_parenthesis
+    (passwordResetToken.hashCode) +
+    (newPassword.hashCode);
 
   @override
-  String toString() =>
-      'ResetPasswordRequest[passwordResetToken=$passwordResetToken, newPassword=$newPassword]';
+  String toString() => 'ResetPasswordRequest[passwordResetToken=$passwordResetToken, newPassword=$newPassword]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'passwordResetToken'] = this.passwordResetToken;
-    json[r'newPassword'] = this.newPassword;
+      json[r'passwordResetToken'] = this.passwordResetToken;
+      json[r'newPassword'] = this.newPassword;
     return json;
   }
 
@@ -58,27 +56,21 @@ class ResetPasswordRequest {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "ResetPasswordRequest[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "ResetPasswordRequest[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "ResetPasswordRequest[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "ResetPasswordRequest[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return ResetPasswordRequest(
-        passwordResetToken:
-            mapValueOfType<String>(json, r'passwordResetToken')!,
+        passwordResetToken: mapValueOfType<String>(json, r'passwordResetToken')!,
         newPassword: mapValueOfType<String>(json, r'newPassword')!,
       );
     }
     return null;
   }
 
-  static List<ResetPasswordRequest> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<ResetPasswordRequest> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <ResetPasswordRequest>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -106,19 +98,13 @@ class ResetPasswordRequest {
   }
 
   // maps a json object with a list of ResetPasswordRequest-objects as value to a dart map
-  static Map<String, List<ResetPasswordRequest>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<ResetPasswordRequest>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<ResetPasswordRequest>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ResetPasswordRequest.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = ResetPasswordRequest.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -130,3 +116,4 @@ class ResetPasswordRequest {
     'newPassword',
   };
 }
+

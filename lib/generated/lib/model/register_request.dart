@@ -28,27 +28,26 @@ class RegisterRequest {
   String email;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RegisterRequest &&
-          other.username == username &&
-          other.password == password &&
-          other.email == email;
+  bool operator ==(Object other) => identical(this, other) || other is RegisterRequest &&
+    other.username == username &&
+    other.password == password &&
+    other.email == email;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (username.hashCode) + (password.hashCode) + (email.hashCode);
+    // ignore: unnecessary_parenthesis
+    (username.hashCode) +
+    (password.hashCode) +
+    (email.hashCode);
 
   @override
-  String toString() =>
-      'RegisterRequest[username=$username, password=$password, email=$email]';
+  String toString() => 'RegisterRequest[username=$username, password=$password, email=$email]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'username'] = this.username;
-    json[r'password'] = this.password;
-    json[r'email'] = this.email;
+      json[r'username'] = this.username;
+      json[r'password'] = this.password;
+      json[r'email'] = this.email;
     return json;
   }
 
@@ -64,10 +63,8 @@ class RegisterRequest {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "RegisterRequest[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "RegisterRequest[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "RegisterRequest[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "RegisterRequest[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -81,10 +78,7 @@ class RegisterRequest {
     return null;
   }
 
-  static List<RegisterRequest> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<RegisterRequest> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <RegisterRequest>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -112,19 +106,13 @@ class RegisterRequest {
   }
 
   // maps a json object with a list of RegisterRequest-objects as value to a dart map
-  static Map<String, List<RegisterRequest>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<RegisterRequest>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<RegisterRequest>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RegisterRequest.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = RegisterRequest.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -137,3 +125,4 @@ class RegisterRequest {
     'email',
   };
 }
+

@@ -51,5 +51,14 @@ void main() {
     test('to test the property `gliderId`', () async {
       // TODO
     });
+
+    // Full metadata with data, null if no IGC file exists
+    // IgcDataCreate igcDataCreate
+    test('to test the property `igcDataCreate`', () async {
+      // TODO
+    });
+
+
   });
+
 }

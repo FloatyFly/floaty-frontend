@@ -10,6 +10,7 @@
 
 part of openapi.api;
 
+
 class AuthApi {
   AuthApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
@@ -25,12 +26,10 @@ class AuthApi {
   ///
   /// * [String] emailVerificationToken (required):
   ///   Token for email verification
-  Future<Response> authVerifyEmailEmailVerificationTokenPostWithHttpInfo(
-    String emailVerificationToken,
-  ) async {
+  Future<Response> authVerifyEmailEmailVerificationTokenPostWithHttpInfo(String emailVerificationToken,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/verify-email/{emailVerificationToken}'
-        .replaceAll('{emailVerificationToken}', emailVerificationToken);
+      .replaceAll('{emailVerificationToken}', emailVerificationToken);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -40,6 +39,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -60,25 +60,17 @@ class AuthApi {
   ///
   /// * [String] emailVerificationToken (required):
   ///   Token for email verification
-  Future<String?> authVerifyEmailEmailVerificationTokenPost(
-    String emailVerificationToken,
-  ) async {
-    final response =
-        await authVerifyEmailEmailVerificationTokenPostWithHttpInfo(
-      emailVerificationToken,
-    );
+  Future<String?> authVerifyEmailEmailVerificationTokenPost(String emailVerificationToken,) async {
+    final response = await authVerifyEmailEmailVerificationTokenPostWithHttpInfo(emailVerificationToken,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'String',
-      ) as String;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'String',) as String;
+    
     }
     return null;
   }
@@ -93,9 +85,7 @@ class AuthApi {
   ///
   /// * [String] body (required):
   ///   The email adress attached to a user to reset the password for.
-  Future<Response> initiatePasswordResetWithHttpInfo(
-    String body,
-  ) async {
+  Future<Response> initiatePasswordResetWithHttpInfo(String body,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/initiate-password-reset';
 
@@ -107,6 +97,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -127,12 +118,8 @@ class AuthApi {
   ///
   /// * [String] body (required):
   ///   The email adress attached to a user to reset the password for.
-  Future<void> initiatePasswordReset(
-    String body,
-  ) async {
-    final response = await initiatePasswordResetWithHttpInfo(
-      body,
-    );
+  Future<void> initiatePasswordReset(String body,) async {
+    final response = await initiatePasswordResetWithHttpInfo(body,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -148,9 +135,7 @@ class AuthApi {
   ///
   /// * [LoginRequest] loginRequest (required):
   ///   User login credentials.
-  Future<Response> loginUserWithHttpInfo(
-    LoginRequest loginRequest,
-  ) async {
+  Future<Response> loginUserWithHttpInfo(LoginRequest loginRequest,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/login';
 
@@ -162,6 +147,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -182,24 +168,17 @@ class AuthApi {
   ///
   /// * [LoginRequest] loginRequest (required):
   ///   User login credentials.
-  Future<User?> loginUser(
-    LoginRequest loginRequest,
-  ) async {
-    final response = await loginUserWithHttpInfo(
-      loginRequest,
-    );
+  Future<User?> loginUser(LoginRequest loginRequest,) async {
+    final response = await loginUserWithHttpInfo(loginRequest,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'User',
-      ) as User;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'User',) as User;
+    
     }
     return null;
   }
@@ -221,6 +200,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -253,9 +233,7 @@ class AuthApi {
   ///
   /// * [RegisterRequest] registerRequest (required):
   ///   User registration details.
-  Future<Response> registerUserWithHttpInfo(
-    RegisterRequest registerRequest,
-  ) async {
+  Future<Response> registerUserWithHttpInfo(RegisterRequest registerRequest,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/register';
 
@@ -267,6 +245,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -287,24 +266,17 @@ class AuthApi {
   ///
   /// * [RegisterRequest] registerRequest (required):
   ///   User registration details.
-  Future<User?> registerUser(
-    RegisterRequest registerRequest,
-  ) async {
-    final response = await registerUserWithHttpInfo(
-      registerRequest,
-    );
+  Future<User?> registerUser(RegisterRequest registerRequest,) async {
+    final response = await registerUserWithHttpInfo(registerRequest,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'User',
-      ) as User;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'User',) as User;
+    
     }
     return null;
   }
@@ -319,9 +291,7 @@ class AuthApi {
   ///
   /// * [ResetPasswordRequest] resetPasswordRequest (required):
   ///   The password request item.
-  Future<Response> resetPasswordWithHttpInfo(
-    ResetPasswordRequest resetPasswordRequest,
-  ) async {
+  Future<Response> resetPasswordWithHttpInfo(ResetPasswordRequest resetPasswordRequest,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/reset-password';
 
@@ -333,6 +303,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -353,12 +324,8 @@ class AuthApi {
   ///
   /// * [ResetPasswordRequest] resetPasswordRequest (required):
   ///   The password request item.
-  Future<void> resetPassword(
-    ResetPasswordRequest resetPasswordRequest,
-  ) async {
-    final response = await resetPasswordWithHttpInfo(
-      resetPasswordRequest,
-    );
+  Future<void> resetPassword(ResetPasswordRequest resetPasswordRequest,) async {
+    final response = await resetPasswordWithHttpInfo(resetPasswordRequest,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

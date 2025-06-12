@@ -31,4 +31,11 @@ class CookieAuth implements Authentication {
       );
     }
   }
+
+  Future<String> getCookieHeader() async {
+    final cookies = await cookieJar.loadForRequest(
+      Uri.parse('http://localhost'),
+    );
+    return cookies.map((cookie) => '${cookie.name}=${cookie.value}').join('; ');
+  }
 }

@@ -11,6 +11,7 @@
 import 'package:floaty_client/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for SpotsApi
 void main() {
   // final instance = SpotsApi();
@@ -60,5 +61,6 @@ void main() {
     test('test updateSpotById', () async {
       // TODO
     });
+
   });
 }
