@@ -11,20 +11,13 @@
 import 'package:floaty_client/api.dart';
 import 'package:test/test.dart';
 
-// tests for IgcDataCreate
+// tests for GetCurrentUser401Response
 void main() {
-  // final instance = IgcDataCreate();
+  // final instance = GetCurrentUser401Response();
 
-  group('test IgcDataCreate', () {
-    // Original filename
-    // String fileName
-    test('to test the property `fileName`', () async {
-      // TODO
-    });
-
-    // The IGC file data
-    // String file
-    test('to test the property `file`', () async {
+  group('test GetCurrentUser401Response', () {
+    // String error
+    test('to test the property `error`', () async {
       // TODO
     });
 

@@ -1,12 +1,12 @@
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:floaty/gliders_service.dart';
-import 'package:floaty/spots_service.dart';
-import 'package:floaty/ui_components.dart';
+import 'package:floaty/services/gliders_service.dart';
+import 'package:floaty/services/spots_service.dart';
+import 'package:floaty/widgets/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'CookieAuth.dart';
-import 'model.dart';
+import '../config/CookieAuth.dart';
+import '../models/model.dart';
 import 'package:floaty_client/api.dart' as api;
 
 class AddFlightPage extends StatefulWidget {

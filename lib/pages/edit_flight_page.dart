@@ -1,19 +1,17 @@
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:floaty/flight_service.dart';
-import 'package:floaty/gliders_service.dart';
-import 'package:floaty/spots_service.dart';
-import 'package:floaty/ui_components.dart';
+import 'package:floaty/services/flight_service.dart';
+import 'package:floaty/services/gliders_service.dart';
+import 'package:floaty/services/spots_service.dart';
+import 'package:floaty/widgets/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'CookieAuth.dart';
-import 'model.dart';
+import '../config/CookieAuth.dart';
+import '../models/model.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'constants.dart';
+import '../config/constants.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
 class EditFlightPage extends StatefulWidget {
@@ -240,72 +238,180 @@ class _EditFlightPageState extends State<EditFlightPage> {
     final altitudes = _flightTrack!.points.map((p) => p.altitude).toList();
     final minAltitude = altitudes.reduce((a, b) => a < b ? a : b);
     final maxAltitude = altitudes.reduce((a, b) => a > b ? a : b);
-    return Container(
-      height: 550,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: FlutterMap(
-          options: MapOptions(
-            initialCenter: points.first,
-            initialZoom: 13,
-            interactionOptions: const InteractionOptions(
-              enableScrollWheel: true,
-              enableMultiFingerGestureRace: false,
-              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+
+    // Calculate bounds
+    final minLat = points
+        .map((p) => p.latitude)
+        .reduce((a, b) => a < b ? a : b);
+    final maxLat = points
+        .map((p) => p.latitude)
+        .reduce((a, b) => a > b ? a : b);
+    final minLng = points
+        .map((p) => p.longitude)
+        .reduce((a, b) => a < b ? a : b);
+    final maxLng = points
+        .map((p) => p.longitude)
+        .reduce((a, b) => a > b ? a : b);
+
+    // Create LatLngBounds for the track
+    final bounds = LatLngBounds(
+      LatLng(minLat, minLng), // southwest
+      LatLng(maxLat, maxLng), // northeast
+    );
+
+    return Column(
+      children: [
+        Container(
+          height: 450,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: FlutterMap(
+              options: MapOptions(
+                initialCameraFit: CameraFit.bounds(
+                  bounds: bounds,
+                  padding: EdgeInsets.all(20.0),
+                ),
+                interactionOptions: const InteractionOptions(
+                  enableScrollWheel: true,
+                  scrollWheelVelocity: 0.002,
+                  enableMultiFingerGestureRace: false,
+                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: mapTileUrl,
+                  maxZoom: mapTileOptions.maxZoom,
+                  minZoom: mapTileOptions.minZoom,
+                  tileSize: mapTileOptions.tileSize,
+                  keepBuffer: mapTileOptions.keepBuffer,
+                  tileProvider: CancellableNetworkTileProvider(),
+                ),
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: points,
+                      color: Colors.blue,
+                      strokeWidth: 5.0,
+                      gradientColors:
+                          altitudes.map((altitude) {
+                            final normalizedAltitude =
+                                (altitude - minAltitude) /
+                                (maxAltitude - minAltitude);
+                            return Color.lerp(
+                              Colors.red,
+                              Colors.blue,
+                              normalizedAltitude,
+                            )!;
+                          }).toList(),
+                    ),
+                  ],
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: points.first,
+                      width: 40,
+                      height: 40,
+                      child: Icon(
+                        Icons.location_on,
+                        color: Colors.blue,
+                        size: 40,
+                      ),
+                    ),
+                    Marker(
+                      point: points.last,
+                      width: 40,
+                      height: 40,
+                      child: Icon(
+                        Icons.location_on,
+                        color: Colors.red,
+                        size: 40,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          children: [
-            TileLayer(
-              urlTemplate: mapTileUrl,
-              maxZoom: mapTileOptions.maxZoom,
-              minZoom: mapTileOptions.minZoom,
-              tileSize: mapTileOptions.tileSize,
-              keepBuffer: mapTileOptions.keepBuffer,
-              tileProvider: CancellableNetworkTileProvider(),
-            ),
-            PolylineLayer(
-              polylines: [
-                Polyline(
-                  points: points,
-                  color: Colors.blue,
-                  strokeWidth: 5.0,
-                  gradientColors:
-                      altitudes.map((altitude) {
-                        final normalizedAltitude =
-                            (altitude - minAltitude) /
-                            (maxAltitude - minAltitude);
-                        return Color.lerp(
-                          Colors.red,
-                          Colors.blue,
-                          normalizedAltitude,
-                        )!;
-                      }).toList(),
-                ),
-              ],
-            ),
-            MarkerLayer(
-              markers: [
-                Marker(
-                  point: points.first,
-                  width: 40,
-                  height: 40,
-                  child: Icon(Icons.location_on, color: Colors.blue, size: 40),
-                ),
-                Marker(
-                  point: points.last,
-                  width: 40,
-                  height: 40,
-                  child: Icon(Icons.location_on, color: Colors.red, size: 40),
-                ),
-              ],
-            ),
-          ],
         ),
-      ),
+        SizedBox(height: 16),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatColumn(
+                      'Distance',
+                      '${_flightTrack!.statistics.distance.toStringAsFixed(2)} km',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatColumn(
+                      'Max Altitude',
+                      '${_flightTrack!.statistics.maxAltitude.toStringAsFixed(0)} m',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatColumn(
+                      'Min Altitude',
+                      '${_flightTrack!.statistics.minAltitude.toStringAsFixed(0)} m',
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatColumn(
+                      'Max Speed',
+                      '${_flightTrack!.statistics.maxSpeed.toStringAsFixed(1)} km/h',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatColumn(
+                      'Max Climbrate',
+                      '${_flightTrack!.statistics.maxClimbRate.toStringAsFixed(1)} m/s',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatColumn(
+                      'Max Sinkrate',
+                      '${_flightTrack!.statistics.maxSinkRate.toStringAsFixed(1)} m/s',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatColumn(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey)),
+        Text(
+          value,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 

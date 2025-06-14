@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:floaty/ui_components.dart';
-import 'package:floaty/model.dart';
-import 'package:floaty/constants.dart';
-import 'package:floaty/gliders_service.dart';
-import 'package:floaty/flight_service.dart';
+import 'package:floaty/widgets/ui_components.dart';
+import 'package:floaty/models/model.dart';
+import 'package:floaty/config/constants.dart';
+import 'package:floaty/services/gliders_service.dart';
+import 'package:floaty/services/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'CookieAuth.dart';
+import '../config/CookieAuth.dart';
 
 class GlidersPage extends StatefulWidget {
   final FloatyUser? user;
@@ -207,6 +207,16 @@ class _GlidersPageState extends State<GlidersPage> {
                                             ),
                                           ),
                                         ),
+                                        SizedBox(width: 24),
+                                        Expanded(
+                                          child: Text(
+                                            'Flights',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -229,13 +239,19 @@ class _GlidersPageState extends State<GlidersPage> {
 
                                         final flights = flightsSnapshot.data!;
                                         final gliderAirTime = <int, int>{};
+                                        final gliderFlightCount = <int, int>{};
 
-                                        // Calculate air time for each glider
+                                        // Calculate air time and flight count for each glider
                                         for (final flight in flights) {
                                           gliderAirTime[flight.gliderId] =
                                               (gliderAirTime[flight.gliderId] ??
                                                   0) +
                                               flight.duration;
+                                          gliderFlightCount[flight.gliderId] =
+                                              (gliderFlightCount[flight
+                                                      .gliderId] ??
+                                                  0) +
+                                              1;
                                         }
 
                                         return ListView.separated(
@@ -363,6 +379,21 @@ class _GlidersPageState extends State<GlidersPage> {
                                                                 ),
                                                               ),
                                                             ],
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 24),
+                                                        Expanded(
+                                                          child: Text(
+                                                            gliderFlightCount[glider
+                                                                        .id]
+                                                                    ?.toString() ??
+                                                                '0',
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color:
+                                                                  Colors
+                                                                      .black87,
+                                                            ),
                                                           ),
                                                         ),
                                                       ],

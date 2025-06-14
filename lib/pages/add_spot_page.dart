@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:floaty_client/api.dart' as api;
-import 'package:floaty/constants.dart';
-import 'package:floaty/CookieAuth.dart';
-import 'package:floaty/ui_components.dart';
+import 'package:floaty/config/constants.dart';
+import 'package:floaty/config/CookieAuth.dart';
+import 'package:floaty/widgets/ui_components.dart';
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -11,52 +11,64 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
-class EditSpotPage extends StatefulWidget {
-  final api.Spot spot;
-
-  const EditSpotPage({required this.spot, super.key});
+class AddSpotPage extends StatefulWidget {
+  const AddSpotPage({super.key});
 
   @override
-  State<EditSpotPage> createState() => _EditSpotPageState();
+  State<AddSpotPage> createState() => _AddSpotPageState();
 }
 
-class _EditSpotPageState extends State<EditSpotPage> {
+class _AddSpotPageState extends State<AddSpotPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
   final _altitudeController = TextEditingController();
-  late api.SpotUpdateTypeEnum _selectedType;
+  api.SpotCreateTypeEnum _selectedType = api.SpotCreateTypeEnum.LAUNCH_SITE;
   bool _isLoading = false;
-  bool _isDeleting = false;
   LatLng? _selectedLocation;
   final MapController _mapController = MapController();
   bool _useCancellableProvider = true;
 
   @override
-  void initState() {
-    super.initState();
-    _nameController.text = widget.spot.name;
-    _descriptionController.text = widget.spot.description ?? '';
-    _selectedType = api.SpotUpdateTypeEnum.values.firstWhere(
-      (e) => e.toString() == widget.spot.type.toString(),
-    );
-    _selectedLocation = LatLng(widget.spot.latitude, widget.spot.longitude);
-    _latitudeController.text = widget.spot.latitude.toStringAsFixed(3);
-    _longitudeController.text = widget.spot.longitude.toStringAsFixed(3);
-    _altitudeController.text = widget.spot.altitude.toString();
-  }
-
-  @override
   void dispose() {
     _nameController.dispose();
-    _descriptionController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     _altitudeController.dispose();
     _mapController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    print('Initializing AddSpotPage');
+    // Set initial location to center of Switzerland
+    _selectedLocation = LatLng(46.8182, 8.2275);
+    _latitudeController.text = _selectedLocation!.latitude.toStringAsFixed(3);
+    _longitudeController.text = _selectedLocation!.longitude.toStringAsFixed(3);
+
+    // Get initial elevation
+    print('Getting initial elevation');
+    _getElevation(_selectedLocation!)
+        .then((elevation) {
+          print('Got initial elevation: $elevation');
+          if (mounted) {
+            setState(() {
+              _altitudeController.text = elevation.round().toString();
+            });
+          }
+        })
+        .catchError((error) {
+          print('Error getting initial elevation: $error');
+          if (mounted) {
+            setState(() {
+              _altitudeController.text = '0';
+            });
+          }
+        });
   }
 
   CookieAuth _getCookieAuth() {
@@ -125,112 +137,56 @@ class _EditSpotPageState extends State<EditSpotPage> {
     }
   }
 
-  Future<void> _deleteSpot() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Delete Spot'),
-            content: Text('Are you sure you want to delete this spot?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: Text('Delete'),
-              ),
-            ],
-          ),
-    );
+  Future<void> _saveNewSpot() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
 
-    if (confirmed != true) return;
-
-    setState(() {
-      _isDeleting = true;
-    });
-
-    try {
-      final apiClient = api.ApiClient(
-        basePath: backendUrl,
-        authentication: _getCookieAuth(),
-      );
-      final spotsApi = api.SpotsApi(apiClient);
-      await spotsApi.deleteSpotById(widget.spot.spotId);
-
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete spot. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
+      try {
+        final spotCreate = api.SpotCreate(
+          name: _nameController.text,
+          type: _selectedType,
+          latitude: double.parse(_latitudeController.text),
+          longitude: double.parse(_longitudeController.text),
+          altitude: int.parse(_altitudeController.text),
+          description:
+              _descriptionController.text.isEmpty
+                  ? null
+                  : _descriptionController.text,
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isDeleting = false;
-        });
-      }
-    }
-  }
 
-  Future<void> _saveSpot() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final spotUpdate = api.SpotUpdate(
-        name: _nameController.text,
-        type: _selectedType,
-        latitude: double.parse(_latitudeController.text),
-        longitude: double.parse(_longitudeController.text),
-        altitude: int.parse(_altitudeController.text),
-        description:
-            _descriptionController.text.isEmpty
-                ? null
-                : _descriptionController.text,
-      );
-
-      final apiClient = api.ApiClient(
-        basePath: backendUrl,
-        authentication: _getCookieAuth(),
-      );
-      final spotsApi = api.SpotsApi(apiClient);
-      await spotsApi.updateSpotById(widget.spot.spotId, spotUpdate);
-
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update spot. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
+        final apiClient = api.ApiClient(
+          basePath: backendUrl,
+          authentication: _getCookieAuth(),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        final spotsApi = api.SpotsApi(apiClient);
+        await spotsApi.createSpot(spotCreate);
+
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save spot. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
 
   Widget _buildTypeButton(
-    api.SpotUpdateTypeEnum type,
+    api.SpotCreateTypeEnum type,
     String label,
     bool isFirst,
     bool isLast,
@@ -256,7 +212,6 @@ class _EditSpotPageState extends State<EditSpotPage> {
               right: Radius.circular(isLast ? 4 : 0),
             ),
           ),
-          side: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
         ),
         child: Text(label, style: TextStyle(fontSize: 14)),
       ),
@@ -289,17 +244,6 @@ class _EditSpotPageState extends State<EditSpotPage> {
                           isMobile
                               ? BorderRadius.zero
                               : BorderRadius.circular(6),
-                      boxShadow:
-                          isMobile
-                              ? []
-                              : [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
                     ),
                     child: Form(
                       key: _formKey,
@@ -309,7 +253,7 @@ class _EditSpotPageState extends State<EditSpotPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Edit Spot',
+                              'Add New Spot',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -328,52 +272,62 @@ class _EditSpotPageState extends State<EditSpotPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter a name';
+                                  return 'Please enter a spot name';
                                 }
                                 return null;
                               },
                             ),
-                            SizedBox(height: 16),
-                            Row(
-                              children: [
-                                _buildTypeButton(
-                                  api.SpotUpdateTypeEnum.LAUNCH_SITE,
-                                  'Launch',
-                                  true,
-                                  false,
-                                ),
-                                _buildTypeButton(
-                                  api.SpotUpdateTypeEnum.LANDING_SITE,
-                                  'Landing',
-                                  false,
-                                  false,
-                                ),
-                                _buildTypeButton(
-                                  api
-                                      .SpotUpdateTypeEnum
-                                      .LAUNCH_AND_LANDING_SITE,
-                                  'Launch & Landing',
-                                  false,
-                                  true,
-                                ),
-                              ],
+                            Container(
+                              padding: EdgeInsets.only(top: 5, bottom: 5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      _buildTypeButton(
+                                        api.SpotCreateTypeEnum.LAUNCH_SITE,
+                                        'Launch',
+                                        true,
+                                        false,
+                                      ),
+                                      _buildTypeButton(
+                                        api.SpotCreateTypeEnum.LANDING_SITE,
+                                        'Landing',
+                                        false,
+                                        false,
+                                      ),
+                                      _buildTypeButton(
+                                        api
+                                            .SpotCreateTypeEnum
+                                            .LAUNCH_AND_LANDING_SITE,
+                                        'Launch & Landing',
+                                        false,
+                                        true,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                             SizedBox(height: 16),
+                            // Map Widget
                             Container(
                               height: 400,
                               decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.3),
-                                ),
-                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(8),
                                 child: FlutterMap(
                                   mapController: _mapController,
                                   options: MapOptions(
-                                    initialCenter: _selectedLocation!,
-                                    initialZoom: 13,
+                                    initialCenter: LatLng(46.8182, 8.2275),
+                                    initialZoom: 8,
                                     onTap: _onMapTap,
                                     interactionOptions:
                                         const InteractionOptions(
@@ -396,21 +350,21 @@ class _EditSpotPageState extends State<EditSpotPage> {
                                               ? CancellableNetworkTileProvider()
                                               : null,
                                     ),
-                                    MarkerLayer(
-                                      markers: [
-                                        if (_selectedLocation != null)
+                                    if (_selectedLocation != null)
+                                      MarkerLayer(
+                                        markers: [
                                           Marker(
                                             point: _selectedLocation!,
                                             width: 40,
                                             height: 40,
                                             child: Icon(
                                               Icons.location_on,
-                                              color: Color(0xFF0078D7),
+                                              color: Colors.red,
                                               size: 40,
                                             ),
                                           ),
-                                      ],
-                                    ),
+                                        ],
+                                      ),
                                   ],
                                 ),
                               ),
@@ -518,16 +472,8 @@ class _EditSpotPageState extends State<EditSpotPage> {
                                   child: Text('Cancel'),
                                 ),
                                 SizedBox(width: 16),
-                                TextButton(
-                                  onPressed: _isLoading ? null : _deleteSpot,
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                  ),
-                                  child: Text('Delete'),
-                                ),
-                                SizedBox(width: 16),
                                 ElevatedButton(
-                                  onPressed: _isLoading ? null : _saveSpot,
+                                  onPressed: _isLoading ? null : _saveNewSpot,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF0078D7),
                                     foregroundColor: Colors.white,

@@ -1,8 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'constants.dart';
-import 'model.dart';
+import '../config/constants.dart';
+import '../models/model.dart';
 
 Future<FloatyUser> fetchUserById(String userId) async {
   final String apiUrl = '$backendUrl/users/$userId';

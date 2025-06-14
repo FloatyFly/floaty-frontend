@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:floaty/ui_components.dart';
-import 'package:floaty/model.dart';
+import 'package:floaty/widgets/ui_components.dart';
+import 'package:floaty/models/model.dart';
+import 'package:provider/provider.dart';
+import 'package:floaty/main.dart';
 
 class ProfilePage extends StatefulWidget {
   final FloatyUser? user;
@@ -104,7 +106,7 @@ class ProfilePageState extends State<ProfilePage> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    _currentUser.name,
+                                    '${_currentUser?.name}',
                                     style:
                                         Theme.of(context).textTheme.bodyLarge,
                                   ),
@@ -131,33 +133,37 @@ class ProfilePageState extends State<ProfilePage> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        _currentUser.email,
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodyLarge,
-                                      ),
-                                      if (_currentUser.emailVerified) ...[
-                                        SizedBox(width: 8),
-                                        Text(
-                                          '(verified)',
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodyLarge!.copyWith(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                        '${_currentUser?.email}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[600],
                                         ),
-                                      ],
+                                      ),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
+                            SizedBox(height: 24),
+                            SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: SizedBox(
+                                width: 140,
+                                child: TextButton(
+                                  onPressed: () {
+                                    context.read<AppState>().logout();
+                                  },
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                  child: Text('Logout'),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      SizedBox(height: isMobile ? 16 : 32),
                       // Verify Email Button
                       if (_isSendingVerification)
                         Center(child: CircularProgressIndicator())

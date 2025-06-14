@@ -10,6 +10,7 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**authVerifyEmailEmailVerificationTokenPost**](AuthApi.md#authverifyemailemailverificationtokenpost) | **POST** /auth/verify-email/{emailVerificationToken} | Verify an Email.
+[**getCurrentUser**](AuthApi.md#getcurrentuser) | **GET** /auth/me | Get current authenticated user.
 [**initiatePasswordReset**](AuthApi.md#initiatepasswordreset) | **POST** /auth/initiate-password-reset | Request a password reset initiation mail.
 [**loginUser**](AuthApi.md#loginuser) | **POST** /auth/login | Login a user.
 [**logoutUser**](AuthApi.md#logoutuser) | **POST** /auth/logout | Logout the user.
@@ -48,6 +49,45 @@ Name | Type | Description  | Notes
 ### Return type
 
 **String**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getCurrentUser**
+> User getCurrentUser()
+
+Get current authenticated user.
+
+Returns the current user's information based on the session cookie. Used for session validation and restoration.
+
+### Example
+```dart
+import 'package:floaty_client/api.dart';
+
+final api_instance = AuthApi();
+
+try {
+    final result = api_instance.getCurrentUser();
+    print(result);
+} catch (e) {
+    print('Exception when calling AuthApi->getCurrentUser: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**User**](User.md)
 
 ### Authorization
 

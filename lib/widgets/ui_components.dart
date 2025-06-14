@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'constants.dart';
-import 'main.dart';
+import '../config/constants.dart';
+import '../main.dart';
 
 class FloatyBackgroundWidget extends StatelessWidget {
   const FloatyBackgroundWidget({super.key});

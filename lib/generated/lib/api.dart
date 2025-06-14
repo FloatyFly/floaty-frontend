@@ -48,6 +48,7 @@ part 'model/flight.dart';
 part 'model/flight_create.dart';
 part 'model/flight_track.dart';
 part 'model/flight_update.dart';
+part 'model/get_current_user401_response.dart';
 part 'model/get_flight_igc404_response.dart';
 part 'model/get_flight_track404_response.dart';
 part 'model/get_glider_by_id404_response.dart';

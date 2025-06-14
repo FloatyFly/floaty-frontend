@@ -18,6 +18,7 @@ This will generate the openapi models and api code in lib/generated.
 
 
 Note the ugly work-around
+class ApiClient {
   ApiClient(
       {this.basePath = 'http://localhost',
       this.authentication,
@@ -32,3 +33,5 @@ Note the ugly work-around
   }
 
   in api-client.dart (generated code).
+
+  and import 'package:http/browser_client.dart'; in api.dart.

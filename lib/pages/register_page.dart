@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:floaty_client/api.dart';
-import 'constants.dart';
-import 'validator.dart';
-import 'ui_components.dart';
+import '../config/constants.dart';
+import '../widgets/validator.dart';
+import '../widgets/ui_components.dart';
 
 /// Register Form Widget
 class RegisterForm extends StatefulWidget {

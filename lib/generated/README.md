@@ -61,6 +61,7 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *AuthApi* | [**authVerifyEmailEmailVerificationTokenPost**](doc//AuthApi.md#authverifyemailemailverificationtokenpost) | **POST** /auth/verify-email/{emailVerificationToken} | Verify an Email.
+*AuthApi* | [**getCurrentUser**](doc//AuthApi.md#getcurrentuser) | **GET** /auth/me | Get current authenticated user.
 *AuthApi* | [**initiatePasswordReset**](doc//AuthApi.md#initiatepasswordreset) | **POST** /auth/initiate-password-reset | Request a password reset initiation mail.
 *AuthApi* | [**loginUser**](doc//AuthApi.md#loginuser) | **POST** /auth/login | Login a user.
 *AuthApi* | [**logoutUser**](doc//AuthApi.md#logoutuser) | **POST** /auth/logout | Logout the user.
@@ -102,6 +103,7 @@ Class | Method | HTTP request | Description
  - [FlightCreate](doc//FlightCreate.md)
  - [FlightTrack](doc//FlightTrack.md)
  - [FlightUpdate](doc//FlightUpdate.md)
+ - [GetCurrentUser401Response](doc//GetCurrentUser401Response.md)
  - [GetFlightIgc404Response](doc//GetFlightIgc404Response.md)
  - [GetFlightTrack404Response](doc//GetFlightTrack404Response.md)
  - [GetGliderById404Response](doc//GetGliderById404Response.md)

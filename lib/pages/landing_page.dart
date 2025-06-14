@@ -1,8 +1,8 @@
-import 'package:floaty/register_page.dart';
+import 'package:floaty/pages/register_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'main.dart';
-import 'package:floaty/ui_components.dart'; // Assuming you have AuthContainer and FloatyBackgroundWidget
+import '../main.dart';
+import 'package:floaty/widgets/ui_components.dart'; // Assuming you have AuthContainer and FloatyBackgroundWidget
 
 class LandingPage extends StatelessWidget {
   @override

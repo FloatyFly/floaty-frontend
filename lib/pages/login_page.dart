@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'package:floaty_client/api.dart';
-import 'constants.dart';
-import 'main.dart';
-import 'model.dart';
-import 'validator.dart';
-import 'ui_components.dart';
+import '../config/constants.dart';
+import '../main.dart';
+import '../models/model.dart';
+import '../widgets/validator.dart';
+import '../widgets/ui_components.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 
 class LoginForm extends StatefulWidget {

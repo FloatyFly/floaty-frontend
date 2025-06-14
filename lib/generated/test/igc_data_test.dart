@@ -41,7 +41,7 @@ void main() {
     });
 
     // Full metadata with data, null if no IGC file exists.
-    // MultipartFile file
+    // String file
     test('to test the property `file`', () async {
       // TODO
     });

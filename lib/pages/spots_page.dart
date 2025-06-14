@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:floaty/ui_components.dart';
-import 'package:floaty/model.dart';
-import 'package:floaty/constants.dart';
-import 'package:floaty/spots_service.dart';
-import 'package:floaty/flight_service.dart';
+import 'package:floaty/widgets/ui_components.dart';
+import 'package:floaty/models/model.dart';
+import 'package:floaty/config/constants.dart';
+import 'package:floaty/services/spots_service.dart';
+import 'package:floaty/services/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'CookieAuth.dart';
+import '../config/CookieAuth.dart';
 
 class SpotsPage extends StatefulWidget {
   final FloatyUser? user;

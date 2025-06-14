@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:floaty_client/api.dart' as api;
-import 'package:floaty/constants.dart';
-import 'package:floaty/add_glider_page.dart';
-import 'package:floaty/ui_components.dart';
+import 'package:floaty/config/constants.dart';
+import 'package:floaty/pages/add_glider_page.dart';
+import 'package:floaty/widgets/ui_components.dart';
 import 'package:provider/provider.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'CookieAuth.dart';
+import '../config/CookieAuth.dart';
 
 class EditGliderPage extends AddGliderPage {
   final api.Glider glider;

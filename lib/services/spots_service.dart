@@ -1,7 +1,7 @@
 import 'package:floaty_client/api.dart' as api;
 
-import 'CookieAuth.dart';
-import 'constants.dart';
+import '../config/CookieAuth.dart';
+import '../config/constants.dart';
 
 Future<List<api.Spot>> fetchSpots(int userId, CookieAuth cookieAuth) async {
   final apiClient = api.ApiClient(

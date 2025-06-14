@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:floaty_client/api.dart';
-import 'constants.dart';
-import 'ui_components.dart';
+import '../config/constants.dart';
+import '../widgets/ui_components.dart';
 
 class EmailVerificationPage extends StatefulWidget {
   const EmailVerificationPage({super.key});

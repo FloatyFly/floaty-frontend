@@ -76,7 +76,7 @@ class FloatyUser {
 
   factory FloatyUser.fromUserDto(User userDto) {
     return FloatyUser(
-      id: int.parse(userDto.id),
+      id: userDto.id,
       name: userDto.name,
       email: userDto.email,
       emailVerified: userDto.emailVerified,

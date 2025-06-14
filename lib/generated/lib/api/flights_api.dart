@@ -10,9 +10,9 @@
 
 part of openapi.api;
 
+
 class FlightsApi {
-  FlightsApi([ApiClient? apiClient])
-      : apiClient = apiClient ?? defaultApiClient;
+  FlightsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -26,9 +26,7 @@ class FlightsApi {
   ///
   /// * [FlightCreate] flightCreate (required):
   ///   Flight details including required glider and spots references
-  Future<Response> createFlightWithHttpInfo(
-    FlightCreate flightCreate,
-  ) async {
+  Future<Response> createFlightWithHttpInfo(FlightCreate flightCreate,) async {
     // ignore: prefer_const_declarations
     final path = r'/flights';
 
@@ -40,6 +38,7 @@ class FlightsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -60,24 +59,17 @@ class FlightsApi {
   ///
   /// * [FlightCreate] flightCreate (required):
   ///   Flight details including required glider and spots references
-  Future<Flight?> createFlight(
-    FlightCreate flightCreate,
-  ) async {
-    final response = await createFlightWithHttpInfo(
-      flightCreate,
-    );
+  Future<Flight?> createFlight(FlightCreate flightCreate,) async {
+    final response = await createFlightWithHttpInfo(flightCreate,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Flight',
-      ) as Flight;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Flight',) as Flight;
+    
     }
     return null;
   }
@@ -92,12 +84,10 @@ class FlightsApi {
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to delete
-  Future<Response> deleteFlightByIdWithHttpInfo(
-    int flightId,
-  ) async {
+  Future<Response> deleteFlightByIdWithHttpInfo(int flightId,) async {
     // ignore: prefer_const_declarations
-    final path =
-        r'/flights/{flightId}'.replaceAll('{flightId}', flightId.toString());
+    final path = r'/flights/{flightId}'
+      .replaceAll('{flightId}', flightId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -107,6 +97,7 @@ class FlightsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -127,12 +118,8 @@ class FlightsApi {
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to delete
-  Future<void> deleteFlightById(
-    int flightId,
-  ) async {
-    final response = await deleteFlightByIdWithHttpInfo(
-      flightId,
-    );
+  Future<void> deleteFlightById(int flightId,) async {
+    final response = await deleteFlightByIdWithHttpInfo(flightId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -148,12 +135,10 @@ class FlightsApi {
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to retrieve
-  Future<Response> getFlightByIdWithHttpInfo(
-    int flightId,
-  ) async {
+  Future<Response> getFlightByIdWithHttpInfo(int flightId,) async {
     // ignore: prefer_const_declarations
-    final path =
-        r'/flights/{flightId}'.replaceAll('{flightId}', flightId.toString());
+    final path = r'/flights/{flightId}'
+      .replaceAll('{flightId}', flightId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -163,6 +148,7 @@ class FlightsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -183,24 +169,17 @@ class FlightsApi {
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to retrieve
-  Future<Flight?> getFlightById(
-    int flightId,
-  ) async {
-    final response = await getFlightByIdWithHttpInfo(
-      flightId,
-    );
+  Future<Flight?> getFlightById(int flightId,) async {
+    final response = await getFlightByIdWithHttpInfo(flightId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Flight',
-      ) as Flight;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Flight',) as Flight;
+    
     }
     return null;
   }
@@ -215,12 +194,10 @@ class FlightsApi {
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to retrieve IGC data for
-  Future<Response> getFlightIgcWithHttpInfo(
-    int flightId,
-  ) async {
+  Future<Response> getFlightIgcWithHttpInfo(int flightId,) async {
     // ignore: prefer_const_declarations
     final path = r'/flights/{flightId}/igc'
-        .replaceAll('{flightId}', flightId.toString());
+      .replaceAll('{flightId}', flightId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -230,6 +207,7 @@ class FlightsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -250,31 +228,24 @@ class FlightsApi {
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to retrieve IGC data for
-  Future<IgcData?> getFlightIgc(
-    int flightId,
-  ) async {
-    final response = await getFlightIgcWithHttpInfo(
-      flightId,
-    );
+  Future<IgcData?> getFlightIgc(int flightId,) async {
+    final response = await getFlightIgcWithHttpInfo(flightId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'IgcData',
-      ) as IgcData;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'IgcData',) as IgcData;
+    
     }
     return null;
   }
 
   /// Get the processed track data for a flight
   ///
-  /// Returns processed track data including timestamped coordinates, altitude, speed,  and vertical rates calculated from the IGC file. Optimized for map display and  compatible with flutter_map package. Returns 404 if flight exists but has no IGC data.
+  /// Returns processed track data including timestamped coordinates, altitude, speed,  and vertical rates calculated from the IGC file. Optimized for map display and  compatible with flutter_map package. Returns 404 if flight exists but has no IGC data. 
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -282,12 +253,10 @@ class FlightsApi {
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to retrieve track data for
-  Future<Response> getFlightTrackWithHttpInfo(
-    int flightId,
-  ) async {
+  Future<Response> getFlightTrackWithHttpInfo(int flightId,) async {
     // ignore: prefer_const_declarations
     final path = r'/flights/{flightId}/track'
-        .replaceAll('{flightId}', flightId.toString());
+      .replaceAll('{flightId}', flightId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -297,6 +266,7 @@ class FlightsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -311,30 +281,23 @@ class FlightsApi {
 
   /// Get the processed track data for a flight
   ///
-  /// Returns processed track data including timestamped coordinates, altitude, speed,  and vertical rates calculated from the IGC file. Optimized for map display and  compatible with flutter_map package. Returns 404 if flight exists but has no IGC data.
+  /// Returns processed track data including timestamped coordinates, altitude, speed,  and vertical rates calculated from the IGC file. Optimized for map display and  compatible with flutter_map package. Returns 404 if flight exists but has no IGC data. 
   ///
   /// Parameters:
   ///
   /// * [int] flightId (required):
   ///   ID of the flight to retrieve track data for
-  Future<FlightTrack?> getFlightTrack(
-    int flightId,
-  ) async {
-    final response = await getFlightTrackWithHttpInfo(
-      flightId,
-    );
+  Future<FlightTrack?> getFlightTrack(int flightId,) async {
+    final response = await getFlightTrackWithHttpInfo(flightId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'FlightTrack',
-      ) as FlightTrack;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'FlightTrack',) as FlightTrack;
+    
     }
     return null;
   }
@@ -356,6 +319,7 @@ class FlightsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -379,15 +343,12 @@ class FlightsApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       final responseBody = await _decodeBodyBytes(response);
-      // print the response body
-      print(responseBody);
-      return (await apiClient.deserializeAsync(responseBody, 'List<Flight>')
-              as List)
-          .cast<Flight>()
-          .toList(growable: false);
+      return (await apiClient.deserializeAsync(responseBody, 'List<Flight>') as List)
+        .cast<Flight>()
+        .toList(growable: false);
+
     }
     return null;
   }
@@ -405,13 +366,10 @@ class FlightsApi {
   ///
   /// * [FlightUpdate] flightUpdate (required):
   ///   Updated flight information
-  Future<Response> updateFlightByIdWithHttpInfo(
-    int flightId,
-    FlightUpdate flightUpdate,
-  ) async {
+  Future<Response> updateFlightByIdWithHttpInfo(int flightId, FlightUpdate flightUpdate,) async {
     // ignore: prefer_const_declarations
-    final path =
-        r'/flights/{flightId}'.replaceAll('{flightId}', flightId.toString());
+    final path = r'/flights/{flightId}'
+      .replaceAll('{flightId}', flightId.toString());
 
     // ignore: prefer_final_locals
     Object? postBody = flightUpdate;
@@ -421,6 +379,7 @@ class FlightsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -444,26 +403,17 @@ class FlightsApi {
   ///
   /// * [FlightUpdate] flightUpdate (required):
   ///   Updated flight information
-  Future<Flight?> updateFlightById(
-    int flightId,
-    FlightUpdate flightUpdate,
-  ) async {
-    final response = await updateFlightByIdWithHttpInfo(
-      flightId,
-      flightUpdate,
-    );
+  Future<Flight?> updateFlightById(int flightId, FlightUpdate flightUpdate,) async {
+    final response = await updateFlightByIdWithHttpInfo(flightId, flightUpdate,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Flight',
-      ) as Flight;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Flight',) as Flight;
+    
     }
     return null;
   }

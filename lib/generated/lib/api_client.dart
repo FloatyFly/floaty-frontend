@@ -265,6 +265,8 @@ class ApiClient {
           return FlightTrack.fromJson(value);
         case 'FlightUpdate':
           return FlightUpdate.fromJson(value);
+        case 'GetCurrentUser401Response':
+          return GetCurrentUser401Response.fromJson(value);
         case 'GetFlightIgc404Response':
           return GetFlightIgc404Response.fromJson(value);
         case 'GetFlightTrack404Response':

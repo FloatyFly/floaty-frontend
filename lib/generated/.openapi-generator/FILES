@@ -17,6 +17,7 @@ doc/FlightCreate.md
 doc/FlightTrack.md
 doc/FlightUpdate.md
 doc/FlightsApi.md
+doc/GetCurrentUser401Response.md
 doc/GetFlightIgc404Response.md
 doc/GetFlightTrack404Response.md
 doc/GetGliderById404Response.md
@@ -69,6 +70,7 @@ lib/model/flight.dart
 lib/model/flight_create.dart
 lib/model/flight_track.dart
 lib/model/flight_update.dart
+lib/model/get_current_user401_response.dart
 lib/model/get_flight_igc404_response.dart
 lib/model/get_flight_track404_response.dart
 lib/model/get_glider_by_id404_response.dart

@@ -4,19 +4,19 @@ import 'dart:typed_data';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:csv/csv.dart';
 import 'package:file_saver/file_saver.dart';
-import 'package:floaty/flight_service.dart';
+import 'package:floaty/services/flight_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'CookieAuth.dart';
-import 'main.dart';
-import 'model.dart';
+import '../../config/CookieAuth.dart';
+import '../../../main.dart';
+import '../../models/model.dart';
 import 'add_flight_page.dart';
-import 'ui_components.dart';
+import '../../widgets/ui_components.dart';
 import 'edit_flight_page.dart';
 import 'package:floaty_client/api.dart' as api;
-import 'spots_service.dart';
-import 'gliders_service.dart';
+import '../../../services/spots_service.dart';
+import '../../../services/gliders_service.dart';
 
 class FlightsPage extends StatefulWidget {
   final FloatyUser? user;
@@ -36,7 +36,7 @@ class _FlightsPageState extends State<FlightsPage> {
     super.initState();
 
     // ONLY FOR DEBUGGING TO PREVENT NEED FOR LOGIN DUE TO STATE RESET ON HOT RELOAD.
-    bool isDebug = false;
+    bool isDebug = true;
     if (isDebug) {
       _currentUser = FloatyUser(
         id: 1,
@@ -523,15 +523,24 @@ class FlightListView extends StatelessWidget {
                                         getGliderName(flight.gliderId),
                                         style: TextStyle(
                                           fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                          color: Colors.black,
                                         ),
-                                        textAlign: TextAlign.right,
                                       ),
                                       SizedBox(height: 4),
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
+                                          if (flight.igcMetadata != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 8.0,
+                                              ),
+                                              child: Image.asset(
+                                                'assets/images/track.png',
+                                                width: 24,
+                                                height: 24,
+                                              ),
+                                            ),
                                           Icon(
                                             Icons.access_time,
                                             size: 15,
@@ -632,15 +641,24 @@ class FlightListView extends StatelessWidget {
                                         getGliderName(flight.gliderId),
                                         style: TextStyle(
                                           fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                          color: Colors.black,
                                         ),
-                                        textAlign: TextAlign.right,
                                       ),
                                       SizedBox(height: 4),
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
+                                          if (flight.igcMetadata != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 8.0,
+                                              ),
+                                              child: Image.asset(
+                                                'assets/images/track.png',
+                                                width: 24,
+                                                height: 24,
+                                              ),
+                                            ),
                                           Icon(
                                             Icons.access_time,
                                             size: 15,
