@@ -283,7 +283,7 @@ class _StatsPageState extends State<StatsPage> {
                             );
                           }
 
-                          return FlutterMap(
+                          return MapWithZoomControls(
                             mapController: _mapController,
                             options: MapOptions(
                               initialCenter: LatLng(
@@ -301,25 +301,20 @@ class _StatsPageState extends State<StatsPage> {
                                   );
                                 }
                               },
-                              interactionOptions: const InteractionOptions(
-                                enableScrollWheel: true,
-                                enableMultiFingerGestureRace: false,
-                                flags:
-                                    InteractiveFlag.all &
-                                    ~InteractiveFlag.rotate,
-                              ),
                             ),
                             children: [
                               TileLayer(
                                 urlTemplate: mapTileUrl,
-                                maxZoom: mapTileOptions.maxZoom,
-                                minZoom: mapTileOptions.minZoom,
-                                tileSize: mapTileOptions.tileSize,
-                                keepBuffer: mapTileOptions.keepBuffer,
-                                tileProvider:
-                                    _useCancellableProvider
-                                        ? CancellableNetworkTileProvider()
-                                        : null,
+                                maxZoom: mapMaxZoom,
+                                minZoom: mapMinZoom,
+                                tileSize: mapTileSize,
+                                keepBuffer: mapKeepBuffer,
+                                panBuffer: mapPanBuffer,
+                                maxNativeZoom: mapMaxNativeZoom,
+                                retinaMode: mapRetinaMode,
+                                tileDisplay: mapTileDisplay,
+                                errorTileCallback: mapErrorTileCallback,
+                                tileProvider: CancellableNetworkTileProvider(),
                               ),
                               MarkerLayer(
                                 markers: [

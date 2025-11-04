@@ -106,7 +106,7 @@ class ProfilePageState extends State<ProfilePage> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    '${_currentUser?.name}',
+                                    '${_currentUser.name}',
                                     style:
                                         Theme.of(context).textTheme.bodyLarge,
                                   ),
@@ -133,7 +133,7 @@ class ProfilePageState extends State<ProfilePage> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        '${_currentUser?.email}',
+                                        '${_currentUser.email}',
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.grey[600],

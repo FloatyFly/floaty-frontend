@@ -47,6 +47,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
 
   api.FlightTrack? _flightTrack;
   bool _isLoadingTrack = false;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -93,6 +94,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
     _descriptionController.dispose();
     _focusDate.dispose();
     _focusDescription.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -269,45 +271,34 @@ class _EditFlightPageState extends State<EditFlightPage> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: FlutterMap(
+            child: MapWithZoomControls(
+              mapController: _mapController,
               options: MapOptions(
                 initialCameraFit: CameraFit.bounds(
                   bounds: bounds,
                   padding: EdgeInsets.all(20.0),
                 ),
-                interactionOptions: const InteractionOptions(
-                  enableScrollWheel: true,
-                  scrollWheelVelocity: 0.002,
-                  enableMultiFingerGestureRace: false,
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
               ),
               children: [
                 TileLayer(
                   urlTemplate: mapTileUrl,
-                  maxZoom: mapTileOptions.maxZoom,
-                  minZoom: mapTileOptions.minZoom,
-                  tileSize: mapTileOptions.tileSize,
-                  keepBuffer: mapTileOptions.keepBuffer,
+                  maxZoom: mapMaxZoom,
+                  minZoom: mapMinZoom,
+                  tileSize: mapTileSize,
+                  keepBuffer: mapKeepBuffer,
+                  panBuffer: mapPanBuffer,
+                  maxNativeZoom: mapMaxNativeZoom,
+                  retinaMode: mapRetinaMode,
+                  tileDisplay: mapTileDisplay,
+                  errorTileCallback: mapErrorTileCallback,
                   tileProvider: CancellableNetworkTileProvider(),
                 ),
                 PolylineLayer(
                   polylines: [
                     Polyline(
                       points: points,
-                      color: Colors.blue,
-                      strokeWidth: 5.0,
-                      gradientColors:
-                          altitudes.map((altitude) {
-                            final normalizedAltitude =
-                                (altitude - minAltitude) /
-                                (maxAltitude - minAltitude);
-                            return Color.lerp(
-                              Colors.red,
-                              Colors.blue,
-                              normalizedAltitude,
-                            )!;
-                          }).toList(),
+                      color: Colors.orange,
+                      strokeWidth: 3.0,
                     ),
                   ],
                 ),
@@ -751,8 +742,11 @@ class _EditFlightPageState extends State<EditFlightPage> {
                                 child: Text(
                                   flightTimeErrorMessage!,
                                   style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 14,
+                                    fontSize: 12.0,
+                                    color: Theme.of(context).colorScheme.error,
+                                    height: 16.0 / 12.0,
+                                    fontWeight: FontWeight.w400,
+                                    letterSpacing: 0.4,
                                   ),
                                 ),
                               ),

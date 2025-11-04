@@ -323,32 +323,26 @@ class _AddSpotPageState extends State<AddSpotPage> {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: FlutterMap(
+                                child: MapWithZoomControls(
                                   mapController: _mapController,
                                   options: MapOptions(
                                     initialCenter: LatLng(46.8182, 8.2275),
                                     initialZoom: 8,
                                     onTap: _onMapTap,
-                                    interactionOptions:
-                                        const InteractionOptions(
-                                          enableScrollWheel: true,
-                                          enableMultiFingerGestureRace: false,
-                                          flags:
-                                              InteractiveFlag.all &
-                                              ~InteractiveFlag.rotate,
-                                        ),
                                   ),
                                   children: [
                                     TileLayer(
                                       urlTemplate: mapTileUrl,
-                                      maxZoom: mapTileOptions.maxZoom,
-                                      minZoom: mapTileOptions.minZoom,
-                                      tileSize: mapTileOptions.tileSize,
-                                      keepBuffer: mapTileOptions.keepBuffer,
-                                      tileProvider:
-                                          _useCancellableProvider
-                                              ? CancellableNetworkTileProvider()
-                                              : null,
+                                      maxZoom: mapMaxZoom,
+                                      minZoom: mapMinZoom,
+                                      tileSize: mapTileSize,
+                                      keepBuffer: mapKeepBuffer,
+                                      panBuffer: mapPanBuffer,
+                                      maxNativeZoom: mapMaxNativeZoom,
+                                      retinaMode: mapRetinaMode,
+                                      tileDisplay: mapTileDisplay,
+                                      errorTileCallback: mapErrorTileCallback,
+                                      tileProvider: CancellableNetworkTileProvider(),
                                     ),
                                     if (_selectedLocation != null)
                                       MarkerLayer(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_map/flutter_map.dart';
 
 import '../config/constants.dart';
 import '../main.dart';
@@ -529,6 +530,131 @@ class Footer extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A reusable map widget with zoom controls (+/-) buttons
+/// Disables scroll wheel zoom to prevent page scroll conflicts
+class MapWithZoomControls extends StatelessWidget {
+  final MapController mapController;
+  final MapOptions options;
+  final List<Widget> children;
+
+  const MapWithZoomControls({
+    super.key,
+    required this.mapController,
+    required this.options,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Ensure scroll wheel is disabled in the options
+    final disabledScrollOptions = MapOptions(
+      initialCenter: options.initialCenter,
+      initialZoom: options.initialZoom,
+      initialCameraFit: options.initialCameraFit,
+      initialRotation: options.initialRotation,
+      onTap: (tapPosition, latLng) {
+        // Call original onTap if provided
+        if (options.onTap != null) {
+          options.onTap!(tapPosition, latLng);
+        }
+      },
+      onSecondaryTap: (tapPosition, latLng) {
+        // Double-tap to zoom in
+        final currentZoom = mapController.camera.zoom;
+        final newZoom = (currentZoom + 1).clamp(1.0, 18.0);
+        mapController.move(latLng, newZoom);
+      },
+      onLongPress: options.onLongPress,
+      onPositionChanged: options.onPositionChanged,
+      onMapReady: options.onMapReady,
+      interactionOptions: const InteractionOptions(
+        enableScrollWheel: false,
+        enableMultiFingerGestureRace: false,
+        flags:
+            InteractiveFlag.drag |
+            InteractiveFlag.flingAnimation |
+            InteractiveFlag.pinchMove |
+            InteractiveFlag.pinchZoom |
+            InteractiveFlag.doubleTapZoom,
+      ),
+      cameraConstraint: options.cameraConstraint,
+      backgroundColor: options.backgroundColor,
+    );
+
+    return Stack(
+      children: [
+        FlutterMap(
+          mapController: mapController,
+          options: disabledScrollOptions,
+          children: children,
+        ),
+        // Zoom control buttons
+        Positioned(
+          top: 12,
+          right: 12,
+          child: Column(
+            children: [
+              // Zoom in button
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+                elevation: 2,
+                child: InkWell(
+                  onTap: () {
+                    final currentZoom = mapController.camera.zoom;
+                    final newZoom = (currentZoom + 1).clamp(1.0, 18.0);
+                    mapController.move(
+                      mapController.camera.center,
+                      newZoom,
+                    );
+                  },
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.add,
+                      size: 20,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              // Zoom out button
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+                elevation: 2,
+                child: InkWell(
+                  onTap: () {
+                    final currentZoom = mapController.camera.zoom;
+                    final newZoom = (currentZoom - 1).clamp(1.0, 18.0);
+                    mapController.move(
+                      mapController.camera.center,
+                      newZoom,
+                    );
+                  },
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.remove,
+                      size: 20,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

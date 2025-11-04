@@ -22,10 +22,29 @@ const GLIDERS_ROUTE = '/gliders';
 // Map tile URL - using OpenTopoMap which shows terrain and is CORS-friendly
 const mapTileUrl = 'https://tile.opentopomap.org/{z}/{x}/{y}.png';
 
-// Map tile layer options for better performance
-final mapTileOptions = TileLayer(
-  maxZoom: 17,
-  minZoom: 0,
-  tileSize: 256,
-  keepBuffer: 2,
+// Fallback tile URLs for redundancy
+const List<String> mapTileFallbacks = [
+  'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
+  'https://b.tile.opentopomap.org/{z}/{x}/{y}.png',
+  'https://c.tile.opentopomap.org/{z}/{x}/{y}.png',
+];
+
+// Map tile configuration constants
+const double mapMaxZoom = 17.0;
+const double mapMinZoom = 0.0;
+const double mapTileSize = 256.0;
+const int mapKeepBuffer = 4; // Keeps tiles in memory for smooth panning
+const int mapPanBuffer = 2; // Pre-loads tiles around viewport
+const int mapMaxNativeZoom = 17; // OpenTopoMap max zoom level
+const bool mapRetinaMode = false; // Disable retina to reduce tile requests
+const Duration mapTileFadeDuration = Duration(milliseconds: 200);
+
+// Reusable tile display configuration
+final TileDisplay mapTileDisplay = TileDisplay.fadeIn(
+  duration: mapTileFadeDuration,
 );
+
+// Reusable error callback for debugging
+void mapErrorTileCallback(dynamic tile, Object error, StackTrace? stackTrace) {
+  print('Map tile load error: $error');
+}

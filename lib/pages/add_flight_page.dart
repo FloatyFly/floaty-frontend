@@ -5,12 +5,17 @@ import 'package:floaty/widgets/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../config/CookieAuth.dart';
 import '../models/model.dart';
+import '../services/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
 
 class AddFlightPage extends StatefulWidget {
-  const AddFlightPage({super.key});
+  final Flight? latestFlight;
+
+  const AddFlightPage({super.key, this.latestFlight});
 
   @override
   _AddFlightPageState createState() => _AddFlightPageState();
@@ -35,6 +40,11 @@ class _AddFlightPageState extends State<AddFlightPage> {
 
   bool _isLoading = false;
 
+  // IGC file upload fields
+  File? _selectedIgcFile;
+  String? _igcFileName;
+  List<int>? _selectedIgcBytes;
+
   late Future<List<api.Spot>> futureSpots;
   late Future<List<api.Glider>> futureGliders;
 
@@ -44,6 +54,14 @@ class _AddFlightPageState extends State<AddFlightPage> {
   void initState() {
     super.initState();
     _dateController.text = DateFormat("dd.MM.yyyy").format(DateTime.now());
+
+    // Pre-select values from latest flight if available
+    if (widget.latestFlight != null) {
+      selectedLaunchSpotId = widget.latestFlight!.launchSpotId;
+      selectedLandingSpotId = widget.latestFlight!.landingSpotId;
+      selectedGliderId = widget.latestFlight!.gliderId;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusDate);
     });
@@ -103,6 +121,15 @@ class _AddFlightPageState extends State<AddFlightPage> {
         description: _descriptionController.text,
       );
 
+      // Use the new service function that handles IGC upload
+      await addFlightWithIgc(
+        flight,
+        _selectedIgcFile,
+        _igcFileName,
+        _getCookieAuth(),
+        igcBytes: _selectedIgcBytes,
+      );
+
       if (mounted) {
         Navigator.pop(context, true);
       }
@@ -127,6 +154,59 @@ class _AddFlightPageState extends State<AddFlightPage> {
         _dateController.text = DateFormat("dd.MM.yyyy").format(picked);
       });
     }
+  }
+
+  // Pick IGC file
+  Future<void> _pickIgcFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['igc'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        // Check if we're on web (bytes available) or mobile/desktop (path available)
+        if (result.files.first.bytes != null) {
+          // Web platform - use bytes
+          setState(() {
+            _selectedIgcFile = null; // We'll store bytes separately for web
+            _igcFileName = result.files.first.name;
+            _selectedIgcBytes = result.files.first.bytes; // Store bytes for web
+          });
+        } else {
+          // Mobile/desktop platform - use path
+          final path = result.files.first.path;
+          if (path != null) {
+            final file = File(path);
+            setState(() {
+              _selectedIgcFile = file;
+              _igcFileName = result.files.first.name;
+            });
+          } else {
+            setState(() {
+              errorMessage = "Unable to access file path";
+            });
+            return;
+          }
+        }
+      } else {
+        // Handle case where no file is selected
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to pick IGC file: ${e.toString()}";
+      });
+    }
+  }
+
+  // Remove selected IGC file
+  void _removeIgcFile() {
+    setState(() {
+      _selectedIgcFile = null;
+      _igcFileName = null;
+      _selectedIgcBytes = null;
+    });
   }
 
   @override
@@ -166,7 +246,6 @@ class _AddFlightPageState extends State<AddFlightPage> {
                 ),
                 child: Form(
                   key: _formKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: SingleChildScrollView(
                     padding: EdgeInsets.all(16),
                     child: Column(
@@ -229,12 +308,12 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             return DropdownButtonFormField<int>(
                               value: selectedLaunchSpotId,
                               decoration: InputDecoration(
-                                hintText: "Launch Site",
-                                prefixIcon: Icon(
-                                  Icons.flight_takeoff,
-                                  color: Colors.orange,
-                                ),
+                                labelText: "Launch Site",
                                 border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                               ),
                               validator: (value) {
                                 if (value == null) {
@@ -283,12 +362,12 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             return DropdownButtonFormField<int>(
                               value: selectedLandingSpotId,
                               decoration: InputDecoration(
-                                hintText: "Landing Site",
-                                prefixIcon: Icon(
-                                  Icons.flight_land,
-                                  color: Colors.orange,
-                                ),
+                                labelText: "Landing Site",
                                 border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                               ),
                               validator: (value) {
                                 if (value == null) {
@@ -324,11 +403,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             return DropdownButtonFormField<int>(
                               value: selectedGliderId,
                               decoration: InputDecoration(
-                                hintText: "Glider",
-                                prefixIcon: Icon(
-                                  Icons.paragliding,
-                                  color: Colors.orange,
-                                ),
+                                labelText: "Glider",
                                 border: OutlineInputBorder(),
                               ),
                               validator: (value) {
@@ -401,6 +476,23 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             ),
                           ],
                         ),
+                        if (flightTimeErrorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 8.0,
+                              left: 16.0,
+                            ),
+                            child: Text(
+                              flightTimeErrorMessage!,
+                              style: TextStyle(
+                                fontSize: 12.0,
+                                color: Theme.of(context).colorScheme.error,
+                                height: 16.0 / 12.0,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
                         SizedBox(height: 16),
                         // Description Field
                         TextFormField(
@@ -411,6 +503,133 @@ class _AddFlightPageState extends State<AddFlightPage> {
                             alignLabelWithHint: true,
                           ),
                           maxLines: 3,
+                        ),
+                        SizedBox(height: 16),
+                        // IGC File Upload
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 1),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                          ),
+                          child:
+                              (_selectedIgcFile == null &&
+                                      _selectedIgcBytes == null)
+                                  ? InkWell(
+                                    onTap: _pickIgcFile,
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16,
+                                        horizontal: 16,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.grey.shade400,
+                                          width: 2,
+                                          style: BorderStyle.none,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: CustomPaint(
+                                        painter: DashedBorderPainter(),
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 16,
+                                            horizontal: 16,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.cloud_upload_outlined,
+                                                size: 24,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                              SizedBox(width: 12),
+                                              Text(
+                                                MediaQuery.of(
+                                                          context,
+                                                        ).size.width <
+                                                        600
+                                                    ? 'Click to upload IGC file (optional).'
+                                                    : 'Drag & drop IGC file here or click to browse (optional)...',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  : Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 16,
+                                      horizontal: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.grey.shade400,
+                                        width: 2,
+                                        style: BorderStyle.none,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: CustomPaint(
+                                      painter: DashedBorderPainter(),
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 16,
+                                          horizontal: 16,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Image.asset(
+                                              'assets/images/track.png',
+                                              width: 24,
+                                              height: 24,
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                _igcFileName!,
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              onPressed: _removeIgcFile,
+                                              icon: Icon(
+                                                Icons.close,
+                                                color: Colors.red,
+                                                size: 20,
+                                              ),
+                                              padding: EdgeInsets.zero,
+                                              constraints: BoxConstraints(
+                                                minWidth: 24,
+                                                minHeight: 24,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                         ),
                         SizedBox(height: 24),
                         // Buttons
@@ -463,4 +682,46 @@ class _AddFlightPageState extends State<AddFlightPage> {
       ),
     );
   }
+}
+
+class DashedBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.grey.shade400
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5;
+    const dashSpace = 5;
+    const margin = 2.0; // Equal distance from outer border
+    final path = Path();
+    final rect = Rect.fromLTWH(
+      margin,
+      margin,
+      size.width - 2 * margin,
+      size.height - 2 * margin,
+    );
+    final radius = Radius.circular(4);
+
+    path.addRRect(RRect.fromRectAndRadius(rect, radius));
+
+    final pathMetrics = path.computeMetrics().first;
+    final dashLength = dashWidth.toDouble();
+    final spaceLength = dashSpace.toDouble();
+
+    double distance = 0;
+    while (distance < pathMetrics.length) {
+      final start = pathMetrics.getTangentForOffset(distance);
+      final end = pathMetrics.getTangentForOffset(distance + dashLength);
+      if (start != null && end != null) {
+        canvas.drawLine(start.position, end.position, paint);
+      }
+      distance += dashLength + spaceLength;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

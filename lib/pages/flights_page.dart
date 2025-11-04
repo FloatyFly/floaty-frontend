@@ -179,11 +179,34 @@ class _FlightsPageState extends State<FlightsPage> {
                                   flex: 1,
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
+                                      // Get the latest flight for pre-selecting values
+                                      Flight? latestFlight;
+                                      try {
+                                        final flights = await _fetchFlights();
+                                        if (flights.isNotEmpty) {
+                                          // Sort by date and get the most recent
+                                          flights.sort(
+                                            (a, b) => b.dateTime.compareTo(
+                                              a.dateTime,
+                                            ),
+                                          );
+                                          latestFlight = flights.first;
+                                        }
+                                      } catch (e) {
+                                        // If we can't get flights, continue without pre-selection
+                                        print(
+                                          "Could not fetch latest flight: $e",
+                                        );
+                                      }
+
                                       // Navigate to AddFlightPage and wait for the result
                                       final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => AddFlightPage(),
+                                          builder:
+                                              (context) => AddFlightPage(
+                                                latestFlight: latestFlight,
+                                              ),
                                         ),
                                       );
 
@@ -244,11 +267,33 @@ class _FlightsPageState extends State<FlightsPage> {
                               children: [
                                 ElevatedButton.icon(
                                   onPressed: () async {
+                                    // Get the latest flight for pre-selecting values
+                                    Flight? latestFlight;
+                                    try {
+                                      final flights = await _fetchFlights();
+                                      if (flights.isNotEmpty) {
+                                        // Sort by date and get the most recent
+                                        flights.sort(
+                                          (a, b) =>
+                                              b.dateTime.compareTo(a.dateTime),
+                                        );
+                                        latestFlight = flights.first;
+                                      }
+                                    } catch (e) {
+                                      // If we can't get flights, continue without pre-selection
+                                      print(
+                                        "Could not fetch latest flight: $e",
+                                      );
+                                    }
+
                                     // Navigate to AddFlightPage and wait for the result
                                     final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => AddFlightPage(),
+                                        builder:
+                                            (context) => AddFlightPage(
+                                              latestFlight: latestFlight,
+                                            ),
                                       ),
                                     );
 
@@ -484,12 +529,13 @@ class FlightListView extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(width: 16),
-                                // Title and description
+                                // Content area with title, description, and glider/duration
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      // Flight title
                                       Text(
                                         "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
                                         style: TextStyle(
@@ -497,6 +543,53 @@ class FlightListView extends StatelessWidget {
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF0078D7),
                                         ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      // Glider name and duration row
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              getGliderName(flight.gliderId),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (flight.igcMetadata != null)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        right: 8.0,
+                                                      ),
+                                                  child: Image.asset(
+                                                    'assets/images/track.png',
+                                                    width: 24,
+                                                    height: 24,
+                                                  ),
+                                                ),
+                                              Icon(
+                                                Icons.access_time,
+                                                size: 15,
+                                                color: Colors.black54,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                       SizedBox(height: 4),
                                       Text(
@@ -508,53 +601,6 @@ class FlightListView extends StatelessWidget {
                                         maxLines: 3,
                                         overflow: TextOverflow.ellipsis,
                                         softWrap: true,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                // Glider name
-                                SizedBox(
-                                  width: 120,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        getGliderName(flight.gliderId),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (flight.igcMetadata != null)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                right: 8.0,
-                                              ),
-                                              child: Image.asset(
-                                                'assets/images/track.png',
-                                                width: 24,
-                                                height: 24,
-                                              ),
-                                            ),
-                                          Icon(
-                                            Icons.access_time,
-                                            size: 15,
-                                            color: Colors.black54,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ],
                                   ),
@@ -602,7 +648,7 @@ class FlightListView extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                                // Title and description
+                                // Content area with title, description, and glider/duration
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.only(left: 24.0),
@@ -610,13 +656,59 @@ class FlightListView extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0078D7),
-                                          ),
+                                        // Title row with glider and duration on the right
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF0078D7),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              getGliderName(flight.gliderId),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            SizedBox(width: 16),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                if (flight.igcMetadata != null)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          right: 8.0,
+                                                        ),
+                                                    child: Image.asset(
+                                                      'assets/images/track.png',
+                                                      width: 24,
+                                                      height: 24,
+                                                    ),
+                                                  ),
+                                                Icon(
+                                                  Icons.access_time,
+                                                  size: 15,
+                                                  color: Colors.black54,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                         SizedBox(height: 4),
                                         Text(
@@ -629,52 +721,6 @@ class FlightListView extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ),
-                                // Glider name and duration
-                                SizedBox(
-                                  width: 120,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        getGliderName(flight.gliderId),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (flight.igcMetadata != null)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                right: 8.0,
-                                              ),
-                                              child: Image.asset(
-                                                'assets/images/track.png',
-                                                width: 24,
-                                                height: 24,
-                                              ),
-                                            ),
-                                          Icon(
-                                            Icons.access_time,
-                                            size: 15,
-                                            color: Colors.black54,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ],

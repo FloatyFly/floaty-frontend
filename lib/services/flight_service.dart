@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:floaty_client/api.dart' as api;
 
 import '../config/CookieAuth.dart';
@@ -109,5 +110,65 @@ Future<api.FlightTrack?> fetchFlightTrack(
   } catch (e) {
     print('Error fetching flight track: $e');
     return null;
+  }
+}
+
+Future<api.Flight> addFlightWithIgc(
+  model.Flight flight,
+  File? igcFile,
+  String? igcFileName,
+  CookieAuth cookieAuth, {
+  List<int>? igcBytes,
+}) async {
+  final apiClient = api.ApiClient(
+    basePath: backendUrl,
+    authentication: cookieAuth,
+  );
+  final flightsApi = api.FlightsApi(apiClient);
+
+  // Create FlightCreate object with all required fields
+  final flightCreate = api.FlightCreate(
+    dateTime: DateTime.parse(flight.dateTime).toUtc(),
+    launchSpotId: flight.launchSpotId,
+    landingSpotId: flight.landingSpotId,
+    duration: flight.duration,
+    description: flight.description,
+    gliderId: flight.gliderId,
+  );
+
+  // Add IGC data if file is provided
+  if (igcFileName != null) {
+    try {
+      String igcContent;
+      if (igcFile != null) {
+        // Mobile/desktop platform - read from file
+        igcContent = await igcFile.readAsString();
+      } else if (igcBytes != null) {
+        // Web platform - convert bytes to string
+        igcContent = String.fromCharCodes(igcBytes);
+      } else {
+        throw Exception('No IGC file data provided');
+      }
+
+      // Encode the IGC content to base64
+      final base64Content = base64Encode(utf8.encode(igcContent));
+
+      flightCreate.igcDataCreate = api.IgcDataCreate(
+        fileName: igcFileName,
+        file: base64Content,
+      );
+    } catch (e) {
+      throw Exception('Failed to read IGC file: $e');
+    }
+  }
+
+  try {
+    final response = await flightsApi.createFlight(flightCreate);
+    if (response == null) {
+      throw Exception('Failed to create flight: No response from server');
+    }
+    return response;
+  } catch (e) {
+    throw Exception('Failed to add flight: $e');
   }
 }

@@ -178,6 +178,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                     child: Row(
                                       children: [
                                         Expanded(
+                                          flex: 2,
                                           child: Text(
                                             'Model',
                                             style: TextStyle(
@@ -189,6 +190,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                         ),
                                         SizedBox(width: 24),
                                         Expanded(
+                                          flex: 2,
                                           child: Text(
                                             'Manufacturer',
                                             style: TextStyle(
@@ -199,6 +201,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                         ),
                                         SizedBox(width: 24),
                                         Expanded(
+                                          flex: 3,
                                           child: Text(
                                             'Air Time',
                                             style: TextStyle(
@@ -209,6 +212,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                         ),
                                         SizedBox(width: 24),
                                         Expanded(
+                                          flex: 1,
                                           child: Text(
                                             'Flights',
                                             style: TextStyle(
@@ -306,6 +310,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                                     child: Row(
                                                       children: [
                                                         Expanded(
+                                                          flex: 2,
                                                           child: Text(
                                                             glider.model,
                                                             style: TextStyle(
@@ -331,11 +336,15 @@ class _GlidersPageState extends State<GlidersPage> {
                                                                           .underline
                                                                       : TextDecoration
                                                                           .none,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                             ),
                                                           ),
                                                         ),
                                                         SizedBox(width: 24),
                                                         Expanded(
+                                                          flex: 2,
                                                           child: Text(
                                                             glider.manufacturer,
                                                             style: TextStyle(
@@ -343,11 +352,15 @@ class _GlidersPageState extends State<GlidersPage> {
                                                               color:
                                                                   Colors
                                                                       .black87,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                             ),
                                                           ),
                                                         ),
                                                         SizedBox(width: 24),
                                                         Expanded(
+                                                          flex: 3,
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -383,6 +396,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                                         ),
                                                         SizedBox(width: 24),
                                                         Expanded(
+                                                          flex: 1,
                                                           child: Text(
                                                             gliderFlightCount[glider
                                                                         .id]
