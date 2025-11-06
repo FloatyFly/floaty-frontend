@@ -6,8 +6,9 @@ import 'package:floaty/services/gliders_service.dart';
 import 'package:floaty/services/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'package:provider/provider.dart';
-import 'package:cookie_jar/cookie_jar.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../config/CookieAuth.dart';
+import '../config/theme.dart';
 
 class GlidersPage extends StatefulWidget {
   final FloatyUser? user;
@@ -31,8 +32,7 @@ class _GlidersPageState extends State<GlidersPage> {
   }
 
   CookieAuth _getCookieAuth() {
-    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-    return CookieAuth(cookieJar);
+    return CookieAuth();
   }
 
   Future<List<api.Glider>> _fetchGliders() {
@@ -77,12 +77,15 @@ class _GlidersPageState extends State<GlidersPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 700;
     final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+    final shadColors = getShadThemeData().colorScheme;
+    final linkColor = Color(0xFF2B7DE9); // Brighter blue (Add Flight button color)
 
     return Scaffold(
+      backgroundColor: shadColors.background,
       body: Stack(
         children: [
           if (!isMobile) const FloatyBackgroundWidget(),
-          if (isMobile) Container(color: Colors.white),
+          if (isMobile) Container(color: shadColors.background),
           Column(
             children: [
               Header(),
@@ -91,24 +94,25 @@ class _GlidersPageState extends State<GlidersPage> {
                 child: Center(
                   child: Container(
                     width: containerWidth,
-                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    padding: EdgeInsets.all(isMobile ? 16 : 24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          isMobile
-                              ? BorderRadius.zero
-                              : BorderRadius.vertical(top: Radius.circular(6)),
-                      boxShadow:
-                          isMobile
-                              ? []
-                              : [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
+                      color: shadColors.card,
+                      borderRadius: isMobile
+                          ? BorderRadius.zero
+                          : BorderRadius.vertical(top: Radius.circular(12)),
+                      border: isMobile
+                          ? null
+                          : Border.all(color: shadColors.border, width: 1),
+                      boxShadow: isMobile
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: shadColors.foreground.withValues(alpha: 0.05),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,21 +120,30 @@ class _GlidersPageState extends State<GlidersPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  ADD_GLIDER_ROUTE,
-                                ).then((_) => setState(() {}));
-                              },
-                              icon: Icon(Icons.add),
-                              label: Text('Add Glider'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF0078D7),
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black,
+                                    offset: Offset(-4, 4),
+                                    blurRadius: 0,
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    ADD_GLIDER_ROUTE,
+                                  ).then((_) => setState(() {}));
+                                },
+                                icon: Icon(Icons.add, size: 18),
+                                label: Text('Add Glider'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: linkColor,
+                                  foregroundColor: Colors.white,
                                 ),
                               ),
                             ),
@@ -144,7 +157,9 @@ class _GlidersPageState extends State<GlidersPage> {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return Center(
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    color: shadColors.primary,
+                                  ),
                                 );
                               }
 
@@ -152,15 +167,40 @@ class _GlidersPageState extends State<GlidersPage> {
                                 return Center(
                                   child: Text(
                                     'Error loading gliders: ${snapshot.error}',
+                                    style: TextStyle(color: shadColors.destructive),
                                   ),
                                 );
                               }
 
                               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                 return Center(
-                                  child: Text(
-                                    'No gliders found. Add your first glider!',
-                                    style: TextStyle(fontSize: 16),
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(context).size.height * 0.33,
+                                      left: 16,
+                                      right: 16,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.paragliding,
+                                          size: 24,
+                                          color: shadColors.primary,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Flexible(
+                                          child: Text(
+                                            'No gliders found. Add your first glider!',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: shadColors.foreground,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               }
@@ -183,8 +223,8 @@ class _GlidersPageState extends State<GlidersPage> {
                                             'Model',
                                             style: TextStyle(
                                               fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
+                                              fontWeight: FontWeight.w600,
+                                              color: shadColors.foreground,
                                             ),
                                           ),
                                         ),
@@ -195,7 +235,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                             'Manufacturer',
                                             style: TextStyle(
                                               fontSize: 14,
-                                              color: Colors.black87,
+                                              color: shadColors.mutedForeground,
                                             ),
                                           ),
                                         ),
@@ -206,7 +246,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                             'Air Time',
                                             style: TextStyle(
                                               fontSize: 14,
-                                              color: Colors.black87,
+                                              color: shadColors.mutedForeground,
                                             ),
                                           ),
                                         ),
@@ -217,7 +257,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                             'Flights',
                                             style: TextStyle(
                                               fontSize: 14,
-                                              color: Colors.black87,
+                                              color: shadColors.mutedForeground,
                                             ),
                                           ),
                                         ),
@@ -226,7 +266,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                   ),
                                   // Header separator
                                   Divider(
-                                    color: Colors.grey.withOpacity(0.3),
+                                    color: shadColors.border,
                                     height: 1,
                                     thickness: 1,
                                   ),
@@ -237,7 +277,9 @@ class _GlidersPageState extends State<GlidersPage> {
                                       builder: (context, flightsSnapshot) {
                                         if (!flightsSnapshot.hasData) {
                                           return Center(
-                                            child: CircularProgressIndicator(),
+                                            child: CircularProgressIndicator(
+                                              color: shadColors.primary,
+                                            ),
                                           );
                                         }
 
@@ -262,9 +304,7 @@ class _GlidersPageState extends State<GlidersPage> {
                                           itemCount: gliders.length,
                                           separatorBuilder: (context, index) {
                                             return Divider(
-                                              color: Colors.grey.withOpacity(
-                                                0.3,
-                                              ),
+                                              color: shadColors.border,
                                               height: 1,
                                               thickness: 1,
                                             );
@@ -317,25 +357,8 @@ class _GlidersPageState extends State<GlidersPage> {
                                                               fontSize: 16,
                                                               fontWeight:
                                                                   FontWeight
-                                                                      .bold,
-                                                              color:
-                                                                  _hoveredGliderId ==
-                                                                          glider
-                                                                              .id
-                                                                      ? Color(
-                                                                        0xFF0056b3,
-                                                                      )
-                                                                      : Color(
-                                                                        0xFF0078D7,
-                                                                      ),
-                                                              decoration:
-                                                                  _hoveredGliderId ==
-                                                                          glider
-                                                                              .id
-                                                                      ? TextDecoration
-                                                                          .underline
-                                                                      : TextDecoration
-                                                                          .none,
+                                                                      .w600,
+                                                              color: linkColor,
                                                               overflow:
                                                                   TextOverflow
                                                                       .ellipsis,
@@ -350,8 +373,8 @@ class _GlidersPageState extends State<GlidersPage> {
                                                             style: TextStyle(
                                                               fontSize: 14,
                                                               color:
-                                                                  Colors
-                                                                      .black87,
+                                                                  shadColors
+                                                                      .foreground,
                                                               overflow:
                                                                   TextOverflow
                                                                       .ellipsis,
@@ -371,8 +394,8 @@ class _GlidersPageState extends State<GlidersPage> {
                                                                     .access_time,
                                                                 size: 15,
                                                                 color:
-                                                                    Colors
-                                                                        .black54,
+                                                                    shadColors
+                                                                        .mutedForeground,
                                                               ),
                                                               SizedBox(
                                                                 width: 4,
@@ -385,10 +408,10 @@ class _GlidersPageState extends State<GlidersPage> {
                                                                   fontSize: 14,
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .bold,
+                                                                          .w600,
                                                                   color:
-                                                                      Colors
-                                                                          .black87,
+                                                                      shadColors
+                                                                          .foreground,
                                                                 ),
                                                               ),
                                                             ],
@@ -405,8 +428,8 @@ class _GlidersPageState extends State<GlidersPage> {
                                                             style: TextStyle(
                                                               fontSize: 14,
                                                               color:
-                                                                  Colors
-                                                                      .black87,
+                                                                  shadColors
+                                                                      .foreground,
                                                             ),
                                                           ),
                                                         ),

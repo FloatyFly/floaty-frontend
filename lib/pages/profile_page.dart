@@ -3,6 +3,10 @@ import 'package:floaty/widgets/ui_components.dart';
 import 'package:floaty/models/model.dart';
 import 'package:provider/provider.dart';
 import 'package:floaty/main.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import '../services/auth_service.dart';
+import '../config/constants.dart';
+import '../config/theme.dart';
 
 class ProfilePage extends StatefulWidget {
   final FloatyUser? user;
@@ -29,6 +33,7 @@ class ProfilePageState extends State<ProfilePage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 700;
     final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+    final shadColors = getShadThemeData().colorScheme;
 
     return Scaffold(
       body: Stack(
@@ -39,164 +44,138 @@ class ProfilePageState extends State<ProfilePage> {
             children: [
               Header(),
               SizedBox(height: 20),
-              Container(
-                width: containerWidth,
-                padding: EdgeInsets.all(isMobile ? 8 : 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      isMobile ? BorderRadius.zero : BorderRadius.circular(6),
-                  boxShadow:
-                      isMobile
+              Expanded(
+                child: Center(
+                  child: Container(
+                    width: containerWidth,
+                    padding: EdgeInsets.all(isMobile ? 16 : 24),
+                    decoration: BoxDecoration(
+                      color: shadColors.card,
+                      borderRadius: isMobile
+                          ? BorderRadius.zero
+                          : BorderRadius.vertical(top: Radius.circular(12)),
+                      border: isMobile
+                          ? null
+                          : Border.all(color: shadColors.border, width: 1),
+                      boxShadow: isMobile
                           ? []
                           : [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                ),
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pilot',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineSmall!.copyWith(
-                          color: Colors.blue.shade900,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: isMobile ? 16 : 24),
-                      // User Info
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 8 : 0,
-                          vertical: isMobile ? 12 : 0,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              isMobile
-                                  ? Colors.grey.shade50
-                                  : Colors.transparent,
-                          borderRadius: BorderRadius.circular(isMobile ? 8 : 0),
-                        ),
-                        child: Column(
+                              BoxShadow(
+                                color: shadColors.foreground.withValues(alpha: 0.05),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // User Info
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: isMobile ? 80 : 100,
-                                  child: Text(
-                                    'Name',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge!.copyWith(
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
+                            SizedBox(
+                              width: isMobile ? 80 : 100,
+                              child: Text(
+                                'Name',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge!.copyWith(
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                Expanded(
-                                  child: Text(
-                                    '${_currentUser.name}',
-                                    style:
-                                        Theme.of(context).textTheme.bodyLarge,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                            SizedBox(height: isMobile ? 12 : 12),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: isMobile ? 80 : 100,
-                                  child: Text(
-                                    'Email',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge!.copyWith(
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        '${_currentUser.email}',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 24),
-                            SizedBox(height: 12),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: SizedBox(
-                                width: 140,
-                                child: TextButton(
-                                  onPressed: () {
-                                    context.read<AppState>().logout();
-                                  },
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                  ),
-                                  child: Text('Logout'),
-                                ),
+                            Expanded(
+                              child: Text(
+                                '${_currentUser.name}',
+                                style: Theme.of(context).textTheme.bodyLarge,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      // Verify Email Button
-                      if (_isSendingVerification)
-                        Center(child: CircularProgressIndicator())
-                      else if (!_currentUser.emailVerified)
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              setState(() {
-                                _isSendingVerification = true;
-                              });
-
-                              // Simulate email verification process
-                              await Future.delayed(Duration(seconds: 2));
-
-                              setState(() {
-                                _isSendingVerification = false;
-                              });
-                            },
-                            icon: Icon(Icons.email_outlined),
-                            label: Text('Verify Email'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
+                        SizedBox(height: 12),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: isMobile ? 80 : 100,
+                              child: Text(
+                                'Email',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge!.copyWith(
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '${_currentUser.email}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 24),
+                        SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FloatyButton(
+                            onPressed: () async {
+                              // Call backend logout API to invalidate session
+                              try {
+                                await logout();
+                              } catch (e) {
+                                print('Logout API error: $e');
+                              }
+
+                              // Clear client-side state
+                              context.read<AppState>().logout();
+
+                              // Navigate to home
+                              Navigator.pushNamed(context, HOME_ROUTE);
+                            },
+                            text: 'Logout',
+                            backgroundColor: Colors.red,
+                            icon: Icon(Icons.logout),
+                            width: 140,
                           ),
                         ),
-                    ],
+                        // Verify Email Button
+                        if (_isSendingVerification)
+                          Center(child: CircularProgressIndicator())
+                        else if (!_currentUser.emailVerified)
+                          Center(
+                            child: FloatyButton(
+                              onPressed: () async {
+                                setState(() {
+                                  _isSendingVerification = true;
+                                });
+
+                                // Simulate email verification process
+                                await Future.delayed(Duration(seconds: 2));
+
+                                setState(() {
+                                  _isSendingVerification = false;
+                                });
+                              },
+                              text: 'Verify Email',
+                              backgroundColor: Colors.orange,
+                              icon: Icon(Icons.email_outlined),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),

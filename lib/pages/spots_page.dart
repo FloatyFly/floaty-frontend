@@ -6,8 +6,9 @@ import 'package:floaty/services/spots_service.dart';
 import 'package:floaty/services/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
 import 'package:provider/provider.dart';
-import 'package:cookie_jar/cookie_jar.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../config/CookieAuth.dart';
+import '../config/theme.dart';
 
 class SpotsPage extends StatefulWidget {
   final FloatyUser? user;
@@ -31,8 +32,7 @@ class _SpotsPageState extends State<SpotsPage> {
   }
 
   CookieAuth _getCookieAuth() {
-    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-    return CookieAuth(cookieJar);
+    return CookieAuth();
   }
 
   Future<List<api.Spot>> _fetchSpots() {
@@ -68,12 +68,15 @@ class _SpotsPageState extends State<SpotsPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 700;
     final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+    final shadColors = getShadThemeData().colorScheme;
+    final linkColor = Color(0xFF2B7DE9); // Brighter blue (Add Flight button color)
 
     return Scaffold(
+      backgroundColor: shadColors.background,
       body: Stack(
         children: [
           if (!isMobile) const FloatyBackgroundWidget(),
-          if (isMobile) Container(color: Colors.white),
+          if (isMobile) Container(color: shadColors.background),
           Column(
             children: [
               Header(),
@@ -82,34 +85,45 @@ class _SpotsPageState extends State<SpotsPage> {
                 child: Center(
                   child: Container(
                     width: containerWidth,
-                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    padding: EdgeInsets.all(isMobile ? 16 : 24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          isMobile
-                              ? BorderRadius.zero
-                              : BorderRadius.vertical(top: Radius.circular(6)),
-                      boxShadow:
-                          isMobile
-                              ? []
-                              : [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
+                      color: shadColors.card,
+                      borderRadius: isMobile
+                          ? BorderRadius.zero
+                          : BorderRadius.vertical(top: Radius.circular(12)),
+                      border: isMobile
+                          ? null
+                          : Border.all(color: shadColors.border, width: 1),
+                      boxShadow: isMobile
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: shadColors.foreground.withValues(alpha: 0.05),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              ElevatedButton.icon(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black,
+                                    offset: Offset(-4, 4),
+                                    blurRadius: 0,
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton.icon(
                                 onPressed: () {
                                   Navigator.pushNamed(
                                     context,
@@ -120,16 +134,17 @@ class _SpotsPageState extends State<SpotsPage> {
                                     });
                                   });
                                 },
-                                icon: Icon(Icons.add),
+                                icon: Icon(Icons.add, size: 18),
                                 label: Text('Add Spot'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF0078D7),
+                                  backgroundColor: linkColor,
                                   foregroundColor: Colors.white,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
+                        SizedBox(height: 16),
                         Expanded(
                           child: FutureBuilder<List<api.Spot>>(
                             future: futureSpots,
@@ -137,7 +152,9 @@ class _SpotsPageState extends State<SpotsPage> {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return Center(
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    color: shadColors.primary,
+                                  ),
                                 );
                               }
 
@@ -145,15 +162,40 @@ class _SpotsPageState extends State<SpotsPage> {
                                 return Center(
                                   child: Text(
                                     'Error loading spots: ${snapshot.error}',
+                                    style: TextStyle(color: shadColors.destructive),
                                   ),
                                 );
                               }
 
                               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                 return Center(
-                                  child: Text(
-                                    'No spots found. Add your first spot!',
-                                    style: TextStyle(fontSize: 16),
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(context).size.height * 0.33,
+                                      left: 16,
+                                      right: 16,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          size: 24,
+                                          color: shadColors.primary,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Flexible(
+                                          child: Text(
+                                            'No spots found. Add your first spot!',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: shadColors.foreground,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               }
@@ -254,6 +296,9 @@ class _SpotsPageState extends State<SpotsPage> {
     List<api.Spot> spots,
     bool isLaunch,
   ) {
+    final shadColors = getShadThemeData().colorScheme;
+    final linkColor = Color(0xFF2B7DE9);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -262,7 +307,7 @@ class _SpotsPageState extends State<SpotsPage> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'No ${isLaunch ? 'launch' : 'landing'} sites found',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 16, color: shadColors.mutedForeground),
             ),
           )
         else
@@ -270,7 +315,9 @@ class _SpotsPageState extends State<SpotsPage> {
             future: futureFlights,
             builder: (context, flightsSnapshot) {
               if (!flightsSnapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
+                return Center(
+                  child: CircularProgressIndicator(color: shadColors.primary),
+                );
               }
 
               final flights = flightsSnapshot.data!;
@@ -310,8 +357,8 @@ class _SpotsPageState extends State<SpotsPage> {
                             title,
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              fontWeight: FontWeight.w600,
+                              color: shadColors.foreground,
                             ),
                           ),
                         ),
@@ -325,7 +372,7 @@ class _SpotsPageState extends State<SpotsPage> {
                                   isLaunch ? 'Launches' : 'Landings',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.black87,
+                                    color: shadColors.mutedForeground,
                                   ),
                                 ),
                               ),
@@ -335,7 +382,7 @@ class _SpotsPageState extends State<SpotsPage> {
                                   'Altitude',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.black87,
+                                    color: shadColors.mutedForeground,
                                   ),
                                 ),
                               ),
@@ -347,7 +394,7 @@ class _SpotsPageState extends State<SpotsPage> {
                   ),
                   // Header separator
                   Divider(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: shadColors.border,
                     height: 1,
                     thickness: 1,
                   ),
@@ -398,18 +445,8 @@ class _SpotsPageState extends State<SpotsPage> {
                                               spot.name,
                                               style: TextStyle(
                                                 fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    _hoveredSpotId ==
-                                                            spot.spotId
-                                                        ? Color(0xFF0056B3)
-                                                        : Color(0xFF0078D7),
-                                                decoration:
-                                                    _hoveredSpotId ==
-                                                            spot.spotId
-                                                        ? TextDecoration
-                                                            .underline
-                                                        : TextDecoration.none,
+                                                fontWeight: FontWeight.w600,
+                                                color: linkColor,
                                               ),
                                             ),
                                           ),
@@ -429,7 +466,7 @@ class _SpotsPageState extends State<SpotsPage> {
                                         usage.toString(),
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: Colors.black87,
+                                          color: shadColors.foreground,
                                         ),
                                       ),
                                     ),
@@ -439,7 +476,7 @@ class _SpotsPageState extends State<SpotsPage> {
                                         '${spot.altitude}m',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: Colors.black87,
+                                          color: shadColors.foreground,
                                         ),
                                       ),
                                     ),
@@ -450,7 +487,7 @@ class _SpotsPageState extends State<SpotsPage> {
                           ),
                         ),
                         Divider(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: shadColors.border,
                           height: 1,
                           thickness: 1,
                         ),

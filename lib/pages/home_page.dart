@@ -5,7 +5,8 @@ import 'package:floaty/widgets/ui_components.dart';
 import 'package:floaty/pages/login_page.dart';
 import 'package:floaty/config/constants.dart';
 import 'package:floaty/models/model.dart';
-import 'package:cookie_jar/cookie_jar.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import '../config/theme.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -13,337 +14,209 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey _imageKey = GlobalKey();
-  final GlobalKey _statsImageKey = GlobalKey();
-  final GlobalKey _textKey = GlobalKey();
-  double _imageSlidePosition = 1.0;
-  double _statsSlidePosition = 1.0;
-  double _textOpacity = 0.0;
-  bool _imageAnimationCompleted = false;
-  bool _statsAnimationCompleted = false;
+  Future<void>? _imageLoadingFuture;
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    _updateImagePosition(_imageKey, true, (progress) {
-      _imageSlidePosition = progress;
-    });
-    _updateImagePosition(_statsImageKey, false, (progress) {
-      _statsSlidePosition = progress;
-    });
-    _updateTextOpacity();
-  }
-
-  void _updateImagePosition(
-    GlobalKey key,
-    bool fromRight,
-    Function(double) updatePosition,
-  ) {
-    final RenderBox? imageBox =
-        key.currentContext?.findRenderObject() as RenderBox?;
-    if (imageBox == null) return;
-
-    // Check if this is for the first or second image
-    bool isFirstImage = key == _imageKey;
-    if ((isFirstImage && _imageAnimationCompleted) ||
-        (!isFirstImage && _statsAnimationCompleted)) {
-      updatePosition(0.0); // Keep the image in its final position
-      return;
-    }
-
-    final imagePosition = imageBox.localToGlobal(Offset.zero);
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    final startPosition = screenHeight + imageBox.size.height;
-    final endPosition = screenHeight - imageBox.size.height;
-
-    double progress = ((imagePosition.dy - endPosition) /
-            (startPosition - endPosition))
-        .clamp(0.0, 1.0);
-
-    if (mounted) {
-      setState(() {
-        updatePosition(progress);
-        // If the animation has completed (progress is 0), mark it as done
-        if (progress == 0.0) {
-          if (isFirstImage) {
-            _imageAnimationCompleted = true;
-          } else {
-            _statsAnimationCompleted = true;
-          }
-        }
-      });
-    }
-  }
-
-  void _updateTextOpacity() {
-    final RenderBox? textBox =
-        _textKey.currentContext?.findRenderObject() as RenderBox?;
-    if (textBox == null) return;
-
-    final textPosition = textBox.localToGlobal(Offset.zero);
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    // Start fading in as soon as text enters view
-    final startPosition = screenHeight + textBox.size.height;
-    final endPosition = screenHeight - textBox.size.height;
-
-    // Calculate opacity (0 = invisible, 1 = fully visible)
-    double opacity =
-        1.0 -
-        ((textPosition.dy - endPosition) / (startPosition - endPosition)).clamp(
-          0.0,
-          1.0,
-        );
-
-    if (mounted) {
-      setState(() {
-        _textOpacity = opacity;
-      });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Precache images to avoid layout shift
+    if (_imageLoadingFuture == null) {
+      _imageLoadingFuture = Future.wait([
+        precacheImage(AssetImage('assets/images/floaty_laptop_phone.png'), context),
+        precacheImage(AssetImage('assets/images/floaty_statistics.png'), context),
+      ]);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final shadColors = getShadThemeData().colorScheme;
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Scaffold(
-          body: Stack(
-            children: [
-              const FloatyBackgroundWidget(),
-              // Content
-              SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
+          backgroundColor: Colors.white,
+          body: FutureBuilder<void>(
+            future: _imageLoadingFuture,
+            builder: (context, snapshot) {
+              // Show loading indicator while images are loading
+              if (snapshot.connectionState != ConnectionState.done) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFFC0FF58),
+                  ),
+                );
+              }
+
+              // Once images are loaded, show the content
+              return SingleChildScrollView(
+                child: Stack(
+              children: [
+                // Background gradient that scrolls with content
+                Positioned(
+                  top: 100,
+                  left: MediaQuery.of(context).size.width * 0.5 - 400,
+                  child: Container(
+                    width: 800,
+                    height: 800,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Color(0xFFC0FF58).withOpacity(0.6), // Stronger lime green center
+                          Color(0xFFC0FF58).withOpacity(0.3),
+                          Color(0xFFC0FF58).withOpacity(0.0), // Fade to transparent
+                        ],
+                        stops: [0.0, 0.4, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+                // Content
+                Column(
                   children: [
-                    // Custom header with Register button for non-logged in users
-                    if (!appState.isLoggedIn)
-                      Container(
-                        height: 75.0,
-                        color: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Logo
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(context, HOME_ROUTE);
-                              },
-                              child: Image.asset(
-                                "assets/logo.png",
-                                height: 55.0,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            // Register button
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.pushNamed(context, REGISTER_ROUTE);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade900,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 12,
-                                ),
-                                textStyle: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: Text('Register'),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
+                    // Show header only for logged in users
+                    if (appState.isLoggedIn)
                       Header(),
 
-                    // Show login form in the background section when not logged in
-                    if (!appState.isLoggedIn)
-                      Container(
-                        height: 500,
-                        width: double.infinity,
-                        margin: EdgeInsets.symmetric(vertical: 40),
-                        child: Center(
-                          child: AuthContainer(
-                            headerText: "Login",
-                            child: LoginForm(
-                              onSubmit: (username, password) async {
-                                final cookieJar = Provider.of<CookieJar>(
-                                  context,
-                                  listen: false,
-                                );
-                                try {
-                                  final user =
-                                      await loginAndExtractSessionCookie(
-                                        username,
-                                        password,
-                                        cookieJar,
-                                      );
-
-                                  if (user != null) {
-                                    var floatyUser = FloatyUser.fromUserDto(
-                                      user,
-                                    );
-                                    Provider.of<AppState>(
-                                      context,
-                                      listen: false,
-                                    ).login(floatyUser);
-                                    Navigator.pushNamed(context, FLIGHTS_ROUTE);
-                                  }
-                                } on EmailNotVerifiedException {
-                                  Navigator.pushNamed(
-                                    context,
-                                    EMAIL_VERIFICATION_ROUTE,
-                                    arguments: username,
-                                  );
-                                } catch (e) {
-                                  // Show error in a snackbar
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Login failed. Please try again.',
+                    // Show hero section for both logged in and logged out users
+                    Container(
+                      height: 500,
+                      width: double.infinity,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Large heading with "simple" in blue
+                            Container(
+                              constraints: BoxConstraints(maxWidth: 900),
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 64,
+                                    fontWeight: FontWeight.w600,
+                                    color: shadColors.foreground,
+                                    height: 1.1,
+                                  ),
+                                  children: [
+                                    TextSpan(text: 'The '),
+                                    TextSpan(
+                                      text: 'simple',
+                                      style: TextStyle(
+                                        color: Color(0xFF2B7DE9), // Bright blue
                                       ),
-                                      backgroundColor: Colors.red,
                                     ),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(
-                        height: 500,
-                        width: double.infinity,
-                        child: Center(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, FLIGHTS_ROUTE);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0078D7),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 16,
+                                    TextSpan(text: ' paragliding flight log'),
+                                  ],
+                                ),
                               ),
-                              textStyle: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              elevation: 5,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.arrow_forward, size: 24),
-                                SizedBox(width: 10),
-                                Text('Go to Flights'),
-                              ],
+                            SizedBox(height: 24),
+                            // Description text
+                            Container(
+                              constraints: BoxConstraints(maxWidth: 700),
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                'Track your flights, analyze your progress, and improve your flying with detailed statistics.',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: shadColors.foreground,
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                          ),
+                            SizedBox(height: 40),
+                            // Buttons - Login and Register for non-logged in, View Flights for logged in
+                            if (!appState.isLoggedIn)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FloatyButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, LOGIN_ROUTE);
+                                    },
+                                    text: 'Login',
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  SizedBox(width: 16),
+                                  FloatyButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, REGISTER_ROUTE);
+                                    },
+                                    text: 'Register',
+                                    backgroundColor: Colors.grey.shade100,
+                                    foregroundColor: Colors.black,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              FloatyButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, FLIGHTS_ROUTE);
+                                },
+                                text: 'View Flights',
+                                icon: Icon(Icons.arrow_forward, size: 20),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 16,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
+                    ),
 
-                    // App Screenshots Section
+                    // App Screenshots Section - transparent to show background gradient
                     Container(
                       width: double.infinity,
-                      color: Colors.white,
+                      color: Colors.transparent, // Transparent to let gradient show through
                       padding: EdgeInsets.symmetric(
                         vertical: 60,
                         horizontal: 20,
                       ),
                       child: Column(
                         children: [
-                          // Title
-                          Text(
-                            'Floaty - The simple paragliding flight log',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 40),
-                          // Description
+                          // First screenshot
                           Container(
-                            constraints: BoxConstraints(maxWidth: 800),
-                            child: Text(
-                              'Floaty is a simple and intuitive flight log that puts ease of use first. You can access your flights from any device and analyze your data with in-depth statistics. Your flying history stays private and secure.',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.black87,
-                                height: 1.5,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          SizedBox(height: 60),
-                          // First screenshot with scroll-based animation
-                          Container(
-                            key: _imageKey,
                             constraints: BoxConstraints(maxWidth: 1200),
-                            transform: Matrix4.translationValues(
-                              MediaQuery.of(context).size.width *
-                                  _imageSlidePosition,
-                              0,
-                              0,
-                            ),
                             child: Image.asset(
                               'assets/images/floaty_laptop_phone.png',
                               width: double.infinity,
                               fit: BoxFit.contain,
                             ),
                           ),
-                          SizedBox(height: 40),
-                          // Divider between devices and analysis
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 40),
-                            child: Divider(
-                              color: Colors.grey.shade300,
-                              thickness: 1,
+                            SizedBox(height: 40),
+                            // Divider between devices and analysis
+                            Container(
+                              margin: EdgeInsets.symmetric(horizontal: 40),
+                              child: Divider(
+                                color: shadColors.border,
+                                thickness: 1,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 40),
-                          // Animated text section
-                          Container(
-                            key: _textKey,
-                            constraints: BoxConstraints(maxWidth: 800),
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: Opacity(
-                              opacity: _textOpacity,
+                            SizedBox(height: 40),
+                            // Text section
+                            Container(
+                              constraints: BoxConstraints(maxWidth: 800),
+                              padding: EdgeInsets.symmetric(horizontal: 20),
                               child: Column(
                                 children: [
                                   Text(
                                     'Track your progress with meaningful insights',
                                     style: TextStyle(
                                       fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w600,
+                                      color: shadColors.foreground,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -353,54 +226,46 @@ class _HomePageState extends State<HomePage> {
                                     style: TextStyle(
                                       fontSize: 20,
                                       height: 1.5,
-                                      color: Colors.black87,
+                                      color: shadColors.foreground,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          SizedBox(height: 40),
-                          // Statistics screenshot with scroll-based animation
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final isMobile = constraints.maxWidth < 700;
-                              return Container(
-                                key: _statsImageKey,
-                                constraints: BoxConstraints(
-                                  maxWidth: isMobile ? double.infinity : 650,
-                                ),
-                                transform: Matrix4.translationValues(
-                                  -MediaQuery.of(context).size.width *
-                                      _statsSlidePosition,
-                                  0,
-                                  0,
-                                ),
-                                child: Image.asset(
-                                  'assets/images/floaty_statistics.png',
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 40),
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 40),
-                            child: Divider(
-                              color: Colors.grey.shade300,
-                              thickness: 1,
+                            SizedBox(height: 40),
+                            // Statistics screenshot
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isMobile = constraints.maxWidth < 700;
+                                return Container(
+                                  constraints: BoxConstraints(
+                                    maxWidth: isMobile ? double.infinity : 650,
+                                  ),
+                                  child: Image.asset(
+                                    'assets/images/floaty_statistics.png',
+                                    width: double.infinity,
+                                    fit: BoxFit.contain,
+                                  ),
+                                );
+                              },
                             ),
-                          ),
-                        ],
+                            SizedBox(height: 40),
+                            Container(
+                              margin: EdgeInsets.symmetric(horizontal: 40),
+                              child: Divider(
+                                color: shadColors.border,
+                                thickness: 1,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
                     // Buy me a coffee Section
                     Container(
                       width: double.infinity,
-                      color: Colors.white,
+                      color: Colors.transparent, // Transparent to let gradient show through
                       padding: EdgeInsets.symmetric(vertical: 40),
                       child: Column(
                         children: [
@@ -418,7 +283,7 @@ class _HomePageState extends State<HomePage> {
                                   text: TextSpan(
                                     style: TextStyle(
                                       fontSize: 20,
-                                      color: Colors.black87,
+                                      color: shadColors.foreground,
                                       height: 1.5,
                                     ),
                                     children: [
@@ -438,23 +303,31 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 );
 
-                                final buttonWidget = ElevatedButton(
-                                  onPressed: () {
-                                    // Add your buy me a coffee link here
-                                    // Launch URL for buy me a coffee
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange,
-                                    padding: EdgeInsets.all(12),
-                                    minimumSize: Size(200, 50),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
+                                final buttonWidget = Container(
+                                  width: 200,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      // Add your buy me a coffee link here
+                                      // Launch URL for buy me a coffee
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFF2B7DE9),
+                                      foregroundColor: Colors.white,
+                                      padding: EdgeInsets.all(12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      elevation: 0,
+                                    ).copyWith(
+                                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                      shadowColor: WidgetStateProperty.all(Colors.transparent),
                                     ),
-                                  ),
-                                  child: Image.asset(
-                                    'assets/images/coffee-cup.png',
-                                    height: 35,
-                                    fit: BoxFit.contain,
+                                    child: Image.asset(
+                                      'assets/images/coffee-cup.png',
+                                      height: 35,
+                                      fit: BoxFit.contain,
+                                    ),
                                   ),
                                 );
 
@@ -506,7 +379,7 @@ class _HomePageState extends State<HomePage> {
                     // Contact Section
                     Container(
                       width: double.infinity,
-                      color: Colors.grey.shade100,
+                      color: Colors.white, // White background instead of muted
                       padding: EdgeInsets.symmetric(
                         vertical: 60,
                         horizontal: 20,
@@ -518,7 +391,7 @@ class _HomePageState extends State<HomePage> {
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade900,
+                              color: shadColors.foreground, // Use foreground color
                             ),
                           ),
                           SizedBox(height: 20),
@@ -528,7 +401,7 @@ class _HomePageState extends State<HomePage> {
                               'If you have any feedback, suggestions for improvement or simply want to get to know us, do not hesitate to contact us!',
                               style: TextStyle(
                                 fontSize: 18,
-                                color: Colors.black87,
+                                color: shadColors.foreground.withOpacity(0.8),
                                 height: 1.5,
                               ),
                               textAlign: TextAlign.center,
@@ -538,13 +411,13 @@ class _HomePageState extends State<HomePage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.email, color: Colors.blue.shade900),
+                              Icon(Icons.email, color: Color(0xFF2B7DE9)), // Blue email icon
                               SizedBox(width: 10),
                               Text(
                                 'info@floatyfly.com',
                                 style: TextStyle(
                                   fontSize: 18,
-                                  color: Colors.blue.shade900,
+                                  color: Color(0xFF2B7DE9), // Blue email text
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -558,8 +431,10 @@ class _HomePageState extends State<HomePage> {
                     Footer(),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
+              );
+            },
           ),
         );
       },

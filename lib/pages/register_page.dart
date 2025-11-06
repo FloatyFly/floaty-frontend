@@ -113,26 +113,24 @@ class _RegisterFormState extends State<RegisterForm> {
           widget.isProcessing
               ? const CircularProgressIndicator()
               : SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _focusUserName.unfocus();
-                      _focusEmail.unfocus();
-                      _focusPassword.unfocus();
-                      widget.onSubmit(
-                        _userNameTextController.text,
-                        _emailTextController.text,
-                        _passwordTextController.text,
-                      );
-                    }
-                  },
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(color: Colors.black),
+                  width: double.infinity,
+                  child: FloatyButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _focusUserName.unfocus();
+                        _focusEmail.unfocus();
+                        _focusPassword.unfocus();
+                        widget.onSubmit(
+                          _userNameTextController.text,
+                          _emailTextController.text,
+                          _passwordTextController.text,
+                        );
+                      }
+                    },
+                    text: 'Register',
+                    width: double.infinity,
                   ),
                 ),
-              ),
           const SizedBox(height: 32.0),
           // Login Link
           Row(
@@ -206,32 +204,23 @@ class _RegisterPageState extends State<RegisterPage> {
                         Navigator.pushNamed(context, HOME_ROUTE);
                       },
                       child: Image.asset(
-                        "assets/logo.png",
+                        "assets/logo_black.png",
                         height: 55.0,
                         fit: BoxFit.contain,
                       ),
                     ),
                     // Login button
-                    ElevatedButton(
+                    FloatyButton(
                       onPressed: () {
                         Navigator.pushNamed(context, LOGIN_ROUTE);
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade900,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        textStyle: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
+                      text: 'Login',
+                      backgroundColor: Colors.grey.shade100,
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
                       ),
-                      child: Text('Login'),
                     ),
                   ],
                 ),

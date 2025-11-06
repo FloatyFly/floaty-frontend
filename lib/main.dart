@@ -1,4 +1,3 @@
-import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/config/constants.dart';
 import 'package:floaty/pages/email_verification_page.dart';
 import 'package:floaty/models/model.dart';
@@ -35,48 +34,47 @@ void main() async {
 }
 
 class FloatyApp extends StatelessWidget {
-  final cookieJar = CookieJar();
-
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<CookieJar>.value(value: cookieJar), // Provide CookieJar.
-      ],
-      child: MaterialApp(
-        title: 'Floaty',
-        theme: buildThemeData(),
-        initialRoute: HOME_ROUTE,
-        onGenerateRoute: app_router.Router.generateRoute,
-        routes: {
+    return MaterialApp(
+      title: 'Floaty',
+      theme: buildThemeData(),
+      initialRoute: HOME_ROUTE,
+      onGenerateRoute: (settings) {
+        // Use custom route builder for instant transitions
+        final routes = <String, WidgetBuilder>{
           HOME_ROUTE: (context) => HomePage(),
           LOGIN_ROUTE: (context) => LoginPage(),
           PROFILE_ROUTE:
               (context) => ProfilePage(
-                user: Provider.of<AppState>(context).currentUser!,
+                user: Provider.of<AppState>(context, listen: false).currentUser!,
               ),
           REGISTER_ROUTE: (context) => RegisterPage(),
           FORGOT_PASSWORD_ROUTE: (context) => ForgotPasswordPage(),
-          FLIGHTS_ROUTE:
-              (context) => FlightsPage(
-                user: Provider.of<AppState>(context).currentUser!,
-              ),
+          FLIGHTS_ROUTE: (context) => FlightsPage(),
           ADD_FLIGHT_ROUTE: (context) => AddFlightPage(),
           ADD_SPOT_ROUTE: (context) => AddSpotPage(),
-          ADD_GLIDER_ROUTE: (context) => AddGliderPage(),
           EMAIL_VERIFICATION_ROUTE: (context) => EmailVerificationPage(),
           STATS_ROUTE:
               (context) =>
-                  StatsPage(user: Provider.of<AppState>(context).currentUser!),
+                  StatsPage(user: Provider.of<AppState>(context, listen: false).currentUser!),
           SPOTS_ROUTE:
               (context) =>
-                  SpotsPage(user: Provider.of<AppState>(context).currentUser!),
+                  SpotsPage(user: Provider.of<AppState>(context, listen: false).currentUser!),
           GLIDERS_ROUTE:
               (context) => GlidersPage(
-                user: Provider.of<AppState>(context).currentUser!,
+                user: Provider.of<AppState>(context, listen: false).currentUser!,
               ),
-        },
-      ),
+        };
+
+        final builder = routes[settings.name];
+        if (builder != null) {
+          return app_router.NoAnimationPageRoute(builder: builder);
+        }
+
+        // Fall back to custom router for other routes
+        return app_router.Router.generateRoute(settings);
+      },
     );
   }
 }

@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cookie_jar/cookie_jar.dart';
 import 'package:csv/csv.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:floaty/services/flight_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/CookieAuth.dart';
 import '../../../main.dart';
 import '../../models/model.dart';
@@ -17,48 +17,71 @@ import 'edit_flight_page.dart';
 import 'package:floaty_client/api.dart' as api;
 import '../../../services/spots_service.dart';
 import '../../../services/gliders_service.dart';
+import '../../config/theme.dart';
 
 class FlightsPage extends StatefulWidget {
-  final FloatyUser? user;
-
-  const FlightsPage({required this.user});
+  const FlightsPage({Key? key}) : super(key: key);
 
   @override
   _FlightsPageState createState() => _FlightsPageState();
 }
 
 class _FlightsPageState extends State<FlightsPage> {
-  late Future<List<Flight>> futureFlights;
-  late FloatyUser _currentUser;
+  Future<List<Flight>>? futureFlights;
+  Future<List<api.Spot>>? futureSpots;
+  Future<List<api.Glider>>? futureGliders;
+  FloatyUser? _currentUser;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
 
-    // ONLY FOR DEBUGGING TO PREVENT NEED FOR LOGIN DUE TO STATE RESET ON HOT RELOAD.
-    bool isDebug = true;
-    if (isDebug) {
-      _currentUser = FloatyUser(
-        id: 1,
-        name: "Floater",
-        email: "floater@test.com",
-        emailVerified: true,
-      );
-      Provider.of<AppState>(context, listen: false).setUser(_currentUser);
-    } else {
-      _currentUser = Provider.of<AppState>(context, listen: false).currentUser!;
-    }
+    // Use addPostFrameCallback to access Provider after the widget tree is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _initialized) {
+        return;
+      }
+      _initialized = true;
 
-    futureFlights = _fetchFlights();
+      // ONLY FOR DEBUGGING TO PREVENT NEED FOR LOGIN DUE TO STATE RESET ON HOT RELOAD.
+      bool isDebug = false;
+      if (isDebug) {
+        _currentUser = FloatyUser(
+          id: 1,
+          name: "Floater",
+          email: "floater@test.com",
+          emailVerified: true,
+        );
+        Provider.of<AppState>(context, listen: false).setUser(_currentUser!);
+      } else {
+        _currentUser = Provider.of<AppState>(context, listen: false).currentUser!;
+      }
+
+      // Initialize all futures once to prevent redundant API calls
+      setState(() {
+        futureFlights = _fetchFlights();
+        futureSpots = fetchAllSpots(_getCookieAuth());
+        futureGliders = fetchGliders(_getCookieAuth());
+      });
+    });
   }
 
   CookieAuth _getCookieAuth() {
-    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-    return CookieAuth(cookieJar);
+    return CookieAuth();
   }
 
   Future<List<Flight>> _fetchFlights() {
-    return fetchFlights(_currentUser.id, _getCookieAuth());
+    return fetchFlights(_currentUser!.id, _getCookieAuth());
+  }
+
+  // Helper method to refresh all data (flights, spots, gliders)
+  void _refreshAllData() {
+    setState(() {
+      futureFlights = _fetchFlights();
+      futureSpots = fetchAllSpots(_getCookieAuth());
+      futureGliders = fetchGliders(_getCookieAuth());
+    });
   }
 
   Future<void> _exportFlightsToCSV() async {
@@ -129,43 +152,53 @@ class _FlightsPageState extends State<FlightsPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 700;
-    // For mobile, use full width; for desktop use 2/3 of width
     final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+    final shadColors = getShadThemeData().colorScheme;
+    final linkColor = Color(0xFF2B7DE9); // Brighter blue (Add Flight button color)
+
+    // Show loading screen if futures are not initialized yet
+    if (futureFlights == null || futureSpots == null || futureGliders == null) {
+      return Scaffold(
+        backgroundColor: shadColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: shadColors.primary),
+        ),
+      );
+    }
 
     return Scaffold(
+      backgroundColor: shadColors.background,
       body: Stack(
         children: [
-          // Only show background if not on mobile
           if (!isMobile) const FloatyBackgroundWidget(),
-          // For mobile, use a white background
-          if (isMobile) Container(color: Colors.white),
+          if (isMobile) Container(color: shadColors.background),
           Column(
             children: [
               Header(),
-              SizedBox(height: 20), // Space below the header
+              SizedBox(height: 20),
               Expanded(
                 child: Center(
                   child: Container(
                     width: containerWidth,
-                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    padding: EdgeInsets.all(isMobile ? 16 : 24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          isMobile
-                              ? BorderRadius
-                                  .zero // No rounded corners on mobile
-                              : BorderRadius.vertical(top: Radius.circular(6)),
-                      boxShadow:
-                          isMobile
-                              ? [] // No shadow on mobile
-                              : [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
+                      color: shadColors.card,
+                      borderRadius: isMobile
+                          ? BorderRadius.zero
+                          : BorderRadius.vertical(top: Radius.circular(12)),
+                      border: isMobile
+                          ? null
+                          : Border.all(color: shadColors.border, width: 1),
+                      boxShadow: isMobile
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: shadColors.foreground.withValues(alpha: 0.05),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,90 +206,79 @@ class _FlightsPageState extends State<FlightsPage> {
                         // Make buttons stack vertically on small screens
                         isMobile
                             ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 // Add Flight button
-                                Expanded(
-                                  flex: 1,
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(50.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black,
+                                        offset: Offset(-4, 4), // Bottom-right shadow
+                                        blurRadius: 0,
+                                        spreadRadius: 0,
+                                      ),
+                                    ],
+                                  ),
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
-                                      // Get the latest flight for pre-selecting values
                                       Flight? latestFlight;
                                       try {
                                         final flights = await _fetchFlights();
                                         if (flights.isNotEmpty) {
-                                          // Sort by date and get the most recent
                                           flights.sort(
-                                            (a, b) => b.dateTime.compareTo(
-                                              a.dateTime,
-                                            ),
+                                            (a, b) => b.dateTime.compareTo(a.dateTime),
                                           );
                                           latestFlight = flights.first;
                                         }
                                       } catch (e) {
-                                        // If we can't get flights, continue without pre-selection
-                                        print(
-                                          "Could not fetch latest flight: $e",
-                                        );
+                                        print("Could not fetch latest flight: $e");
                                       }
 
-                                      // Navigate to AddFlightPage and wait for the result
                                       final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder:
-                                              (context) => AddFlightPage(
-                                                latestFlight: latestFlight,
-                                              ),
+                                          builder: (context) => AddFlightPage(
+                                            latestFlight: latestFlight,
+                                          ),
                                         ),
                                       );
 
-                                      // If the result is true, fetch new flights to reflect the added one
                                       if (result == true) {
-                                        setState(() {
-                                          futureFlights = _fetchFlights();
-                                        });
+                                        _refreshAllData();
                                       }
                                     },
-                                    icon: Icon(
-                                      Icons.add,
-                                      size: 18,
-                                    ), // Plus sign icon
-                                    label: Text(
-                                      "Add Flight",
-                                      style: TextStyle(fontSize: 16),
-                                    ),
+                                    icon: Icon(Icons.add, size: 18),
+                                    label: Text("Add Flight"),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF0078D7),
-                                      foregroundColor:
-                                          Colors
-                                              .white, // White text color for good contrast
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          20.0,
-                                        ),
-                                      ),
+                                      backgroundColor: linkColor,
+                                      foregroundColor: Colors.white,
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: 10),
-                                // Export button
-                                Expanded(
-                                  flex: 1,
-                                  child: ElevatedButton.icon(
-                                    onPressed:
-                                        _exportFlightsToCSV, // Calls the CSV export function
-                                    icon: Icon(
-                                      Icons.file_download,
-                                      size: 16,
-                                    ), // Export icon
-                                    label: Text(
-                                      "Export",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      backgroundColor:
-                                          Colors.blueGrey, // Text color
+                                // Export link
+                                MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: _exportFlightsToCSV,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.file_download,
+                                          size: 16,
+                                          color: shadColors.foreground,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "Export",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: shadColors.foreground,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -265,96 +287,92 @@ class _FlightsPageState extends State<FlightsPage> {
                             : Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                ElevatedButton.icon(
-                                  onPressed: () async {
-                                    // Get the latest flight for pre-selecting values
-                                    Flight? latestFlight;
-                                    try {
-                                      final flights = await _fetchFlights();
-                                      if (flights.isNotEmpty) {
-                                        // Sort by date and get the most recent
-                                        flights.sort(
-                                          (a, b) =>
-                                              b.dateTime.compareTo(a.dateTime),
-                                        );
-                                        latestFlight = flights.first;
-                                      }
-                                    } catch (e) {
-                                      // If we can't get flights, continue without pre-selection
-                                      print(
-                                        "Could not fetch latest flight: $e",
-                                      );
-                                    }
-
-                                    // Navigate to AddFlightPage and wait for the result
-                                    final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => AddFlightPage(
-                                              latestFlight: latestFlight,
-                                            ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(50.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black,
+                                        offset: Offset(-4, 4), // Bottom-right shadow
+                                        blurRadius: 0,
+                                        spreadRadius: 0,
                                       ),
-                                    );
-
-                                    // If the result is true, fetch new flights to reflect the added one
-                                    if (result == true) {
-                                      setState(() {
-                                        futureFlights = _fetchFlights();
-                                      });
-                                    }
-                                  },
-                                  icon: Icon(
-                                    Icons.add,
-                                    size: 18,
-                                  ), // Plus sign icon
-                                  label: Text(
-                                    "Add Flight",
-                                    style: TextStyle(fontSize: 16),
+                                    ],
                                   ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF0078D7),
-                                    foregroundColor:
-                                        Colors
-                                            .white, // White text color for good contrast
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      Flight? latestFlight;
+                                      try {
+                                        final flights = await _fetchFlights();
+                                        if (flights.isNotEmpty) {
+                                          flights.sort(
+                                            (a, b) => b.dateTime.compareTo(a.dateTime),
+                                          );
+                                          latestFlight = flights.first;
+                                        }
+                                      } catch (e) {
+                                        print("Could not fetch latest flight: $e");
+                                      }
+
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddFlightPage(
+                                            latestFlight: latestFlight,
+                                          ),
+                                        ),
+                                      );
+
+                                      if (result == true) {
+                                        _refreshAllData();
+                                      }
+                                    },
+                                    icon: Icon(Icons.add, size: 18),
+                                    label: Text("Add Flight"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: linkColor,
+                                      foregroundColor: Colors.white,
                                     ),
                                   ),
                                 ),
-
-                                ElevatedButton.icon(
-                                  onPressed:
-                                      _exportFlightsToCSV, // Calls the CSV export function
-                                  icon: Icon(
-                                    Icons.file_download,
-                                    size: 16,
-                                  ), // Export icon
-                                  label: Text(
-                                    "Export",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    backgroundColor:
-                                        Colors.blueGrey, // Text color
+                                // Export link
+                                MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: _exportFlightsToCSV,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.file_download,
+                                          size: 16,
+                                          color: shadColors.foreground,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "Export",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: shadColors.foreground,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                         SizedBox(height: 16),
                         FlightListView(
-                          futureFlights: futureFlights,
+                          futureFlights: futureFlights!,
+                          futureSpots: futureSpots!,
+                          futureGliders: futureGliders!,
                           onDeleteFlight: (flight) async {
                             await _deleteFlight(flight.flightId);
-                            setState(() {
-                              futureFlights = _fetchFlights();
-                            });
+                            _refreshAllData();
                           },
                           onFlightUpdated: () {
-                            setState(() {
-                              futureFlights = _fetchFlights();
-                            });
+                            _refreshAllData();
                           },
                           isMobile: isMobile,
                         ),
@@ -377,27 +395,58 @@ class _FlightsPageState extends State<FlightsPage> {
 
 class FlightListView extends StatelessWidget {
   final Future<List<Flight>> futureFlights;
+  final Future<List<api.Spot>> futureSpots;
+  final Future<List<api.Glider>> futureGliders;
   final Function(Flight) onDeleteFlight;
   final Function() onFlightUpdated;
   final bool isMobile;
 
   FlightListView({
     required this.futureFlights,
+    required this.futureSpots,
+    required this.futureGliders,
     required this.onDeleteFlight,
     required this.onFlightUpdated,
     required this.isMobile,
   });
 
+  // Format duration as "1h15min", "30min", or "4h"
+  String _formatDuration(int durationInMinutes) {
+    final hours = durationInMinutes ~/ 60;
+    final minutes = durationInMinutes % 60;
+
+    if (hours > 0 && minutes > 0) {
+      return '${hours}h${minutes}min';
+    } else if (hours > 0) {
+      return '${hours}h';
+    } else {
+      return '${minutes}min';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final shadColors = getShadThemeData().colorScheme;
+    // Link color for clickable items
+    final linkColor = Color(0xFF0969DA); // GitHub-style blue link color
+
     return Expanded(
       child: FutureBuilder<List<Flight>>(
         future: futureFlights,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: shadColors.primary,
+              ),
+            );
           } else if (snapshot.hasError) {
-            return Center(child: Text("Error loading flights"));
+            return Center(
+              child: Text(
+                "Error loading flights",
+                style: TextStyle(color: shadColors.destructive),
+              ),
+            );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Padding(
@@ -412,7 +461,7 @@ class FlightListView extends StatelessWidget {
                     Icon(
                       Icons.rocket_launch,
                       size: 24,
-                      color: Color(0xFF0078D7),
+                      color: shadColors.primary,
                     ),
                     SizedBox(width: 8),
                     Flexible(
@@ -420,8 +469,8 @@ class FlightListView extends StatelessWidget {
                         "Start your Floaty journey by adding your first flight!",
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                          color: shadColors.foreground,
                         ),
                       ),
                     ),
@@ -438,14 +487,14 @@ class FlightListView extends StatelessWidget {
           ); // Newest first
 
           return FutureBuilder<List<api.Spot>>(
-            future: fetchAllSpots(_getCookieAuth(context)),
+            future: futureSpots, // Use cached future
             builder: (context, spotsSnapshot) {
               if (!spotsSnapshot.hasData) {
                 return Center(child: CircularProgressIndicator());
               }
 
               return FutureBuilder<List<api.Glider>>(
-                future: fetchGliders(_getCookieAuth(context)),
+                future: futureGliders, // Use cached future
                 builder: (context, glidersSnapshot) {
                   if (!glidersSnapshot.hasData) {
                     return Center(child: CircularProgressIndicator());
@@ -494,13 +543,13 @@ class FlightListView extends StatelessWidget {
                           onTap: () => _navigateToEditFlight(context, flight),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 8,
+                              vertical: 12,
+                              horizontal: 12,
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Flight number and date
+                                // Flight number, date, and duration
                                 SizedBox(
                                   width: 90,
                                   child: Column(
@@ -511,19 +560,42 @@ class FlightListView extends StatelessWidget {
                                         flightNumber,
                                         style: TextStyle(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w600,
+                                          color: shadColors.foreground,
                                         ),
                                       ),
+                                      SizedBox(height: 2),
                                       Text(
                                         DateFormat('dd.MM.yyyy').format(
                                           DateTime.parse(flight.dateTime),
                                         ),
                                         style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: shadColors.mutedForeground,
+                                          fontWeight: FontWeight.w500,
                                         ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            _formatDuration(flight.duration),
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: shadColors.mutedForeground,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          if (flight.igcMetadata != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(left: 4.0),
+                                              child: Image.asset(
+                                                'assets/images/track.png',
+                                                width: 16,
+                                                height: 16,
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -536,67 +608,32 @@ class FlightListView extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       // Flight title
-                                      Text(
-                                        "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0078D7),
+                                      MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: Text(
+                                          "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: linkColor,
+                                          ),
                                         ),
                                       ),
-                                      SizedBox(height: 4),
-                                      // Glider name and duration row
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              getGliderName(flight.gliderId),
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              if (flight.igcMetadata != null)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        right: 8.0,
-                                                      ),
-                                                  child: Image.asset(
-                                                    'assets/images/track.png',
-                                                    width: 24,
-                                                    height: 24,
-                                                  ),
-                                                ),
-                                              Icon(
-                                                Icons.access_time,
-                                                size: 15,
-                                                color: Colors.black54,
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                      SizedBox(height: 6),
+                                      // Glider name
+                                      Text(
+                                        getGliderName(flight.gliderId),
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: shadColors.foreground,
+                                        ),
                                       ),
-                                      SizedBox(height: 4),
+                                      SizedBox(height: 6),
                                       Text(
                                         flight.description,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: Colors.black87,
+                                          color: shadColors.mutedForeground,
                                         ),
                                         maxLines: 3,
                                         overflow: TextOverflow.ellipsis,
@@ -614,13 +651,13 @@ class FlightListView extends StatelessWidget {
                           onTap: () => _navigateToEditFlight(context, flight),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 16,
+                              vertical: 12,
+                              horizontal: 20,
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Flight number + date
+                                // Flight number, date, and duration
                                 SizedBox(
                                   width: 90,
                                   child: Column(
@@ -631,19 +668,42 @@ class FlightListView extends StatelessWidget {
                                         flightNumber,
                                         style: TextStyle(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w600,
+                                          color: shadColors.foreground,
                                         ),
                                       ),
+                                      SizedBox(height: 2),
                                       Text(
                                         DateFormat('dd.MM.yyyy').format(
                                           DateTime.parse(flight.dateTime),
                                         ),
                                         style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: shadColors.mutedForeground,
+                                          fontWeight: FontWeight.w500,
                                         ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            _formatDuration(flight.duration),
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: shadColors.mutedForeground,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          if (flight.igcMetadata != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(left: 4.0),
+                                              child: Image.asset(
+                                                'assets/images/track.png',
+                                                width: 16,
+                                                height: 16,
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -656,66 +716,38 @@ class FlightListView extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        // Title row with glider and duration on the right
+                                        // Title row with glider on the right
                                         Row(
                                           children: [
                                             Expanded(
-                                              child: Text(
-                                                "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF0078D7),
+                                              child: MouseRegion(
+                                                cursor: SystemMouseCursors.click,
+                                                child: Text(
+                                                  "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: linkColor,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                            SizedBox(width: 8),
+                                            SizedBox(width: 12),
                                             Text(
                                               getGliderName(flight.gliderId),
                                               style: TextStyle(
                                                 fontSize: 14,
-                                                color: Colors.black,
+                                                color: shadColors.foreground,
                                               ),
-                                            ),
-                                            SizedBox(width: 16),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                if (flight.igcMetadata != null)
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          right: 8.0,
-                                                        ),
-                                                    child: Image.asset(
-                                                      'assets/images/track.png',
-                                                      width: 24,
-                                                      height: 24,
-                                                    ),
-                                                  ),
-                                                Icon(
-                                                  Icons.access_time,
-                                                  size: 15,
-                                                  color: Colors.black54,
-                                                ),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
                                             ),
                                           ],
                                         ),
-                                        SizedBox(height: 4),
+                                        SizedBox(height: 6),
                                         Text(
                                           flight.description,
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: Colors.black87,
+                                            color: shadColors.mutedForeground,
                                           ),
                                           softWrap: true,
                                         ),
@@ -731,7 +763,7 @@ class FlightListView extends StatelessWidget {
                     },
                     separatorBuilder: (context, index) {
                       return Divider(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: shadColors.border,
                         height: 1,
                         thickness: 1,
                       );
@@ -758,7 +790,6 @@ class FlightListView extends StatelessWidget {
   }
 
   CookieAuth _getCookieAuth(BuildContext context) {
-    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-    return CookieAuth(cookieJar);
+    return CookieAuth();
   }
 }

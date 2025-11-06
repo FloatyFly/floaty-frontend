@@ -1,15 +1,16 @@
-import 'package:cookie_jar/cookie_jar.dart';
 import 'package:floaty/widgets/ui_components.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:floaty_client/api.dart' as api;
 import '../services/flight_service.dart';
 import '../services/spots_service.dart';
 import '../services/gliders_service.dart';
 import 'edit_flight_page.dart';
 import '../config/CookieAuth.dart';
+import '../config/theme.dart';
 import '../main.dart';
 import '../models/model.dart';
 import '../config/constants.dart';
@@ -50,8 +51,7 @@ class _StatsPageState extends State<StatsPage> {
   }
 
   CookieAuth _getCookieAuth() {
-    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-    return CookieAuth(cookieJar);
+    return CookieAuth();
   }
 
   Future<List<Flight>> _fetchFlights() {
@@ -70,43 +70,42 @@ class _StatsPageState extends State<StatsPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 700;
-    // For mobile, use full width; for desktop use 2/3 of width
     final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+    final shadColors = getShadThemeData().colorScheme;
 
     return Scaffold(
+      backgroundColor: shadColors.background,
       body: Stack(
         children: [
-          // Only show background if not on mobile
           if (!isMobile) const FloatyBackgroundWidget(),
-          // For mobile, use a white background
-          if (isMobile) Container(color: Colors.white),
+          if (isMobile) Container(color: shadColors.background),
           Column(
             children: [
               Header(),
-              SizedBox(height: 20), // Space below the header
+              SizedBox(height: 20),
               Expanded(
                 child: Center(
                   child: Container(
                     width: containerWidth,
-                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    padding: EdgeInsets.all(isMobile ? 16 : 24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          isMobile
-                              ? BorderRadius
-                                  .zero // No rounded corners on mobile
-                              : BorderRadius.vertical(top: Radius.circular(6)),
-                      boxShadow:
-                          isMobile
-                              ? [] // No shadow on mobile
-                              : [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
+                      color: shadColors.card,
+                      borderRadius: isMobile
+                          ? BorderRadius.zero
+                          : BorderRadius.vertical(top: Radius.circular(12)),
+                      border: isMobile
+                          ? null
+                          : Border.all(color: shadColors.border, width: 1),
+                      boxShadow: isMobile
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: shadColors.foreground.withValues(alpha: 0.05),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                     ),
                     child: _buildContent(isMobile, containerWidth),
                   ),
@@ -120,13 +119,22 @@ class _StatsPageState extends State<StatsPage> {
   }
 
   Widget _buildContent(bool isMobile, double containerWidth) {
+    final shadColors = getShadThemeData().colorScheme;
+
     return FutureBuilder<List<Flight>>(
       future: futureFlights,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(color: shadColors.primary),
+          );
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(
+            child: Text(
+              'Error: ${snapshot.error}',
+              style: TextStyle(color: shadColors.destructive),
+            ),
+          );
         } else {
           List<Flight> flights = snapshot.data ?? [];
           int totalFlights = flights.length;
@@ -143,31 +151,31 @@ class _StatsPageState extends State<StatsPage> {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                Container(
-                  color: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildStatBox(
+                // Dashboard-style stat cards
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDashboardCard(
+                        context,
                         'Total Flights',
                         '$totalFlights',
-                        isMobile
-                            ? (containerWidth / 2 - 16)
-                            : (containerWidth / 2 - 48),
+                        Icons.flight_takeoff,
+                        shadColors,
                       ),
-                      SizedBox(width: isMobile ? 8 : 24),
-                      _buildStatBox(
+                    ),
+                    SizedBox(width: isMobile ? 12 : 16),
+                    Expanded(
+                      child: _buildDashboardCard(
+                        context,
                         'Total Airtime',
                         '${totalAirtime.toStringAsFixed(0)} hours',
-                        isMobile
-                            ? (containerWidth / 2 - 16)
-                            : (containerWidth / 2 - 48),
+                        Icons.access_time,
+                        shadColors,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 24),
                 if (flights.isEmpty)
                   Center(
                     child: Padding(
@@ -182,7 +190,7 @@ class _StatsPageState extends State<StatsPage> {
                           Icon(
                             Icons.lightbulb,
                             size: 24,
-                            color: Color(0xFF0078D7),
+                            color: shadColors.primary,
                           ),
                           SizedBox(width: 8),
                           Flexible(
@@ -190,8 +198,8 @@ class _StatsPageState extends State<StatsPage> {
                               "Add flights to get statistical analysis",
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                fontWeight: FontWeight.w600,
+                                color: shadColors.foreground,
                               ),
                             ),
                           ),
@@ -212,9 +220,9 @@ class _StatsPageState extends State<StatsPage> {
                   SizedBox(height: 24),
                   // Map Widget
                   Container(
-                    height: 400, // Double the height of the add spots map
+                    height: 400,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: shadColors.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: ClipRRect(
@@ -223,7 +231,11 @@ class _StatsPageState extends State<StatsPage> {
                         future: futureSpots,
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
-                            return Center(child: CircularProgressIndicator());
+                            return Center(
+                              child: CircularProgressIndicator(
+                                color: shadColors.primary,
+                              ),
+                            );
                           }
 
                           final spots = snapshot.data!;
@@ -393,6 +405,9 @@ class _StatsPageState extends State<StatsPage> {
     double width,
     bool isMobile,
   ) {
+    final shadColors = getShadThemeData().colorScheme;
+    final linkColor = Color(0xFF2B7DE9);
+
     return FutureBuilder<List<api.Spot>>(
       future: futureSpots,
       builder: (context, spotsSnapshot) {
@@ -400,7 +415,9 @@ class _StatsPageState extends State<StatsPage> {
           return Container(
             width: width,
             padding: EdgeInsets.all(isMobile ? 8 : 20),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: CircularProgressIndicator(color: shadColors.primary),
+            ),
           );
         }
 
@@ -411,7 +428,9 @@ class _StatsPageState extends State<StatsPage> {
               return Container(
                 width: width,
                 padding: EdgeInsets.all(isMobile ? 8 : 20),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: CircularProgressIndicator(color: shadColors.primary),
+                ),
               );
             }
 
@@ -451,16 +470,20 @@ class _StatsPageState extends State<StatsPage> {
               width: width,
               padding: EdgeInsets.all(isMobile ? 8 : 20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey, width: 1),
+                color: shadColors.card,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: shadColors.border, width: 1),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Top 5 Longest Flights',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: shadColors.foreground,
+                    ),
                   ),
                   SizedBox(height: 10),
                   ListView.separated(
@@ -469,7 +492,7 @@ class _StatsPageState extends State<StatsPage> {
                     itemCount: flights.length,
                     separatorBuilder: (context, index) {
                       return Divider(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: shadColors.border,
                         height: 1,
                         thickness: 1,
                       );
@@ -498,8 +521,8 @@ class _StatsPageState extends State<StatsPage> {
                                       flightNumber,
                                       style: TextStyle(
                                         fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                        color: shadColors.foreground,
                                       ),
                                     ),
                                     Text(
@@ -508,8 +531,8 @@ class _StatsPageState extends State<StatsPage> {
                                       ).format(DateTime.parse(flight.dateTime)),
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Colors.black54,
-                                        fontWeight: FontWeight.bold,
+                                        color: shadColors.mutedForeground,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
@@ -527,8 +550,8 @@ class _StatsPageState extends State<StatsPage> {
                                         "${getSpotName(flight.launchSpotId)} - ${getSpotName(flight.landingSpotId)}",
                                         style: TextStyle(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0078D7),
+                                          fontWeight: FontWeight.w600,
+                                          color: linkColor,
                                         ),
                                       ),
                                       if (flight.description.isNotEmpty) ...[
@@ -537,7 +560,7 @@ class _StatsPageState extends State<StatsPage> {
                                           flight.description,
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: Colors.black87,
+                                            color: shadColors.foreground,
                                           ),
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
@@ -557,8 +580,8 @@ class _StatsPageState extends State<StatsPage> {
                                       getGliderName(flight.gliderId),
                                       style: TextStyle(
                                         fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                        color: shadColors.foreground,
                                       ),
                                       textAlign: TextAlign.right,
                                     ),
@@ -569,14 +592,15 @@ class _StatsPageState extends State<StatsPage> {
                                         Icon(
                                           Icons.access_time,
                                           size: 15,
-                                          color: Colors.black54,
+                                          color: shadColors.mutedForeground,
                                         ),
                                         SizedBox(width: 4),
                                         Text(
                                           "${flight.duration ~/ 60}:${(flight.duration % 60).toString().padLeft(2, '0')}",
                                           style: TextStyle(
                                             fontSize: 14,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w600,
+                                            color: shadColors.foreground,
                                           ),
                                         ),
                                       ],
@@ -681,21 +705,27 @@ Widget _buildFlightTrendChart(List<Flight> flights, double width) {
     labelInterval = 3; // Show labels every 3 months
   }
 
+  final shadColors = getShadThemeData().colorScheme;
+
   return Container(
     width: width,
     height: 250,
     padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.8),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey, width: 1),
+      color: shadColors.card,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: shadColors.border, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Flights',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: shadColors.foreground,
+          ),
         ),
         SizedBox(height: 10),
         Expanded(
@@ -895,21 +925,27 @@ Widget _buildAirtimeEvolutionChart(List<Flight> flights, double width) {
     labelInterval = 3; // Show labels every 3 months
   }
 
+  final shadColors = getShadThemeData().colorScheme;
+
   return Container(
     width: width,
     height: 250,
     padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.8),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey, width: 1),
+      color: shadColors.card,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: shadColors.border, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Airtime',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: shadColors.foreground,
+          ),
         ),
         SizedBox(height: 10),
         Expanded(
@@ -1058,41 +1094,6 @@ String _getMonthName(int month) {
   return months[month - 1];
 }
 
-Widget _buildStatBox(String title, String value, double width) {
-  return Container(
-    width: width,
-    padding: EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey, width: 1),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.2),
-          spreadRadius: 1,
-          blurRadius: 2,
-          offset: Offset(0, 1),
-        ),
-      ],
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          title,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 10),
-        Text(
-          value,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    ),
-  );
-}
 
 Widget _buildMonthlyFlightsChart(List<Flight> flights, double width) {
   if (flights.isEmpty) {
@@ -1148,21 +1149,27 @@ Widget _buildMonthlyFlightsChart(List<Flight> flights, double width) {
     yearColors[sortedYears[i]] = colorPalette[i % colorPalette.length];
   }
 
+  final shadColors = getShadThemeData().colorScheme;
+
   return Container(
     width: width,
     height: 300,
     padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.8),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey, width: 1),
+      color: shadColors.card,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: shadColors.border, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Monthly Flights',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: shadColors.foreground,
+          ),
         ),
         SizedBox(height: 5),
 
@@ -1399,21 +1406,27 @@ Widget _buildMonthlyAirtimeChart(List<Flight> flights, double width) {
     yearColors[sortedYears[i]] = colorPalette[i % colorPalette.length];
   }
 
+  final shadColors = getShadThemeData().colorScheme;
+
   return Container(
     width: width,
     height: 300,
     padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.8),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey, width: 1),
+      color: shadColors.card,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: shadColors.border, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Monthly Airtime',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: shadColors.foreground,
+          ),
         ),
         SizedBox(height: 5),
 
@@ -1633,20 +1646,26 @@ Widget _buildYearlySummaryBox(
   // Sort by year (newest first)
   yearlyStats.sort((a, b) => b['year'].compareTo(a['year']));
 
+  final shadColors = getShadThemeData().colorScheme;
+
   return Container(
     width: width,
     padding: EdgeInsets.all(isMobile ? 8 : 20),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.8),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey, width: 1),
+      color: shadColors.card,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: shadColors.border, width: 1),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Yearly Summary',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: shadColors.foreground,
+          ),
         ),
         SizedBox(height: 10),
         // Table rows
@@ -1664,8 +1683,8 @@ Widget _buildYearlySummaryBox(
                     stats['year'],
                     style: TextStyle(
                       fontSize: isMobile ? 12 : 14,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.bold,
+                      color: shadColors.mutedForeground,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -1676,8 +1695,8 @@ Widget _buildYearlySummaryBox(
                     '${stats['flightCount']} flights',
                     style: TextStyle(
                       fontSize: isMobile ? 14 : 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey[900],
+                      fontWeight: FontWeight.w600,
+                      color: shadColors.foreground,
                     ),
                   ),
                 ),
@@ -1690,14 +1709,15 @@ Widget _buildYearlySummaryBox(
                       Icon(
                         Icons.access_time,
                         size: isMobile ? 12 : 15,
-                        color: Colors.black54,
+                        color: shadColors.mutedForeground,
                       ),
                       SizedBox(width: 2),
                       Text(
                         '${stats['airtime'].toStringAsFixed(1)} h',
                         style: TextStyle(
                           fontSize: isMobile ? 12 : 14,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
+                          color: shadColors.foreground,
                         ),
                       ),
                     ],
@@ -1707,6 +1727,46 @@ Widget _buildYearlySummaryBox(
             ),
           );
         }),
+      ],
+    ),
+  );
+}
+
+// Dashboard card widget (shadcn style)
+Widget _buildDashboardCard(
+  BuildContext context,
+  String title,
+  String value,
+  IconData icon,
+  ShadColorScheme shadColors,
+) {
+  return Container(
+    padding: EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: shadColors.card,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: shadColors.border, width: 1),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: shadColors.mutedForeground,
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
+            color: shadColors.foreground,
+          ),
+        ),
       ],
     ),
   );

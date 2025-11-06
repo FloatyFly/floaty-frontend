@@ -8,7 +8,6 @@ import '../main.dart';
 import '../models/model.dart';
 import '../widgets/validator.dart';
 import '../widgets/ui_components.dart';
-import 'package:cookie_jar/cookie_jar.dart';
 
 class LoginForm extends StatefulWidget {
   final Function(String username, String password) onSubmit;
@@ -102,24 +101,22 @@ class _LoginFormState extends State<LoginForm> {
           widget.isProcessing
               ? const CircularProgressIndicator()
               : SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _focusUserName.unfocus();
-                      _focusPassword.unfocus();
-                      widget.onSubmit(
-                        _userNameTextController.text,
-                        _passwordTextController.text,
-                      );
-                    }
-                  },
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(color: Colors.black),
+                  width: double.infinity,
+                  child: FloatyButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _focusUserName.unfocus();
+                        _focusPassword.unfocus();
+                        widget.onSubmit(
+                          _userNameTextController.text,
+                          _passwordTextController.text,
+                        );
+                      }
+                    },
+                    text: 'Login',
+                    width: double.infinity,
                   ),
                 ),
-              ),
           const SizedBox(height: 32.0),
           // Forgot Password and Register Links
           Row(
@@ -179,8 +176,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cookieJar = Provider.of<CookieJar>(context);
-
     return Scaffold(
       body: Stack(
         children: [
@@ -203,32 +198,23 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.pushNamed(context, HOME_ROUTE);
                       },
                       child: Image.asset(
-                        "assets/logo.png",
+                        "assets/logo_black.png",
                         height: 55.0,
                         fit: BoxFit.contain,
                       ),
                     ),
                     // Register button
-                    ElevatedButton(
+                    FloatyButton(
                       onPressed: () {
                         Navigator.pushNamed(context, REGISTER_ROUTE);
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade900,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        textStyle: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
+                      text: 'Register',
+                      backgroundColor: Colors.grey.shade100,
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
                       ),
-                      child: Text('Register'),
                     ),
                   ],
                 ),
@@ -257,10 +243,9 @@ class _LoginPageState extends State<LoginPage> {
 
                                 try {
                                   final user =
-                                      await loginAndExtractSessionCookie(
+                                      await loginUser(
                                         username,
                                         password,
-                                        cookieJar,
                                       );
 
                                   setState(() {
@@ -316,10 +301,9 @@ class _LoginPageState extends State<LoginPage> {
 }
 
 /// Login logic helper
-Future<User?> loginAndExtractSessionCookie(
+Future<User?> loginUser(
   String username,
   String password,
-  CookieJar cookieJar,
 ) async {
   final apiClient = ApiClient(basePath: backendUrl);
   final authApi = AuthApi(apiClient);
@@ -339,13 +323,7 @@ Future<User?> loginAndExtractSessionCookie(
     throw ApiException(response.statusCode, await _decodeBodyBytes(response));
   }
 
-  final setCookieHeader = response.headers['Set-Cookie'];
-  if (setCookieHeader != null) {
-    final uri = Uri.parse(backendUrl);
-    cookieJar.saveFromResponse(uri, [
-      Cookie.fromSetCookieValue(setCookieHeader),
-    ]);
-  }
+  // Browser automatically handles Set-Cookie header, no manual cookie handling needed
 
   if (response.body.isNotEmpty && response.statusCode != 204) {
     return await apiClient.deserializeAsync(

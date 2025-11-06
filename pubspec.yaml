@@ -16,7 +16,7 @@ dependencies:
   uuid: ^4.4.0
   cupertino_icons: ^1.0.2
   google_sign_in: ^5.2.1
-  intl: ^0.17.0
+  intl: ^0.20.2
   floaty_client:
     path: lib/generated
   cookie_jar: ^4.0.8
@@ -32,6 +32,7 @@ dependencies:
   web: ^1.1.1
   dropdown_search: ^6.0.2
   file_picker: ^8.1.2
+  shadcn_ui: ^0.38.0
 
 dev_dependencies:
   flutter_test:
@@ -43,7 +44,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/background.jpg
-    - assets/logo.png
+    - assets/logo_white.png
+    - assets/logo_black.png
     - assets/images/floaty_laptop_phone.png
     - assets/images/floaty_statistics.png
     - assets/images/coffee-cup.png

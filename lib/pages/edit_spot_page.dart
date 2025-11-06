@@ -4,12 +4,13 @@ import 'package:floaty/config/constants.dart';
 import 'package:floaty/config/CookieAuth.dart';
 import 'package:floaty/widgets/ui_components.dart';
 import 'package:provider/provider.dart';
-import 'package:cookie_jar/cookie_jar.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import '../config/theme.dart';
 
 class EditSpotPage extends StatefulWidget {
   final api.Spot spot;
@@ -60,8 +61,7 @@ class _EditSpotPageState extends State<EditSpotPage> {
   }
 
   CookieAuth _getCookieAuth() {
-    CookieJar cookieJar = Provider.of<CookieJar>(context, listen: false);
-    return CookieAuth(cookieJar);
+    return CookieAuth();
   }
 
   Future<double> _getElevation(LatLng location) async {
@@ -133,14 +133,16 @@ class _EditSpotPageState extends State<EditSpotPage> {
             title: Text('Delete Spot'),
             content: Text('Are you sure you want to delete this spot?'),
             actions: [
-              TextButton(
+              FloatyButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text('Cancel'),
+                text: 'Cancel',
+                backgroundColor: Colors.grey.shade100,
+                foregroundColor: Colors.black,
               ),
-              TextButton(
+              FloatyButton(
                 onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: Text('Delete'),
+                text: 'Delete',
+                backgroundColor: Colors.red,
               ),
             ],
           ),
@@ -267,12 +269,14 @@ class _EditSpotPageState extends State<EditSpotPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 700;
     final containerWidth = isMobile ? screenWidth : screenWidth * 2 / 3;
+    final shadColors = getShadThemeData().colorScheme;
 
     return Scaffold(
+      backgroundColor: shadColors.background,
       body: Stack(
         children: [
           if (!isMobile) const FloatyBackgroundWidget(),
-          if (isMobile) Container(color: Colors.white),
+          if (isMobile) Container(color: shadColors.background),
           SafeArea(
             child: SingleChildScrollView(
               child: Column(
@@ -281,24 +285,26 @@ class _EditSpotPageState extends State<EditSpotPage> {
                   SizedBox(height: 20),
                   Container(
                     width: containerWidth,
-                    padding: EdgeInsets.all(isMobile ? 8 : 16),
+                    padding: EdgeInsets.all(isMobile ? 16 : 24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: shadColors.card,
                       borderRadius:
                           isMobile
                               ? BorderRadius.zero
-                              : BorderRadius.circular(6),
-                      boxShadow:
-                          isMobile
-                              ? []
-                              : [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
+                              : BorderRadius.vertical(top: Radius.circular(12)),
+                      border: isMobile
+                          ? null
+                          : Border.all(color: shadColors.border, width: 1),
+                      boxShadow: isMobile
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: shadColors.foreground.withValues(alpha: 0.05),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                     ),
                     child: Form(
                       key: _formKey,
@@ -311,7 +317,8 @@ class _EditSpotPageState extends State<EditSpotPage> {
                               'Edit Spot',
                               style: TextStyle(
                                 fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
+                                color: shadColors.foreground,
                               ),
                             ),
                             SizedBox(height: 20),
@@ -514,47 +521,37 @@ class _EditSpotPageState extends State<EditSpotPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                TextButton(
-                                  onPressed:
-                                      _isLoading
-                                          ? null
-                                          : () => Navigator.pop(context),
-                                  child: Text('Cancel'),
+                                FloatyButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  text: 'Cancel',
+                                  backgroundColor: Colors.grey.shade100,
+                                  foregroundColor: Colors.black,
+                                  enabled: !_isLoading,
                                 ),
                                 SizedBox(width: 16),
-                                TextButton(
-                                  onPressed: _isLoading ? null : _deleteSpot,
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                  ),
-                                  child: Text('Delete'),
+                                FloatyButton(
+                                  onPressed: _deleteSpot,
+                                  text: 'Delete',
+                                  backgroundColor: Colors.red,
+                                  enabled: !_isLoading,
                                 ),
                                 SizedBox(width: 16),
-                                ElevatedButton(
-                                  onPressed: _isLoading ? null : _saveSpot,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF0078D7),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  child:
-                                      _isLoading
-                                          ? SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
-                                            ),
-                                          )
-                                          : Text('Save'),
-                                ),
+                                _isLoading
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Color(0xFF2B7DE9),
+                                              ),
+                                        ),
+                                      )
+                                    : FloatyButton(
+                                        onPressed: _saveSpot,
+                                        text: 'Save',
+                                      ),
                               ],
                             ),
                           ],
