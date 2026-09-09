@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../config/CookieAuth.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../config/theme.dart';
+import '../widgets/glider_format.dart';
 
 class EditGliderPage extends AddGliderPage {
   final api.Glider glider;
@@ -18,26 +19,21 @@ class EditGliderPage extends AddGliderPage {
 }
 
 class EditGliderPageState extends AddGliderPageState {
-  final _formKey = GlobalKey<FormState>();
-  final _manufacturerController = TextEditingController();
-  final _modelController = TextEditingController();
-  bool _isLoading = false;
   late api.Glider glider;
   bool _isDeleting = false;
+
+  // Deliberately no local formKey / controllers here: shadowing the parent's meant the Form
+  // widget and the validate() call used different keys, so validators never fired on save.
 
   @override
   void initState() {
     super.initState();
     glider = (widget as EditGliderPage).glider;
-    _manufacturerController.text = glider.manufacturer;
-    _modelController.text = glider.model;
-  }
-
-  @override
-  void dispose() {
-    _manufacturerController.dispose();
-    _modelController.dispose();
-    super.dispose();
+    manufacturerController.text = glider.manufacturer;
+    modelController.text = glider.model;
+    sizeController.text = glider.size ?? '';
+    certificationClass = glider.certificationClass;
+    gradation = glider.gradation;
   }
 
   CookieAuth _getCookieAuth() {
@@ -75,17 +71,25 @@ class EditGliderPageState extends AddGliderPageState {
     }
   }
 
-  @override
+  // Not an override: _submitForm is private to the parent's library, so this is a separate
+  // method that the edit page's own Save button calls.
   Future<void> _submitForm() async {
     if (formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true;
+        isLoading = true;
       });
 
       try {
+        // PUT replaces the glider server-side, and the generated toJson() always writes every
+        // key, nulls included. Any field omitted here is therefore actively cleared, so all of
+        // them must be sent.
+        final size = sizeController.text.trim();
         final gliderUpdate = api.GliderUpdate(
-          manufacturer: _manufacturerController.text,
-          model: _modelController.text,
+          manufacturer: manufacturerController.text,
+          model: modelController.text,
+          size: size.isEmpty ? null : size,
+          certificationClass: toUpdateCertificationClass(certificationClass),
+          gradation: toUpdateGradation(gradation),
         );
 
         final apiClient = api.ApiClient(
@@ -108,7 +112,7 @@ class EditGliderPageState extends AddGliderPageState {
       } finally {
         if (mounted) {
           setState(() {
-            _isLoading = false;
+            isLoading = false;
           });
         }
       }
@@ -156,7 +160,7 @@ class EditGliderPageState extends AddGliderPageState {
                         ],
                 ),
                 child: Form(
-                  key: _formKey,
+                  key: formKey,
                   child: SingleChildScrollView(
                     padding: EdgeInsets.all(16),
                     child: Column(
@@ -172,7 +176,7 @@ class EditGliderPageState extends AddGliderPageState {
                         ),
                         SizedBox(height: 20),
                         TextFormField(
-                          controller: _manufacturerController,
+                          controller: manufacturerController,
                           decoration: InputDecoration(
                             labelText: 'Manufacturer',
                             border: OutlineInputBorder(),
@@ -190,7 +194,7 @@ class EditGliderPageState extends AddGliderPageState {
                         ),
                         SizedBox(height: 16),
                         TextFormField(
-                          controller: _modelController,
+                          controller: modelController,
                           decoration: InputDecoration(
                             labelText: 'Model',
                             border: OutlineInputBorder(),
@@ -206,6 +210,8 @@ class EditGliderPageState extends AddGliderPageState {
                             return null;
                           },
                         ),
+                        SizedBox(height: 20),
+                        ...buildCertificationFields(() {}),
                         SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -215,17 +221,17 @@ class EditGliderPageState extends AddGliderPageState {
                               text: 'Cancel',
                               backgroundColor: Colors.grey.shade100,
                               foregroundColor: Colors.black,
-                              enabled: !_isLoading,
+                              enabled: !isLoading,
                             ),
                             SizedBox(width: 16),
                             FloatyButton(
                               onPressed: _deleteGlider,
                               text: 'Delete',
                               backgroundColor: Colors.red,
-                              enabled: !_isLoading,
+                              enabled: !isLoading,
                             ),
                             SizedBox(width: 16),
-                            _isLoading
+                            isLoading
                                 ? SizedBox(
                                     width: 20,
                                     height: 20,

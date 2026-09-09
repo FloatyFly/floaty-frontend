@@ -18,6 +18,7 @@ import 'package:floaty_client/api.dart' as api;
 import '../../../services/spots_service.dart';
 import '../../../services/gliders_service.dart';
 import '../../config/theme.dart';
+import '../widgets/glider_format.dart';
 
 class FlightsPage extends StatefulWidget {
   const FlightsPage({Key? key}) : super(key: key);
@@ -529,7 +530,7 @@ class FlightListView extends StatelessWidget {
                             model: 'Unknown',
                           ),
                     );
-                    return '${glider.manufacturer} ${glider.model}';
+                    return gliderDisplayName(glider);
                   }
 
                   return ListView.separated(

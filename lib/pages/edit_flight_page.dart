@@ -14,6 +14,7 @@ import '../config/constants.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../config/theme.dart';
+import '../widgets/glider_format.dart';
 
 class EditFlightPage extends StatefulWidget {
   final Flight flight;
@@ -681,7 +682,7 @@ class _EditFlightPageState extends State<EditFlightPage> {
                                         return DropdownMenuItem<int>(
                                           value: glider.id,
                                           child: Text(
-                                            '${glider.manufacturer} ${glider.model}',
+                                            gliderDisplayName(glider),
                                           ),
                                         );
                                       }).toList(),

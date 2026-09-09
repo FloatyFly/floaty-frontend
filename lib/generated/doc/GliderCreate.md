@@ -10,6 +10,9 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **manufacturer** | **String** | Manufacturer of the glider. | 
 **model** | **String** | Model name of the glider. | 
+**size** | **String** | Manufacturer size designation, as printed by the manufacturer. Not normalised across manufacturers. | [optional] 
+**certificationClass** | **String** | EN 926-2 / LTF certification class. NONE means genuinely uncertified; CCC is the CIVL competition class, which is also not EN-certified. Absent means not recorded. | [optional] 
+**gradation** | **String** | Optional informal refinement of the certification class, e.g. Low B. Community vocabulary, not manufacturer data. | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

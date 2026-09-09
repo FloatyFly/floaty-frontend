@@ -815,7 +815,21 @@ components:
         model:
           type: string
           description: 'Model name of the glider.'
-          example: 'Alpha 7'
+          example: 'Sigma 11'
+        size:
+          type: string
+          description: 'Manufacturer size designation, as printed by the manufacturer. Not normalised across manufacturers.'
+          example: '95'
+        certificationClass:
+          type: string
+          description: 'EN 926-2 / LTF certification class. NONE means genuinely uncertified; CCC is the CIVL competition class, which is also not EN-certified. Absent means not recorded.'
+          enum: [A, B, C, D, NONE, CCC]
+          example: 'B'
+        gradation:
+          type: string
+          description: 'Optional informal refinement of the certification class, e.g. Low B. Community vocabulary, not manufacturer data.'
+          enum: [LOW, MID, HIGH]
+          example: 'HIGH'
 
     GliderCreate:
       type: object
@@ -830,7 +844,21 @@ components:
         model:
           type: string
           description: 'Model name of the glider.'
-          example: 'Alpha 7'
+          example: 'Sigma 11'
+        size:
+          type: string
+          description: 'Manufacturer size designation, as printed by the manufacturer. Not normalised across manufacturers.'
+          example: '95'
+        certificationClass:
+          type: string
+          description: 'EN 926-2 / LTF certification class. NONE means genuinely uncertified; CCC is the CIVL competition class, which is also not EN-certified. Absent means not recorded.'
+          enum: [A, B, C, D, NONE, CCC]
+          example: 'B'
+        gradation:
+          type: string
+          description: 'Optional informal refinement of the certification class, e.g. Low B. Community vocabulary, not manufacturer data.'
+          enum: [LOW, MID, HIGH]
+          example: 'HIGH'
 
     GliderUpdate:
       type: object
@@ -842,7 +870,21 @@ components:
         model:
           type: string
           description: 'Model name of the glider.'
-          example: 'Alpha 7'
+          example: 'Sigma 11'
+        size:
+          type: string
+          description: 'Manufacturer size designation, as printed by the manufacturer. Not normalised across manufacturers.'
+          example: '95'
+        certificationClass:
+          type: string
+          description: 'EN 926-2 / LTF certification class. NONE means genuinely uncertified; CCC is the CIVL competition class, which is also not EN-certified. Absent means not recorded.'
+          enum: [A, B, C, D, NONE, CCC]
+          example: 'B'
+        gradation:
+          type: string
+          description: 'Optional informal refinement of the certification class, e.g. Low B. Community vocabulary, not manufacturer data.'
+          enum: [LOW, MID, HIGH]
+          example: 'HIGH'
 
     Flight:
       type: object
