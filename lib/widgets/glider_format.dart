@@ -22,19 +22,14 @@ String? certificationDisplay(api.Glider glider) {
     return null;
   }
 
+  // The base certification always leads, so the column sorts and scans by class.
   final className = switch (certificationClass.value) {
     'NONE' => 'None',
-    'CCC' => 'None (CCC)',
     final value => value,
   };
 
   final gradation = glider.gradation;
   if (gradation == null) {
-    return className;
-  }
-
-  // "Low B" reads naturally; "Low None (CCC)" does not, so only letter classes get a prefix.
-  if (certificationClass.value == 'NONE' || certificationClass.value == 'CCC') {
     return className;
   }
 
@@ -44,7 +39,7 @@ String? certificationDisplay(api.Glider glider) {
     'HIGH' => 'High',
     final value => value,
   };
-  return '$gradationName $className';
+  return '$className ($gradationName)';
 }
 
 // The generator emits a separate enum class per schema (Glider / GliderCreate / GliderUpdate),
