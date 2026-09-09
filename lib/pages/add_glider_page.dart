@@ -195,7 +195,9 @@ class AddGliderPageState extends State<AddGliderPage> {
         children: [
           if (!isMobile) const FloatyBackgroundWidget(),
           if (isMobile) Container(color: shadColors.background),
-          Column(
+          // Scrollable: the form is now tall enough to overflow shorter viewports.
+          SingleChildScrollView(
+            child: Column(
             children: [
               Header(),
               SizedBox(height: 20),
@@ -311,6 +313,7 @@ class AddGliderPageState extends State<AddGliderPage> {
                 ),
               ),
             ],
+          ),
           ),
         ],
       ),
