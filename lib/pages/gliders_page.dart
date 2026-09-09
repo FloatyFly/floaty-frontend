@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../config/CookieAuth.dart';
 import '../config/theme.dart';
+import '../widgets/glider_format.dart';
 
 class GlidersPage extends StatefulWidget {
   final FloatyUser? user;
@@ -241,6 +242,17 @@ class _GlidersPageState extends State<GlidersPage> {
                                         ),
                                         SizedBox(width: 24),
                                         Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'Certification',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: shadColors.mutedForeground,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 24),
+                                        Expanded(
                                           flex: 3,
                                           child: Text(
                                             'Air Time',
@@ -370,6 +382,26 @@ class _GlidersPageState extends State<GlidersPage> {
                                                           flex: 2,
                                                           child: Text(
                                                             glider.manufacturer,
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color:
+                                                                  shadColors
+                                                                      .foreground,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 24),
+                                                        Expanded(
+                                                          flex: 2,
+                                                          child: Text(
+                                                            // Empty when nothing is recorded.
+                                                            certificationDisplay(
+                                                                  glider,
+                                                                ) ??
+                                                                '',
                                                             style: TextStyle(
                                                               fontSize: 14,
                                                               color:

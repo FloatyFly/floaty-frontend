@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import '../config/CookieAuth.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../config/theme.dart';
+import '../widgets/certification_selector.dart';
+import '../widgets/glider_format.dart';
 
 class AddGliderPage extends StatefulWidget {
   @override
@@ -16,6 +18,9 @@ class AddGliderPageState extends State<AddGliderPage> {
   final _formKey = GlobalKey<FormState>();
   final _manufacturerController = TextEditingController();
   final _modelController = TextEditingController();
+  final _sizeController = TextEditingController();
+  api.GliderCertificationClassEnum? _certificationClass;
+  api.GliderGradationEnum? _gradation;
   bool _isLoading = false;
 
   @protected
@@ -28,6 +33,22 @@ class AddGliderPageState extends State<AddGliderPage> {
   TextEditingController get modelController => _modelController;
 
   @protected
+  TextEditingController get sizeController => _sizeController;
+
+  @protected
+  api.GliderCertificationClassEnum? get certificationClass => _certificationClass;
+
+  @protected
+  set certificationClass(api.GliderCertificationClassEnum? value) =>
+      _certificationClass = value;
+
+  @protected
+  api.GliderGradationEnum? get gradation => _gradation;
+
+  @protected
+  set gradation(api.GliderGradationEnum? value) => _gradation = value;
+
+  @protected
   bool get isLoading => _isLoading;
 
   @protected
@@ -38,6 +59,86 @@ class AddGliderPageState extends State<AddGliderPage> {
     return CookieAuth();
   }
 
+  /// The size / certification fields, shared with the edit page so both forms stay identical.
+  ///
+  /// Gradation is disabled until a certification class is picked: the backend rejects a
+  /// gradation with no class, since "High" on its own means nothing.
+  @protected
+  List<Widget> buildCertificationFields(VoidCallback onChanged) {
+    final classSelected = _certificationClass != null;
+    return [
+      TextFormField(
+        controller: _sizeController,
+        decoration: InputDecoration(
+          labelText: 'Size (optional)',
+          hintText: 'e.g. 95 or 24',
+          helperText: 'As printed by the manufacturer.',
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+      SizedBox(height: 20),
+      SegmentedOptionSelector<api.GliderCertificationClassEnum>(
+        label: 'Certification (optional)',
+        options: const [
+          api.GliderCertificationClassEnum.A,
+          api.GliderCertificationClassEnum.B,
+          api.GliderCertificationClassEnum.C,
+          api.GliderCertificationClassEnum.D,
+          api.GliderCertificationClassEnum.NONE,
+          api.GliderCertificationClassEnum.CCC,
+        ],
+        labelBuilder: (option) => switch (option.value) {
+          'NONE' => 'None',
+          'CCC' => 'None (CCC)',
+          final value => value,
+        },
+        selected: _certificationClass,
+        helperText: 'Tap again to clear. None means uncertified; CCC is the competition class.',
+        onChanged: (value) {
+          setState(() {
+            _certificationClass = value;
+            // A gradation with no class is rejected by the API, so drop it.
+            if (value == null) {
+              _gradation = null;
+            }
+          });
+          onChanged();
+        },
+      ),
+      SizedBox(height: 20),
+      SegmentedOptionSelector<api.GliderGradationEnum>(
+        label: 'Gradation (optional)',
+        options: const [
+          api.GliderGradationEnum.LOW,
+          api.GliderGradationEnum.MID,
+          api.GliderGradationEnum.HIGH,
+        ],
+        labelBuilder: (option) => switch (option.value) {
+          'LOW' => 'Low',
+          'MID' => 'Mid',
+          'HIGH' => 'High',
+          final value => value,
+        },
+        selected: _gradation,
+        enabled: classSelected,
+        helperText: classSelected
+            ? 'Informal refinement, e.g. Low B.'
+            : 'Pick a certification class first.',
+        onChanged: (value) {
+          setState(() => _gradation = value);
+          onChanged();
+        },
+      ),
+    ];
+  }
+
+  @override
+  void dispose() {
+    _sizeController.dispose();
+    super.dispose();
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -45,9 +146,13 @@ class AddGliderPageState extends State<AddGliderPage> {
       });
 
       try {
+        final size = _sizeController.text.trim();
         final gliderCreate = api.GliderCreate(
           manufacturer: _manufacturerController.text,
           model: _modelController.text,
+          size: size.isEmpty ? null : size,
+          certificationClass: toCreateCertificationClass(_certificationClass),
+          gradation: toCreateGradation(_gradation),
         );
 
         final apiClient = api.ApiClient(
@@ -90,7 +195,9 @@ class AddGliderPageState extends State<AddGliderPage> {
         children: [
           if (!isMobile) const FloatyBackgroundWidget(),
           if (isMobile) Container(color: shadColors.background),
-          Column(
+          // Scrollable: the form is now tall enough to overflow shorter viewports.
+          SingleChildScrollView(
+            child: Column(
             children: [
               Header(),
               SizedBox(height: 20),
@@ -168,6 +275,8 @@ class AddGliderPageState extends State<AddGliderPage> {
                             return null;
                           },
                         ),
+                        SizedBox(height: 20),
+                        ...buildCertificationFields(() {}),
                         SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -204,6 +313,7 @@ class AddGliderPageState extends State<AddGliderPage> {
                 ),
               ),
             ],
+          ),
           ),
         ],
       ),

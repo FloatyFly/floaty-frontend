@@ -17,6 +17,7 @@ import '../config/constants.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import '../widgets/glider_format.dart';
 
 class StatsPage extends StatefulWidget {
   final FloatyUser? user;
@@ -463,7 +464,7 @@ class _StatsPageState extends State<StatsPage> {
                       model: 'Unknown',
                     ),
               );
-              return '${glider.manufacturer} ${glider.model}';
+              return gliderDisplayName(glider);
             }
 
             return Container(

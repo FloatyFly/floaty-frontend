@@ -12,6 +12,7 @@ import '../config/theme.dart';
 import '../models/model.dart';
 import '../services/flight_service.dart';
 import 'package:floaty_client/api.dart' as api;
+import '../widgets/glider_format.dart';
 
 class AddFlightPage extends StatefulWidget {
   final Flight? latestFlight;
@@ -422,7 +423,7 @@ class _AddFlightPageState extends State<AddFlightPage> {
                                     return DropdownMenuItem<int>(
                                       value: glider.id,
                                       child: Text(
-                                        '${glider.manufacturer} ${glider.model}',
+                                        gliderDisplayName(glider),
                                       ),
                                     );
                                   }).toList(),
